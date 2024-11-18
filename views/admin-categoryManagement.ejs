@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <title>Admin Panel</title>
+    <link rel="stylesheet" href="/css/admin.css">
+  </head>
+  <body>
+    <div class="container-scroller">
+      <%- include("./layouts/aheader") %>
+      <!-- Main content -->
+      <div class="container-fluid page-body-wrapper">
+        <!-- Navbar -->
+        <nav class="navbar p-0 fixed-top d-flex flex-row">
+          <div class="navbar-brand-wrapper d-flex d-lg-none align-items-center justify-content-center">
+            <a class="navbar-brand brand-logo-mini" href="index.html"><img src="assets/images/logo-mini.svg" alt="logo" /></a>
+          </div>
+          <div class="navbar-menu-wrapper flex-grow d-flex align-items-stretch">
+            <button class="navbar-toggler navbar-toggler align-self-center" type="button" data-toggle="minimize">
+              <span class="mdi mdi-menu"></span>
+            </button>
+            <ul class="navbar-nav navbar-nav-right">
+              <!-- Additional navbar items can be added here -->
+            </ul>
+            <button class="navbar-toggler navbar-toggler-right d-lg-none align-self-center" type="button" data-toggle="offcanvas">
+              <span class="mdi mdi-format-line-spacing"></span>
+            </button>
+          </div>
+        </nav>
+        <!-- Main Panel -->
+        <div class="row p-3">
+          <div class="col-12 grid-margin">
+            <div class="card">
+              <div class="card-body">
+                <div class="table-responsive">
+                  <form class="nav-link mt-2 mt-md-0 d-lg-flex search">
+                    <input type="text" class="form-control" placeholder="Search users">
+                    <button style="height: 33px; margin: 3px 0px 0px 10px;" class="btn btn-primary">Search</button>
+                  </form>
+                  <table class="table">
+                    <thead>
+                      <tr>
+                        <th> Name </th>
+                        <th> Product Count </th>
+                        <th> CreatedAt </th>
+                        <th> UpdatedAt </th>
+                        <th> Update </th>
+                        <th> Delete </th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      
+                      <% categories.forEach((category) => { %>
+                        <tr id="category<%= category._id %>" data-name="<%= category.name %>"
+                            data-description="<%= category.description %>" data-productcount="<%= category.productCount %>"
+                            data-image="<%= category.image %>">
+                            <td> <%= category.name %> </td>
+                            <td> <%= category.productCount %> </td> 
+                          <td>
+                            <% 
+                              const createdDate = new Date(category.createdAt);
+                              const createdDay = createdDate.getDate();
+                              const createdMonth = createdDate.getMonth() + 1;
+                              const createdYear = createdDate.getFullYear();
+                              const createdFormattedDate = createdDay + ':' + createdMonth + ':' + createdYear;
+                            %>
+                            <%= createdFormattedDate %>
+                          </td>
+                          <td>
+                            <% 
+                              const updatedDate = new Date(category.updatedAt);
+                              const updatedDay = updatedDate.getDate();
+                              const updatedMonth= updatedDate.getMonth() + 1;
+                              const updatedYear = updatedDate.getFullYear();
+                              const updatedFormattedDate = updatedDay + ':' + updatedMonth + ':' + updatedYear;
+                            %>
+                            <%= updatedFormattedDate%>
+                          </td>
+                          <td>
+                            <a href="/admin/categorymanagement/update/<%= category._id %>" class="badge badge-outline-primary btn-update">
+                            Update</button>
+                          </td>
+                          <td>
+                            <button data-id="<%= category._id %>" class="badge badge-outline-danger btn-delete">Delete</button>
+                          </td>
+                        </tr>
+                      <% }) %>
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+
+          
+        <div style="margin-top: 100px;" class="col-md-4 grid-margin stretch-card userInfoView">
+          <a href="/admin/categorymanagement/add" class="btn btn-primary categorybtn pt-3" style="width: 200px;">Add New Category</a>
+          <a href="/admin/categorymanagement/delete" class="btn btn-danger categorybtn1 pt-3" style="width: 200px;">Deleted Category</a>
+        </div>
+      </div>
+    </div>
+  </body>
+
+  <script>
+    document.querySelectorAll('.btn-delete').forEach(button =>{
+      button.addEventListener('click', async function() {
+        const id = this.getAttribute('data-id');
+        try {
+          const response = await fetch(`/admin/categorymanagement/delete`, {
+            method: 'PUT',
+            headers: {
+              'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+              categoryId: id
+            })
+          });
+          let data = await response.json()
+          if (data.success) {
+            window.location.reload();
+          }
+        } catch (error) {
+          console.error(error);
+        }
+      });
+    })
+</script>
+
+</html>

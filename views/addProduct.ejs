@@ -1,0 +1,243 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <title>Admin Panel</title>
+    <link rel="stylesheet" href="/css/admin.css">
+    <link href="https://unpkg.com/cropperjs@1.5.12/dist/cropper.min.css" rel="stylesheet"/>
+  </head>
+  <body>
+    <div class="container-scroller">
+      <%- include("./layouts/aheader") %>
+
+        <div class="container mt-5">
+            <h2 class="pt-5">Add New Product</h2>
+    <form id="form" action="/admin/productmanagement/add" method="POST" enctype="multipart/form-data">
+      <div class="form-group">
+        <label for="name" class="pt-3">Product Name</label>
+        <input type="text" id="name" name="name" class="form-control mb-3" required>
+    
+        <label for="description" class="pt-3"> Description</label>
+        <input type="text" id="description" name="description" class="form-control mb-3" required>
+
+        <div class="form-group">
+
+          <label for="productImages">Images</label>
+          <input type="file" class="form-control product-image" name="productImage1" id="productImage1" accept="image/*" onchange="previewAndCrop(event, 0)"/>
+
+          <div class="cropPreviewSection" id="cropPreviewSection0" style="display: none">
+            <img id="cropPreview0" style="max-width: 100%" />
+            <button type="button" onclick="startCropping(0)">
+              Crop Image 1
+            </button>
+          </div>
+
+          <input type="file" class="form-control product-image" name="productImage2" id="productImage2" accept="image/*" onchange="previewAndCrop(event, 1)"/>
+
+          <div class="cropPreviewSection" id="cropPreviewSection1" style="display: none">
+            <img id="cropPreview1" style="max-width: 100%" />
+            <button type="button" onclick="startCropping(1)">
+              Crop Image 2
+            </button>
+          </div>
+
+          <input type="file" class="form-control product-image" name="productImage3" id="productImage3" accept="image/*" onchange="previewAndCrop(event, 2)"/>
+
+          <div class="cropPreviewSection" id="cropPreviewSection2" style="display: none">
+            <img id="cropPreview2" style="max-width: 100%" />
+            <button type="button" onclick="startCropping(2)">
+              Crop Image 3
+            </button>
+          </div>
+
+          <input type="file" class="form-control product-image" name="productImage4" id="productImage4" accept="image/*" onchange="previewAndCrop(event, 3)"/>
+
+          <div class="cropPreviewSection" id="cropPreviewSection3" style="display: none">
+            <img id="cropPreview3" style="max-width: 100%" />
+            <button type="button" onclick="startCropping(3)">
+              Crop Image 4
+            </button>
+          </div>
+        </div>
+    
+
+        <label for="category" class="pt-3">Category</label>
+        <select id="category" name="category" class="form-control mb-3" required>
+          <option value="">Select Category</option>
+          <% categories.forEach(function(product) { %>
+            <option value="<%= product._id %>"><%= product.name %></option>
+          <% }) %>
+        </select>   
+
+        <label for="image" class="pt-3">Price</label>
+        <input type="number" id="price" name="price" class="form-control mb-3" required>
+
+        <label for="image" class="pt-3">Offerprice</label>
+        <input type="number" id="offerprice" name="offerprice" class="form-control mb-3" required>
+
+        <label for="image" class="pt-3">Stock</label>
+        <input type="number" id="stock" name="stock" class="form-control mb-3" required>
+
+        <label for="image" class="pt-3">Tags(should be seperated by commas)</label>
+        <input type="text" id="tags" name="tags" class="form-control mb-3" required>
+
+        <label for="image" class="pt-3">Sizes(should be seperated by commas)</label>
+        <input type="text" id="sizes" name="sizes" class="form-control mb-3" required>
+
+        <label for="image" class="pt-3">Warranty</label>
+        <input type="text" id="warranty" name="warranty" class="form-control mb-3" required>
+
+
+        <label for="image" class="pt-3">Return Policy</label>
+        <input type="text" id="returnpolicy" name="returnpolicy" class="form-control mb-3" required>
+
+        <label for="cashOnDelivery" class="pt-3">Cash On Delivery</label>
+            <select id="cashOnDelivery" name="cashOnDelivery" class="form-control mb-3" required>
+              <option value="yes">Yes</option>
+              <option value="no">No</option>
+            </select>
+      </div>
+
+      <p id="msg" style="color:red"></p>
+    
+      <button type="submit" class="btn btn-primary mt-3">Add Product</button>
+      <a href="/admin/productmanagement" class="btn btn-secondary mt-3">Cancel</a>
+    </form>
+    </div>
+    <script src="https://unpkg.com/cropperjs@1.5.12/dist/cropper.min.js"></script>
+
+  <script>
+    const cropperInstances = [];
+    const croppedImages = [];
+
+    function previewAndCrop(event, index) {
+  const file = event.target.files[0];
+  if (!file) return;
+
+  const cropPreview = document.getElementById(`cropPreview${index}`);
+  const cropPreviewSection = document.getElementById(`cropPreviewSection${index}`);
+
+  cropPreview.src = URL.createObjectURL(file);
+  cropPreviewSection.style.display = "block";
+  if (cropperInstances[index]) {
+    cropperInstances[index].destroy();
+  }
+  cropperInstances[index] = new Cropper(cropPreview, {
+    aspectRatio: 1,
+    viewMode: 1,
+    autoCropArea: 1,
+    scalable: true,
+    zoomable: true,
+    movable: true,
+  });
+
+}
+
+function startCropping(index) {
+  const cropper = cropperInstances[index];
+  if (!cropper) return;
+
+  cropper.getCroppedCanvas().toBlob((blob) => {
+      croppedImages[index] = blob; 
+      const cropPreviewSection = document.getElementById(`cropPreviewSection${index}`);
+      cropPreviewSection.style.display = "none";
+      console.log("Cropped image stored for upload or further use.");
+  });
+}
+</script>
+
+<script>
+
+  document.getElementById("form").addEventListener("submit",(e)=>{
+    if(!addProductValidate){
+      e.preventDefault()
+    }
+  })
+
+  function addProductValidate(){
+    const msg=document.getElementById("msg")
+    const name=document.getElementById("name").value
+    const description=document.getElementById("description").value
+    const price=document.getElementById("price").value
+    const offerprice=document.getElementById("offerprice").value
+    const stock=document.getElementById("stock").value
+    const tags=document.getElementById("tags").value
+    const sizes=document.getElementById("sizes").value
+    const warranty=document.getElementById("warranty").value
+    const returnpolicy=document.getElementById("returnpolicy").value
+    const cashOnDelivery=document.getElementById("cashOnDelivery").value
+    const namereg=/^[a-zA-Z\s]+$/
+    const desreg=/^(\b\w+\b[\s]*){10,}$/
+    const tagreg=/^(\w+)(,\s*\w+)*$/
+
+    if(name.trim()==""){
+      msg.innerHTML ="Enter a name"
+      return false
+    }
+    else if(namereg.test(name)){
+      msg.innerHTML = "Please enter a name in correct format"
+      return false
+    }
+    else if(description.trim()==""){
+      msg.innerHTML="Description is required"
+      return false
+    }
+    else  if(desreg.test(description))
+    {
+      msg.innerHTML="Description need to be atleast 10 words"
+      return false
+    }
+    else if(price.trim()==""){
+      msg.innerHTML="Price is required"
+      return false
+    }
+    else if(isNaN(price)){
+      msg.innerHTML="Price should be a number"
+      return false
+    }
+    else if(offerprice.trim()==""){
+      msg.innerHTML="Offer price is required"
+      return false
+    }
+    else if(isNaN(offerprice)){
+      msg.innerHTML="Offer price should be a number"
+      return false
+    }
+    else if(stock.trim()==""){
+      msg.innerHTML="Stock is required"
+      return false
+    }
+    else if(isNaN(stock)){
+      msg.innerHTML="Stock should be a number"
+      return false
+    }
+    else if(tags.trim()==""){
+      msg.innerHTML="Tags are required"
+      return false
+    }
+    else if(tagreg.test(tags)){
+      msg.innerHTML="Tags should be comma separated"
+      return false
+    }
+    else if(sizes.trim()==""){
+      msg.innerHTML="Sizes are required"
+      return false
+    }
+    else if(warranty.trim()==""){
+      msg.innerHTML="Warranty is required"
+      return false
+    }
+    else if(returnpolicy.trim()==""){
+      msg.innerHTML="Return policy is required"
+      return false
+    }else{
+      msg.innerHTML=""
+      return true
+    }
+  }
+
+</script>
+</body>
+</html>
+    

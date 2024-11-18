@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <title>Admin Panel</title>
+    <link rel="stylesheet" href="/css/admin.css">
+  </head>
+  <body>
+    <div class="container-scroller">
+      <%- include("./layouts/aheader") %>
+        <div class="row p-3 w-50">
+            <div class="col-12 grid-margin">
+              <div class="card">
+                <div class="card-body">
+                  <h4 class="card-title">Deleted Categories</h4>
+                  <div class="table-responsive">
+                    <table class="table">
+                      <thead>
+                        <tr>
+                          <th>Category Name</th>
+                          <th>Action</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        <% deletedCategories.forEach((category) => { %>
+                          <tr>
+                            <td><%= category.name %></td>
+                            <td>
+                                <button data-id="<%= category._id %>" class="badge badge-outline-success btn-recover">Recover</button>
+                              </form>
+                            </td>
+                          </tr>
+                        <% }) %>
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </body>
+
+    <script>
+
+      document.querySelectorAll(".btn-recover").forEach(button=>{
+        button.addEventListener("click",async function(){
+          const id = this.getAttribute("data-id");
+
+          try{
+            const response = await fetch(`/admin/categorymanagement/recover`, {
+              method: 'PUT',
+              headers: {
+                'Content-Type': 'application/json'
+              },
+              body: JSON.stringify({
+                categoryId: id
+              })
+            });
+            let result=await response.json()
+            if(result.success){
+              alert(result.message);
+              window.location.reload();
+            }
+          } catch(error){
+            console.error(error);
+          }
+        })
+      })
+
+    </script>
+    </html>

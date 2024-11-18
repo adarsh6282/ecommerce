@@ -1,0 +1,175 @@
+<!DOCTYPE HTML>
+<html>
+	<head>
+	<title>Footwear - Free Bootstrap 4 Template by Colorlib</title>
+   <meta charset="utf-8">
+   <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+
+	<link href="https://fonts.googleapis.com/css?family=Montserrat:300,400,500,600,700" rel="stylesheet">
+	<link href="https://fonts.googleapis.com/css?family=Rokkitt:100,300,400,700" rel="stylesheet">
+	
+	<!-- Animate.css -->
+	<link rel="stylesheet" href="css/animate.css">
+	<!-- Icomoon Icon Fonts-->
+	<link rel="stylesheet" href="css/icomoon.css">
+	<!-- Ion Icon Fonts-->
+	<link rel="stylesheet" href="css/ionicons.min.css">
+	<!-- Bootstrap  -->
+	<link rel="stylesheet" href="css/bootstrap.min.css">
+
+	<!-- Magnific Popup -->
+	<link rel="stylesheet" href="css/magnific-popup.css">
+
+	<!-- Flexslider  -->
+	<link rel="stylesheet" href="css/flexslider.css">
+
+	<!-- Owl Carousel -->
+	<link rel="stylesheet" href="css/owl.carousel.min.css">
+	<link rel="stylesheet" href="css/owl.theme.default.min.css">
+	
+	<!-- Date Picker -->
+	<link rel="stylesheet" href="css/bootstrap-datepicker.css">
+	<!-- Flaticons  -->
+	<link rel="stylesheet" href="fonts/flaticon/font/flaticon.css">
+
+	<!-- Theme style  -->
+	<link rel="stylesheet" href="css/style.css">
+
+	</head>
+	<body>
+		
+	<div class="colorlib-loader"></div>
+
+	<%- include('./layouts/header') %>
+
+		<div class="container">
+			<div class="bread-crumb flex-w p-l-25 p-r-15 p-t-30 p-lr-0-lg mt-2">
+				<a href="/" class="stext-109 cl8 hov-cl1 trans-04">
+					Home /
+					<i class="fa fa-angle-right m-l-9 m-r-10" aria-hidden="true"></i>
+				</a>
+
+				<a href="/shop" class="stext-109 cl8 hov-cl1 trans-04">
+					Shop
+					<i class="fa fa-angle-right m-l-9 m-r-10" aria-hidden="true"></i>
+				</a>
+			</div>
+		</div>
+
+		<div id="shopimgdiv">
+			<img src="images/shop.png" alt="" srcset="">
+		</div>
+
+		<div class="colorlib-product">
+			<div class="container">
+				<div class="row">
+					<div class="col-sm-8 offset-sm-2 text-center colorlib-heading colorlib-heading-sm">
+						<h2>View All Products</h2>
+					</div>
+				</div>
+				
+				<div class="row row-pb-md">
+						<% products.forEach(element => {%>
+						<div class="col-md-3 col-lg-3 mb-4 text-center" style="width:255px; height: 371px;">
+							<div class="product-entry border" style="width:255px; height: 371px;">
+								<a href="/productdetail/<%= element._id  %>" class="prod-img">
+									<img src="<%= element.images[0] %>" class="img-fluid" alt="Free html5 bootstrap 4 template" style="height:250px">
+								</a>
+								<div class="desc">
+									<h2><a href="#"><%= element.name %></a></h2>
+									<span class="price"><%= element.offerPrice%></span>
+								</div>
+							</div>
+						</div>
+					<%})%>
+				</div>
+			</div>
+		</div>
+
+		<div class="colorlib-partner">
+			<div class="container">
+				<div class="row">
+					<div class="col-sm-8 offset-sm-2 text-center colorlib-heading colorlib-heading-sm">
+						<h2>Trusted Partners</h2>
+					</div>
+				</div>
+				<div class="row">
+					<div class="col partner-col text-center">
+						<img src="images/brand-1.jpg" class="img-fluid" alt="Free html4 bootstrap 4 template">
+					</div>
+					<div class="col partner-col text-center">
+						<img src="images/brand-2.jpg" class="img-fluid" alt="Free html4 bootstrap 4 template">
+					</div>
+					<div class="col partner-col text-center">
+						<img src="images/brand-3.jpg" class="img-fluid" alt="Free html4 bootstrap 4 template">
+					</div>
+					<div class="col partner-col text-center">
+						<img src="images/brand-4.jpg" class="img-fluid" alt="Free html4 bootstrap 4 template">
+					</div>
+					<div class="col partner-col text-center">
+						<img src="images/brand-5.jpg" class="img-fluid" alt="Free html4 bootstrap 4 template">
+					</div>
+				</div>
+			</div>
+		</div>
+
+		<%- include('./layouts/footer') %>
+	</div>
+
+	<div class="gototop js-top">
+		<a href="#" class="js-gotop"><i class="ion-ios-arrow-up"></i></a>
+	</div>
+	
+	<!-- jQuery -->
+	<script src="js/jquery.min.js"></script>
+   <!-- popper -->
+   <script src="js/popper.min.js"></script>
+   <!-- bootstrap 4.1 -->
+   <script src="js/bootstrap.min.js"></script>
+   <!-- jQuery easing -->
+   <script src="js/jquery.easing.1.3.js"></script>
+	<!-- Waypoints -->
+	<script src="js/jquery.waypoints.min.js"></script>
+	<!-- Flexslider -->
+	<script src="js/jquery.flexslider-min.js"></script>
+	<!-- Owl carousel -->
+	<script src="js/owl.carousel.min.js"></script>
+	<!-- Magnific Popup -->
+	<script src="js/jquery.magnific-popup.min.js"></script>
+	<script src="js/magnific-popup-options.js"></script>
+	<!-- Date Picker -->
+	<script src="js/bootstrap-datepicker.js"></script>
+	<!-- Stellar Parallax -->
+	<script src="js/jquery.stellar.min.js"></script>
+	<!-- Main -->
+	<script src="js/main.js"></script>
+	<script>
+		document.addEventListener('DOMContentLoaded', function() {
+  const items = document.querySelectorAll('[data-carousel="item"]');
+  const nextButton = document.querySelector('[data-carousel="next"]');
+  const prevButton = document.querySelector('[data-carousel="prev"]');
+  let currentIndex = 0;
+
+  function showItem(index) {
+    items.forEach((item, i) => {
+      item.classList.toggle('active', i === index);
+    });
+  }
+
+  nextButton.addEventListener('click', () => {
+    currentIndex = (currentIndex + 1) % items.length;
+    showItem(currentIndex);
+  });
+
+  prevButton.addEventListener('click', () => {
+    currentIndex = (currentIndex - 1 + items.length) % items.length;
+    showItem(currentIndex);
+  });
+
+  showItem(currentIndex);
+});
+
+	</script>
+	</body>
+</html>
+

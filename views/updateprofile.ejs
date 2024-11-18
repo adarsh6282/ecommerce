@@ -1,0 +1,352 @@
+<!DOCTYPE HTML>
+<html>
+	<head>
+	<title>Footwear - Free Bootstrap 4 Template by Colorlib</title>
+   <meta charset="utf-8">
+   <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+
+	<link href="https://fonts.googleapis.com/css?family=Montserrat:300,400,500,600,700" rel="stylesheet">
+	<link href="https://fonts.googleapis.com/css?family=Rokkitt:100,300,400,700" rel="stylesheet">
+	<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+	<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
+	<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.8.1/font/bootstrap-icons.css">
+
+	<!-- Animate.css -->
+	<link rel="stylesheet" href="css/animate.css">
+	<!-- Icomoon Icon Fonts-->
+	<link rel="stylesheet" href="css/icomoon.css">
+	<!-- Ion Icon Fonts-->
+	<link rel="stylesheet" href="css/ionicons.min.css">
+	<!-- Bootstrap  -->
+	<link rel="stylesheet" href="css/bootstrap.min.css">
+
+	<!-- Magnific Popup -->
+	<link rel="stylesheet" href="css/magnific-popup.css">
+
+	<!-- Flexslider  -->
+	<link rel="stylesheet" href="css/flexslider.css">
+
+	<!-- Owl Carousel -->
+	<link rel="stylesheet" href="css/owl.carousel.min.css">
+	<link rel="stylesheet" href="css/owl.theme.default.min.css">
+	
+	<!-- Date Picker -->
+	<link rel="stylesheet" href="css/bootstrap-datepicker.css">
+	<!-- Flaticons  -->
+	<link rel="stylesheet" href="fonts/flaticon/font/flaticon.css">
+
+	<!-- Theme style  -->
+	<link rel="stylesheet" href="/css/style.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Montserrat', sans-serif;
+        }
+
+        #main-header {
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+
+        .top-section {
+            padding: 15px 5%;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        #brand-logo {
+            color: #ff7f50;
+            font-size: 24px;
+            font-weight: bold;
+            text-decoration: none;
+        }
+
+        .search-container {
+            position: relative;
+            width: 300px;
+        }
+
+        #search-input {
+            width: 100%;
+            padding: 8px 35px 8px 15px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+
+        .main-nav {
+            padding: 0 5%;
+        }
+
+        .nav-list {
+            list-style: none;
+            display: flex;
+            gap: 30px;
+            padding: 15px 0;
+        }
+
+        .nav-list li a {
+            text-decoration: none;
+            color: #333;
+            font-size: 14px;
+            text-transform: uppercase;
+        }
+
+        #promo-banner {
+            background: #7b7fda;
+            color: white;
+            text-align: center;
+            padding: 15px;
+            font-size: 24px;
+            font-weight: bold;
+        }
+
+        #user-dashboard-nav {
+            background: #fff;
+            padding: 20px 5%;
+            border-bottom: 1px solid #eee;
+        }
+
+        .dashboard-menu {
+            display: flex;
+            gap: 25px;
+            align-items: center;
+        }
+
+        .dashboard-link {
+            text-decoration: none;
+            color: #444;
+            font-weight: 500;
+        }
+
+        #logout-button {
+            margin-left: auto;
+            background: #7b7fda;
+            color: white;
+            padding: 8px 20px;
+            border-radius: 4px;
+            text-decoration: none;
+        }
+
+        #profile-section {
+            padding: 30px 5%;
+            background: #f9f9f9;
+            min-height: calc(100vh - 250px);
+        }
+
+        .profile-container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .profile-header {
+            margin-bottom: 30px;
+            padding-bottom: 20px;
+            border-bottom: 1px solid #eee;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            font-size: 14px;
+            color: #666;
+            margin-bottom: 8px;
+        }
+
+        .form-group input {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 15px;
+            transition: border-color 0.3s ease;
+        }
+
+        .form-group input:focus {
+            outline: none;
+            border-color: #7b7fda;
+        }
+
+        .submit-btn {
+            background: #7b7fda;
+            color: white;
+            padding: 12px 25px;
+            border: none;
+            border-radius: 4px;
+            font-size: 16px;
+            cursor: pointer;
+            transition: background 0.3s ease;
+        }
+
+        .submit-btn:hover {
+            background: #6a6cbb;
+        }
+
+        .section-title {
+            font-size: 24px;
+            color: #333;
+            margin-bottom: 10px;
+        }
+
+        @media (max-width: 768px) {
+            .nav-list {
+                flex-wrap: wrap;
+            }
+
+            .dashboard-menu {
+                flex-wrap: wrap;
+            }
+
+            #logout-button {
+                margin-top: 15px;
+                margin-left: 0;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <header>
+		<div id="page">
+			<nav class="colorlib-nav" role="navigation">
+				<div class="top-menu">
+					<div class="container">
+						<div class="row">
+							<div class="col-sm-7 col-md-9">
+								<div id="colorlib-logo"><a href="/"><img src="../../images/Screenshot_2024-10-26_152034-removebg-preview.png" style="height:50px; width:170px"></a></div>
+							</div>
+							<div class="col-sm-5 col-md-3">
+							<form action="#" class="search-wrap">
+							   <div class="form-group">
+								  <input type="search" class="form-control search" placeholder="Search">
+								  <button class="btn btn-primary submit-search text-center" type="submit"><i class="icon-search"></i></button>
+							   </div>
+							</form>
+						 </div>
+					 </div>
+						<div class="row">
+							<div class="col-sm-12 text-left menu-1">
+								<ul>
+									<li><a href="/">Home</a></li>
+									<li><a href="/shop">Shop</a></li>
+									<li><a href="#">About</a></li>
+									<li><a href="#">Contact</a></li>
+									<li><a href="#">My Account</a></li>
+								
+									<li class="cart"><a href="/login">Login / Register</a></li>
+									
+									<li class="cart"><a href="#"><i class="icon-shopping-cart"></i> Cart</a></li>
+									<li class="cart"><a href="#">Wishlist</a></li>
+								</ul>
+							</div>
+						</div>
+					</div>
+				</div>
+				<div class="sale">
+					<div class="container">
+						<div class="row">
+							<div class="col-sm-8 offset-sm-2 text-center">
+								<div class="row">
+									<div class="owl-carousel2">
+										<div class="item">
+											<div class="col">
+												<h3><a href="#">25% off (Almost) Everything! Use Code: Summer Sale</a></h3>
+											</div>
+										</div>
+									</div>
+								</div>
+							</div>
+						</div>
+					</div>
+				</div>
+			</nav>
+		</header>
+
+    <nav id="user-dashboard-nav">
+        <div class="dashboard-menu">
+            <a href="/myaccount" class="dashboard-link">PROFILE</a>
+            <a href="#" class="dashboard-link">ORDERS</a>
+            <a href="/address" class="dashboard-link">ADDRESS</a>
+            <a href="/updateprofile" class="dashboard-link">UPDATE PROFILE</a>
+            <a href="#" class="dashboard-link">WALLET</a>
+            <a href="#" id="logout-button">LOGOUT</a>
+        </div>
+    </nav>
+
+    <main id="profile-section">
+        <div class="profile-container">
+            <div class="profile-header">
+                <h2 class="section-title">Edit Profile</h2>
+                <p>Update your personal information</p>
+            </div>
+            
+            <form id="updateprofile">
+                <div class="form-group">
+
+                    <input type="hidden" id="profileId" name="profileId" value="<%= user.id %>">
+                    
+                    <label for="username">Username</label>
+                    <input type="text" id="username" name="username" placeholder="Enter your username" value="<%= user.username %>" >
+                </div>
+                
+                <div class="form-group">
+                    <label for="phone">Phone Number</label>
+                    <input type="tel" id="phone" name="phone" placeholder="Enter your phone number" value="<%= user.Phone %>">
+                </div>
+
+                <div class="form-group">
+                    <label for="password">Password</label>
+                    <input type="tel" id="password" name="password" placeholder="Enter your Password">
+                </div>
+
+                <button type="submit" class="submit-btn">Update Profile</button>
+            </form>
+        </div>
+    </main>
+
+    <script>
+
+        const updateprofile=document.getElementById("updateprofile")
+        updateprofile.addEventListener("submit", async(e)=> {
+            e.preventDefault()
+
+            let username=document.getElementById("username").value
+            let Phone=document.getElementById("phone").value
+            let password=document.getElementById("password")
+            let id=document.getElementById("profileId").value
+
+            try {
+            const response=await fetch(`/updateprofile/${id}`,{
+                method:"PUT",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify({
+                    username,
+                    Phone,
+                    password
+                })
+            })
+            const data=await response.json()
+            if(data.success){
+                alert(data.message)
+                window.location.href="/myaccount"
+            }else{
+                alert(data.message||"Failed to update product")
+
+            }
+        }catch(error){
+            console.log(error)
+            alert("An error occurred while updating the product")
+        }})
+    </script>
+</body>
+</html>

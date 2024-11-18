@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <title>Admin Panel</title>
+    <link rel="stylesheet" href="/css/admin.css">
+  </head>
+  <body>
+    <div class="container-scroller">
+      <%- include("./layouts/aheader") %>
+     
+        <!-- Main Panel -->
+        <div class="row p-3">
+          <div class="col-12 grid-margin">
+            <div class="card">
+              <div class="card-body">
+                <h4 class="card-title">Order Status</h4>
+                <div class="table-responsive">
+                  <form class="nav-link mt-2 mt-md-0 d-lg-flex search">
+                    <input type="text" class="form-control" placeholder="Search users">
+                    <button style="height: 33px; margin: 3px 0px 0px 10px;" class="btn btn-primary">Search</button>
+                  </form>
+                  <table class="table">
+                    <thead>
+                      <tr>
+                        <th> Name </th>
+                        <th> Price </th>
+                        <th>Category</th>
+                        <th> CreatedAt </th>
+                        <th> UpdatedAt </th>
+                        <th> Update </th>
+                        <th> Delete </th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <% products.forEach((value) => { %>
+                        <tr>
+                          <td> <%= value.name %> </td>
+                          <td> <%= value.price %> </td>
+                          <td> <%= value.category ? value.category.name : 'No category' %> </td>
+                          <td>
+                            <% 
+                              const createdDate = new Date(value.createdAt);
+                              const createdDay = createdDate.getDate();
+                              const createdMonth = createdDate.getMonth() + 1;
+                              const createdYear = createdDate.getFullYear();
+                              const createdFormattedDate = createdDay + ':' + createdMonth + ':' + createdYear;
+                            %>
+                            <%= createdFormattedDate %>
+                          </td>
+                          <td>
+                            <% 
+                              const updatedDate = new Date(value.updatedAt);
+                              const updatedDay = updatedDate.getDate();
+                              const updatedMonth= updatedDate.getMonth() + 1;
+                              const updatedYear = updatedDate.getFullYear();
+                              const updatedFormattedDate = updatedDay + ':' + updatedMonth + ':' + updatedYear;
+                            %>
+                            <%= updatedFormattedDate%>
+                          </td>
+                          <td>
+                            <a href="/admin/productmanagement/update/<%= value._id %>" class="badge badge-outline-primary btn-update">
+                            Update</button>
+                          </td>
+                          <td>
+                            <button data-id="<%= value._id %>" class="badge badge-outline-danger btn-delete">Delete</button>
+                          </td>
+                        </tr>
+                      <% }) %>
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+
+          
+        <div style="margin-top: 100px;" class="col-md-4 grid-margin stretch-card userInfoView">
+          <a href="/admin/productmanagement/add" class="btn btn-primary categorybtn pt-3 mr-4">Add New Product</a>
+          <a href="/admin/productmanagement/delete" class="btn btn-danger categorybtn1 pt-3 mr-4">Deleted Product</a>
+        </div>
+      </div>
+    </div>
+  </body>
+
+  <script>
+    document.querySelectorAll('.btn-delete').forEach(button =>{
+      button.addEventListener('click', async function() {
+        const id = this.getAttribute('data-id');
+        try {
+          const response = await fetch(`/admin/productmanagement/delete`, {
+            method: 'PUT',
+            headers: {
+              'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+              productId: id
+            })
+          });
+          let data = await response.json()
+          if (data.success) {
+            window.location.reload();
+          }
+        } catch (error) {
+          console.error(error);
+        }
+      });
+    })
+</script>
+
+
+
+</html>

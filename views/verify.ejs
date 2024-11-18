@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <link rel="stylesheet" href="../css/otpverify.css">
+</head>
+<body>
+    <form action="/home" method="post" id="form">
+    <div class="container">
+        <h2>Enter Verification Code</h2>
+        <input type="text" id="otp" name="otp" maxlength="6" class="otp-input" placeholder="------" 
+               oninput="this.value = this.value.replace(/[^0-9]/g, '')" 
+               onkeypress="if(this.value.length==6) return false;" autofocus>
+               <input type="email" name="email" value="<%= email %>" hidden>
+               <p id="msg" style="color:red"></p>
+        <p class="message">Please enter the 6-digit code sent to your device</p>
+        <button type="submit" class="verify-btn" id="btn">Verify Code</button>
+    </form>
+    <form action="/resend" method="post" id="form">
+     <p id="timer">Resend OTP in <span id="countDown">30</span> Seconds </p>
+     <button type="submit" id="resendLink" style="display: none;background: none;
+     border: none;
+     color: #007bff;
+     cursor: pointer;
+     align-items: center;
+     padding: 0.75rem 7rem;
+     margin-top: 5px;
+     text-decoration: underline ;">Resend OTP</button>
+    </form>
+    </div>
+    <script>
+
+        document.getElementById("form").addEventListener("submit",(e)=>{
+            if(!validateOtp()){
+                e.preventDefault()
+            }
+        })
+
+        function validateOtp(){
+            let otp=document.getElementById("otp").value
+            if(otp.length!=6){
+                document.getElementById("msg").textContent="Enter a valid 6-digit code"
+                return false
+            }else{
+                document.getElementById("msg").textContent=""
+            return true
+            }
+        }
+
+        
+    function countdown(){
+    let countValue = 30;
+    let countElement = document.getElementById('countDown')
+    const timer = document.getElementById('timer')
+    const resendLink = document.getElementById('resendLink')
+
+    const countdownintervel = setInterval(()=>{
+        countValue--;
+        countElement.textContent=countValue;
+
+        if(countValue<=0){
+            clearInterval(countdownintervel)
+            timer.style.display="none";
+            resendLink.style.display="block"
+        }
+    },1000)
+}
+
+    countdown()
+    
+    </script>
+</body>
+</html>

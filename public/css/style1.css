@@ -1,0 +1,173 @@
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: 'Montserrat', sans-serif;
+}
+
+#main-header {
+    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+}
+
+.top-section {
+    padding: 15px 5%;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+#brand-logo img {
+    height: 50px;
+    width: 170px;
+}
+
+.search-container {
+    position: relative;
+    width: 300px;
+}
+
+#search-input {
+    width: 100%;
+    padding: 8px 35px 8px 15px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+}
+
+#search-btn {
+    position: absolute;
+    right: 10px;
+    top: 50%;
+    transform: translateY(-50%);
+    background: none;
+    border: none;
+    color: #666;
+}
+
+.main-nav {
+    padding: 0 5%;
+    border-top: 1px solid #eee;
+}
+
+.nav-list {
+    list-style: none;
+    display: flex;
+    gap: 30px;
+    padding: 15px 0;
+}
+
+.nav-list li a {
+    text-decoration: none;
+    color: #333;
+    font-weight: 500;
+    transition: color 0.3s;
+}
+
+.nav-list li a:hover {
+    color: #ff6b6b;
+}
+
+#promo-banner {
+    background: #ff6b6b;
+    color: white;
+    text-align: center;
+    padding: 15px;
+}
+
+#promo-text {
+    font-size: 18px;
+    font-weight: 500;
+}
+
+#user-dashboard-nav {
+    background: #f8f9fa;
+    padding: 20px 5%;
+    margin-bottom: 30px;
+}
+
+.dashboard-menu {
+    display: flex;
+    gap: 25px;
+    align-items: center;
+}
+
+.dashboard-link {
+    text-decoration: none;
+    color: #444;
+    font-weight: 500;
+    transition: color 0.3s;
+}
+
+.dashboard-link:hover {
+    color: #ff6b6b;
+}
+
+#logout-button {
+    margin-left: auto;
+    background: #ff6b6b;
+    color: white;
+    padding: 8px 20px;
+    border-radius: 4px;
+    text-decoration: none;
+    transition: background 0.3s;
+}
+
+#logout-button:hover {
+    background: #ff5252;
+}
+
+#orders-section {
+    padding: 0 5%;
+}
+
+.section-title {
+    margin-bottom: 25px;
+    color: #333;
+}
+
+#orders-grid {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+#orders-grid th {
+    background: #f8f9fa;
+    padding: 12px;
+    text-align: left;
+    font-weight: 600;
+    color: #444;
+}
+
+#orders-grid td {
+    padding: 12px;
+    border-bottom: 1px solid #eee;
+}
+
+.action-btn {
+    color: #ff6b6b;
+    text-decoration: none;
+    font-weight: 500;
+}
+
+.action-btn:hover {
+    text-decoration: underline;
+}
+
+@media (max-width: 768px) {
+    .nav-list {
+        flex-wrap: wrap;
+        gap: 15px;
+    }
+
+    .dashboard-menu {
+        flex-wrap: wrap;
+    }
+
+    #logout-button {
+        margin-left: 0;
+        margin-top: 15px;
+    }
+
+    .search-container {
+        width: 200px;
+    }
+}

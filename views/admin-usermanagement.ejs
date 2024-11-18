@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <title>Admin Panel</title>
+    <link rel="stylesheet" href="/css/admin.css">
+  </head>
+  <body>
+    <div class="container-scroller">
+      <%- include("./layouts/aheader") %>
+        <!-- Main Panel -->
+        <div class="row p-3">
+          <div class="col-12 grid-margin">
+            <div class="card">
+              <div class="card-body">
+                <h4 class="card-title">Order Status</h4>
+                <div class="table-responsive">
+                  <form class="nav-link mt-2 mt-md-0 d-lg-flex search">
+                    <input type="text" class="form-control" placeholder="Search users">
+                    <button style="height: 33px; margin: 3px 0px 0px 10px;" class="btn btn-primary">Search</button>
+                  </form>
+                  <table class="table">
+                    <thead>
+                      <tr>
+                        <th> Username</th>
+                        <th> Email</th>
+                        <th> Role</th>
+                        <th> Join Date </th>
+                        <th> Ban </th>
+                        <th> View </th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <% user.forEach((value) => { %>
+                        <tr>
+                          <td> <%= value.username %> </td>
+                          <td> <%= value.email %> </td>
+                          <td> <%= value.role %> </td>
+                          <td>
+                            <% 
+                              const createdAt = new Date(value.createdAt);
+                              const day = createdAt.getDate();
+                              const month = createdAt.getMonth() + 1;
+                              const year = createdAt.getFullYear();
+                              const formattedDate = day + ':' + month + ':' + year;
+                            %>
+                            <%= formattedDate %>
+                          </td>
+                          <td>
+                            <button data-id="<%= value.email %>" class="badge badge-outline-danger btn-ban">
+                              <%= value.isDeleted ? 'Unban' : 'Ban' %>
+                            </button>
+                          </td>
+                          <td>
+                            <button data-id="<%= value.email %>" class="badge badge-outline-warning btn-view">View</button>
+                          </td>
+                        </tr>
+                      <% }) %>
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div style="margin-top: 100px;" class="col-md-4 grid-margin stretch-card userInfoView">
+          <!-- User info content here -->
+        </div>
+      </div>
+    </div>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script>
+      // USER BAN
+ document.querySelectorAll(".btn-ban").forEach(button=> {
+    button.addEventListener("click", async function() {
+      const email =this.getAttribute("data-id");
+      try{
+      const response = await fetch(`/admin/usermanagement/ban?email=${email}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json'
+        }
+      });
+
+      if (!response.ok) {
+        const newerror=await response.text()
+        throw new Error(`failed to update ban status ${response.status}-${newerror}`)
+      } 
+      const result=await response.json()
+      Swal.fire({
+  text: result.message,
+  icon: "success"
+});
+
+      if(result.isDeleted){
+        this.innerText = "Unban";
+        this.classList.remove("badge-outline-danger");
+        this.classList.add("badge-outline-success");
+      }
+      else{
+        this.innerText = "Ban";
+        this.classList.remove("badge-outline-success");
+        this.classList.add("badge-outline-danger");
+      }
+    }
+      catch (error) {
+          console.error('Error toggling ban status:', error.message);
+          alert(`Error toggling ban status: ${error.message}`);
+        }
+
+    });
+  });
+
+// USER VIEW 
+
+  document.querySelectorAll(".btn-view").forEach((button) => 
+  button.addEventListener("click",async function(event) {
+    const email = this.getAttribute("data-id");
+    try{
+      const response = await fetch(`/admin/usermanagement/view?email=${email}`);
+      if (!response.ok) {
+        const newerror=await response.text()
+        throw new Error(`failed to fetch user information ${response.status}-${newerror}`)
+      }
+      const result=await response.json()
+      document.querySelector(".userInfoView").innerHTML = `
+        <h3>User Information</h3>
+        <p>Username: ${result.username}</p>
+        <p>Email: ${result.email}</p>
+        <p>Role: ${result.role}</p>
+        <p>Join Date: ${result.createdAt}</p>`;
+    }
+    catch (error) {
+        console.error('Error fetching user information:', error.message);
+        alert(`Error fetching user information: ${error.message}`);
+      }
+  }
+))
+
+    </script>
+
+  </body>
+</html>
