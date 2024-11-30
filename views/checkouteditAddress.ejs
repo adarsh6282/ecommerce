@@ -122,7 +122,7 @@
 
         #logout-button {
             margin-left: auto;
-            background: #7b7fda;
+            background: #88c8bc;
             color: white;
             padding: 8px 20px;
             border-radius: 4px;
@@ -291,56 +291,106 @@
                 <h2 class="section-title">Address</h2>
             </div>
             
-            <form id="addAddress" method="post" action="/address/add/<%= user._id %>">
+            <form id="checkouteditaddress">
 
-                <input type="hidden" id="userId" name="userId" value="<%= user.id %>">
+                <input type="hidden" id="addressId" name="address" value="<%= address._id %>">
 
                 <div class="form-group">
                     <label for="housename">House Name</label>
-                    <input type="text" id="housename" name="housename">
+                    <input type="text" id="housename" name="housename" value="<%= address.housename %>">
                 </div>
                 
                 <div class="form-group">
                     <label for="city">City</label>
-                    <input type="text" id="city" name="city">
+                    <input type="text" id="city" name="city" value="<%= address.city %>">
                 </div>
 
                 <div class="form-group">
                     <label for="district">District</label>
-                    <input type="text" id="district" name="district">
+                    <input type="text" id="district" name="district" value="<%= address.district %>">
                 </div>
 
                 <div class="form-group">
                     <label for="state">State</label>
-                    <input type="text" id="state" name="state">
+                    <input type="text" id="state" name="state" value="<%= address.state %>">
                 </div>
 
                 <div class="form-group">
                     <label for="country">Country</label>
-                    <input type="text" id="country" name="country">
+                    <input type="text" id="country" name="country" value="<%= address.country %>">
                 </div>
 
                 <div class="form-group">
                     <label for="pincode">Pin Code</label>
-                    <input type="tel" id="pincode" name="pincode" maxlength="6">
+                    <input type="tel" id="pincode" name="pincode" maxlength="6" value="<%= address.pincode %>">
                 </div>
 
-                <button type="submit" class="submit-btn">Add Address</button>
+                <button type="submit" class="submit-btn">Edit Address</button>
             </form>
         </div>
     </main>
 
-    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script>
 
-            document.getElementById("addAddress").addEventListener("submit",async(e)=>{
-                if(!addAddressValidate()){
-                    e.preventDefault()
-                }
-            })
-        
-            function addAddressValidate(){
+        const editaddress=document.getElementById("checkouteditaddress")
+        editaddress.addEventListener("submit",async(e)=>{
+            e.preventDefault()
+            
+            let housename=document.getElementById("housename").value
+            let city=document.getElementById("city").value
+            let district=document.getElementById("district").value
+            let state=document.getElementById("state").value
+            let country=document.getElementById("country").value
+            let pincode=document.getElementById("pincode").value
+            let addressId=document.getElementById("addressId").value
 
+            try{
+
+            const respose=await fetch(`/checkaddress/edit/${addressId}`,{
+                method:"PUT",
+                headers:{
+                    "Content-Type":"application/json"
+                },
+                body:JSON.stringify({
+                    housename,
+                    city,
+                    district,
+                    state,
+                    country,
+                    pincode,
+                    addressId
+                 })
+                })
+                const result=await respose.json()
+                if(result.success){
+                    swal({
+                        text:result.message,
+                        icon:"success"
+                    })
+                }else{
+                    swal({
+                        text:result.message || "Failed to edit address",
+                        icon:"error"
+                    })
+                }
+            }catch(error){
+                console.error(error)
+                Swal({
+                    text:"Failed to edit address",
+                    icon:"error"
+                })
+            }
+
+            })
+
+    </script>
+        <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+
+    <script>
+
+document.getElementById("checkouteditaddress").addEventListener("submit",async(e)=>{
+            e.preventDefault();
             const housename = document.getElementById("housename").value;
             const city = document.getElementById("city").value;
             const district = document.getElementById("district").value;
@@ -376,9 +426,9 @@
                         text: 'Pin Code should be a six-digit number!'
                     })
                         return
-                }   
-                return true;
-            }
+                }
+            })
+
 
     </script>
     </body>

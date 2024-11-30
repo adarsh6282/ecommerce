@@ -1,51 +1,325 @@
-<!DOCTYPE html>
-<html lang="en">
+  <!DOCTYPE html>
+  <html lang="en">
   <head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-    <title>Admin Panel</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Dashboard</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" rel="stylesheet">
     <link rel="stylesheet" href="/css/admin.css">
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        background-color: #191c24;
+        margin: 0;
+        padding: 0;
+      }
+      .dashboard {
+        max-width: 1200px;
+        margin: 20px auto;
+        padding: 20px;
+        background: #191c24;
+        border-radius: 8px;
+        box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+      }
+      .dashboard h1 {
+        text-align: center;
+        margin-bottom: 20px;
+        color: white;
+      }
+      .filters {
+        display: flex;
+        gap: 20px;
+        flex-wrap: wrap;
+        margin-bottom: 20px;
+      }
+      .filter-item {
+        flex: 1;
+        min-width: 200px;
+      }
+      .filter-item input, .filter-item select {
+        width: 100%;
+        padding: 10px;
+        margin-top: 5px;
+        border: 1px solid #333;
+        border-radius: 5px;
+      }
+      .filter-item button {
+        width: 100%;
+        padding: 10px;
+        background-color: #333;
+        color: white;
+        border: none;
+        border-radius: 5px;
+        cursor: pointer;
+        margin-top: 10px;
+      }
+      .filter-item button:hover {
+        background-color: #0056b3;
+      }
+      .cards {
+        display: flex;
+        gap: 20px;
+        flex-wrap: wrap;
+      }
+      .card {
+        flex: 1;
+        min-width: 250px;
+        padding: 20px;
+        background:#262a35 ;
+        border-radius: 8px;
+        box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+        text-align: center;
+      }
+      .card i {
+        font-size: 30px;
+        color: #007bff;
+        margin-bottom: 10px;
+      }
+      .card h2 {
+        margin: 10px 0;
+        font-size: 24px;
+        color: white;
+      }
+      .card p {
+        color: white;
+      }
+      .chart-container {
+        margin-top: 30px;
+        text-align: center;
+      }
+      canvas {
+        max-width: 100%;
+        margin: 0 auto;
+      }
+      .download-section {
+        text-align: right;
+        margin-top: 20px;
+      }
+      .download-btn {
+        padding: 10px 20px;
+        background: #007bff;
+        color: #fff;
+        border: none;
+        border-radius: 5px;
+        cursor: pointer;
+      }
+      .download-btn:hover {
+        background: #0056b3;
+      }
+
+      /* Filters Container */
+  .filters-container {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 20px;
+    justify-content: center;
+    margin: 40px 0;
+  }
+
+  /* Individual Filter Box */
+  .filter-box {
+    width: 350px;
+    padding: 20px;
+    border-radius: 15px;
+    background: #262a35;
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+  }
+
+  .filter-box:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 12px 25px rgba(0, 0, 0, 0.2);
+  }
+
+  /* Titles */
+  .filter-box h3 {
+    margin-bottom: 15px;
+    font-size: 20px;
+    color: #4a4a4a;
+    font-weight: bold;
+    text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.1);
+  }
+
+  /* Filter Item Styles */
+  .filter-item {
+    margin-bottom: 15px;
+  }
+
+  .filter-item label {
+    display: block;
+    margin-bottom: 8px;
+    font-weight: bold;
+    color: #333;
+    font-size: 14px;
+  }
+
+  .styled-input, .styled-select {
+    width: 100%;
+    padding: 10px 15px;
+    font-size: 16px;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    transition: border 0.3s, box-shadow 0.3s;
+    background: #fff;
+  }
+
+  .styled-input:focus, .styled-select:focus {
+    border: 1px solid #007bff;
+    box-shadow: 0 4px 10px rgba(0, 123, 255, 0.3);
+    outline: none;
+  }
+
+  /* Apply Button */
+  .apply-btn {
+    width: 100%;
+    padding: 12px 20px;
+    font-size: 16px;
+    font-weight: bold;
+    border: none;
+    border-radius: 50px;
+    color: #fff;
+    cursor: pointer;
+    transition: background 0.3s, transform 0.2s;
+  }
+
+  .apply-btn:hover {
+    transform: scale(1.05);
+  }
+
+  /* Gradient Button Styling */
+  .gradient-btn {
+    background: linear-gradient(90deg, #6a11cb 0%, #2575fc 100%);
+  }
+
+  /* Mobile Responsiveness */
+  @media (max-width: 768px) {
+    .filter-box {
+      width: 100%;
+    }
+  }
+
+    </style>
   </head>
   <body>
-    <div class="container-scroller">
-      <%- include("./layouts/aheader") %>
-      <!-- Main content -->
-      <div class="container-fluid page-body-wrapper">
-        <!-- Navbar -->
-        <nav class="navbar p-0 fixed-top d-flex flex-row">
-          <div class="navbar-brand-wrapper d-flex d-lg-none align-items-center justify-content-center">
-            <a class="navbar-brand brand-logo-mini" href="index.html"><img src="assets/images/logo-mini.svg" alt="logo" /></a>
+    <%- include("./layouts/aheader") %>
+    <div class="dashboard" style="position: relative; left: 80px; bottom: 600px;">
+      <h1>Admin Dashboard</h1>
+
+      <!-- Filters -->
+      <div class="filters-container">
+        <!-- Date Range Filter -->
+        <div class="filter-box">
+          <h3 style="color: white";>🔍 Filter by Date Range </h3>
+          <div class="filter-item">
+            <label for="startDate" style="color: white;">📅 Start Date:</label>
+            <input type="date" id="startDate" class="styled-input">
           </div>
-          <div class="navbar-menu-wrapper flex-grow d-flex align-items-stretch">
-            <button class="navbar-toggler navbar-toggler align-self-center" type="button" data-toggle="minimize">
-              <span class="mdi mdi-menu"></span>
-            </button>
-            <ul class="navbar-nav navbar-nav-right">
-              <!-- Additional navbar items can be added here -->
-            </ul>
-            <button class="navbar-toggler navbar-toggler-right d-lg-none align-self-center" type="button" data-toggle="offcanvas">
-              <span class="mdi mdi-format-line-spacing"></span>
-            </button>
+          <div class="filter-item">
+            <label for="endDate" style="color: white";>📅 End Date:</label>
+            <input type="date" id="endDate" class="styled-input">
           </div>
-        </nav>
-        <!-- Main Panel -->
-        <div class="row p-3">
-          <div class="col-12 grid-margin">
-            <div class="card">
-              <div class="card-body">
-                <h4 class="card-title">Order Status</h4>
-                <div class="table-responsive">
-                </div>
-              </div>
-            </div>
-          </div>
+          <button class="apply-btn gradient-btn" onclick="applyDateFilter()">Apply Date Filter</button>
         </div>
-        <div style="margin-top: 100px;" class="col-md-4 grid-margin stretch-card userInfoView">
-          <!-- User info content here -->
+      
+        <!-- Period Filter -->
+        <div class="filter-box">
+          <h3 style="color: white";>⏳ Filter by Period</h3>
+          <div class="filter-item">
+            <label for="filterOptions" style="color: white";>📊 Select Period:</label>
+            <select id="filterOptions" class="styled-select">
+              <option value="daily">Daily</option>
+              <option value="weekly">Weekly</option>
+              <option value="monthly">Monthly</option>
+              <option value="yearly">Yearly</option>
+            </select>
+          </div>
+          <button class="apply-btn gradient-btn" onclick="applyPeriodFilter()">Apply Period Filter</button>
         </div>
       </div>
+      
+      <!-- Cards Section -->
+      <div class="cards">
+        <div class="card">
+          <i class="fas fa-dollar-sign"></i>
+          <h2>$45,000</h2>
+          <p>Total Sales</p>
+        </div>
+        <div class="card">
+          <i class="fas fa-shopping-cart"></i>
+          <h2>1,200</h2>
+          <p>Total Orders</p>
+        </div>
+        <div class="card">
+          <i class="fas fa-percent"></i>
+          <h2>$3,500</h2>
+          <p>Discounts & Coupons</p>
+        </div>
+      </div>
+
+      <!-- Chart Section -->
+      <div class="chart-container">
+        <h2>Sales Overview</h2>
+        <canvas id="salesChart" width="600" height="300"></canvas>
+      </div>
+
+      <!-- Download Section -->
+      <div class="download-section">
+        <button class="download-btn" onclick="downloadPDF()">Download Report as PDF</button>
+      </div>
     </div>
-    <!-- Custom JavaScript -->
-    <script src="/js/admin/users.js"></script>
+
+    <!-- External JS -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.4.0/jspdf.umd.min.js"></script>
+
+    <script>
+      // Chart.js Example Setup
+      const ctx = document.getElementById('salesChart').getContext('2d');
+      const salesChart = new Chart(ctx, {
+        type: 'line',
+        data: {
+          labels: ['Day 1', 'Day 2', 'Day 3', 'Day 4', 'Day 5'],
+          datasets: [{
+            label: 'Sales',
+            data: [500, 700, 800, 600, 900],
+            backgroundColor: 'rgba(0, 123, 255, 0.5)',
+            borderColor: 'rgba(0, 123, 255, 1)',
+            borderWidth: 1
+          }]
+        },
+        options: {
+          responsive: true,
+          scales: {
+            y: {
+              beginAtZero: true
+            }
+          }
+        }
+      });
+
+      // Generate PDF
+      function downloadPDF() {
+        const { jsPDF } = window.jspdf;
+        const doc = new jsPDF();
+        doc.text("Sales Report", 10, 10);
+        doc.text("Total Sales: $45,000", 10, 20);
+        doc.text("Total Orders: 1,200", 10, 30);
+        doc.text("Discounts: $3,500", 10, 40);
+        doc.save("sales-report.pdf");
+      }
+
+      // Filter Function Placeholder
+      function applyDateFilter() {
+        const startDate = document.getElementById('startDate').value;
+        const endDate = document.getElementById('endDate').value;
+        const filterOption = document.getElementById('filterOptions').value;
+        alert(`Filtering data from ${startDate} to ${endDate}`);
+      }
+
+      function applyPeriodFilter() {
+  const period = document.getElementById('filterOptions').value;
+  alert(`Filtering data for the selected period: ${period}`);
+      }
+    </script>
   </body>
-</html>
+  </html>

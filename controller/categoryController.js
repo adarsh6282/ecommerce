@@ -11,19 +11,23 @@ const loadAddCategory=(req,res)=>{
 
 
 const loadCategoryManagement = async (req, res) => {
-    
     try {
-        // Fetch all categories that are not deleted
-        const categories = await categorySchema.find({ isDeleted: false });
-        // Check if categories are found
+        const page = parseInt(req.query.page) || 1; // Default to page 1
+        const limit = 4; // Number of categories per page
+        const skip = (page - 1) * limit;
+
+        // Fetch categories with pagination
+        const categories = await categorySchema.find({ isDeleted: false })
+            .skip(skip)
+            .limit(limit);
+
         if (!categories || categories.length === 0) {
-            return res.render('admin-categorymanagement', {categories, message: 'No categories found' });   
+            return res.render('admin-categorymanagement', { categories, message: 'No categories found' });
         }
 
-        // For each category, fetch the count of products
+        // Fetch product count for each category
         const categoriesWithCounts = await Promise.all(
             categories.map(async (category) => {
-                // Get product count for each category
                 const productCount = await productSchema.countDocuments({ categories: category._id });
                 return {
                     ...category.toObject(),
@@ -32,12 +36,22 @@ const loadCategoryManagement = async (req, res) => {
             })
         );
 
-        res.render('admin-categorymanagement', { categories:categoriesWithCounts});
+        // Get the total number of categories to calculate totalPages
+        const totalCategories = await categorySchema.countDocuments({ isDeleted: false });
+        const totalPages = Math.ceil(totalCategories / limit);
+
+        // Render the category management page with categories and pagination data
+        res.render('admin-categorymanagement', {
+            categories: categoriesWithCounts,
+            currentPage: page,
+            totalPages
+        });
     } catch (error) {
-        console.error(error);
+        console.error("Error loading categories:", error);
         res.render('admin-categorymanagement', { message: 'Error fetching categories' });
     }
 };
+
 
 
 

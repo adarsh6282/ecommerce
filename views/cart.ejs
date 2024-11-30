@@ -60,21 +60,19 @@
 					<div class="row">
 						<div class="col-sm-12 text-left menu-1">
 							<ul>
-								<li><a href="index.html">Home</a></li>
-								<li class="has-dropdown active">
-									<a href="men.html">Men</a>
-									<ul class="dropdown">
-										<li><a href="product-detail.html">Product Detail</a></li>
-										<li><a href="cart.html">Shopping Cart</a></li>
-										<li><a href="checkout.html">Checkout</a></li>
-										<li><a href="order-complete.html">Order Complete</a></li>
-										<li><a href="add-to-wishlist.html">Wishlist</a></li>
-									</ul>
+								<li><a href="/">Home</a></li>
+								<li>
+									<a href="/shop">Shop</a>
 								</li>
-								<li><a href="women.html">Women</a></li>
-								<li><a href="about.html">About</a></li>
-								<li><a href="contact.html">Contact</a></li>
-								<li class="cart"><a href="cart.html"><i class="icon-shopping-cart"></i> Cart [0]</a></li>
+								<li><a href="#">About</a></li>
+								<li><a href="#">Contact</a></li>
+								<li><a href="/myaccount">My Account</a></li>
+								<% if (!user) { %>
+									<li class="cart"><a href="/login">Login / Register</a></li>
+								<% } else { %>
+									<li class="cart"><a href="/logout">Logout</a></li>
+								<% } %>
+								<li class="cart"><a href="#"></i> Wishlist</a></li>
 							</ul>
 						</div>
 					</div>
@@ -104,42 +102,36 @@
 			</div>
 		</nav>
 
-		<div class="breadcrumbs">
-			<div class="container">
-				<div class="row">
-					<div class="col">
-						<p class="bread"><span><a href="index.html">Home</a></span> / <span>My Wishlist</span></p>
-					</div>
-				</div>
+		<div class="container">
+			<div class="bread-crumb flex-w p-l-25 p-r-15 p-t-30 p-lr-0-lg mt-2">
+				<a href="/" class="stext-109 cl8 hov-cl1 trans-04">
+					Home /
+					<i class="fa fa-angle-right m-l-9 m-r-10" aria-hidden="true"></i>
+				</a>
+
+				<a href="/cart" class="stext-109 cl8 hov-cl1 trans-04">
+					Cart
+					<i class="fa fa-angle-right m-l-9 m-r-10" aria-hidden="true"></i>
+				</a>
 			</div>
 		</div>
-
-
-		<div class="colorlib-product">
-			<div class="container">
-				<div class="row row-pb-lg">
-					<div class="col-md-10 offset-md-1">
-						<div class="process-wrap">
-							<div class="process text-center active">
-								<p><span>01</span></p>
-								<h3>Shopping Cart</h3>
-							</div>
-							<div class="process text-center">
-								<p><span>02</span></p>
-								<h3>Checkout</h3>
-							</div>
-							<div class="process text-center">
-								<p><span>03</span></p>
-								<h3>Order Complete</h3>
-							</div>
-						</div>
-					</div>
+				<div>
+					<h2 style="margin-left: 200px;">Your Cart</h2>
 				</div>
-				<div class="row row-pb-lg">
+
+				<% if (items.length === 0) { %>
+					<div style="height:200px">
+					<p style="font-size:50px; text-align: center; font-weight: 700;">Your cart is empty!</p>
+				</div>
+				<% } else { %>
+				<div class="row row-pb-lg" style="width:65%; margin-left: 200px;">
 					<div class="col-md-12">
 						<div class="product-name d-flex">
 							<div class="one-forth text-left px-4">
 								<span>Product Details</span>
+							</div>
+							<div class="one-eight text-center">
+								<span>Size</span>
 							</div>
 							<div class="one-eight text-center">
 								<span>Price</span>
@@ -154,150 +146,75 @@
 								<span>Remove</span>
 							</div>
 						</div>
+						<% items.forEach(item => { %>
 						<div class="product-cart d-flex">
 							<div class="one-forth">
-								<div class="product-img" style="background-image: url(images/item-6.jpg);">
+								<div class="product-img">
+									<img src="<%= item.productId.images[0] %>" alt="Image" class="img-fluid">
 								</div>
 								<div class="display-tc">
-									<h3>Product Name</h3>
-								</div>
-							</div>
-							<div class="one-eight text-center">
-								<div class="display-tc">
-									<span class="price">$68.00</span>
+									<h3><%= item.productId.name %></h3>
 								</div>
 							</div>
 							<div class="one-eight text-center">
 								<div class="display-tc">
-									<input type="text" id="quantity" name="quantity" class="form-control input-number text-center" value="1" min="1" max="100">
+									<span><%= item.size %></span>
 								</div>
 							</div>
 							<div class="one-eight text-center">
 								<div class="display-tc">
-									<span class="price">$120.00</span>
+									<span class="price">₹<%= item.productId.offerPrice.toFixed(2) %></span>
 								</div>
 							</div>
 							<div class="one-eight text-center">
 								<div class="display-tc">
-									<a href="#" class="closed"></a>
+									<input type="text" id="quantity" name="quantity" class="form-control input-number text-center" value="<%= item.quantity %>" min="1" max="100">
+								</div>
+							</div>
+							<div class="one-eight text-center">
+								<div class="display-tc">
+									<span class="price">₹<%= (item.productId.offerPrice * item.quantity).toFixed(2) %></span></span>
+								</div>
+							</div>
+							<div class="one-eight text-center">
+								<div class="display-tc">
+									<a href="/delete/<%= item.productId._id %>" data-id="<%= item.productId._id %>" class="closed closebtn"></a>
 								</div>
 							</div>
 						</div>
-						<div class="product-cart d-flex">
-							<div class="one-forth">
-								<div class="product-img" style="background-image: url(images/item-7.jpg);">
-								</div>
-								<div class="display-tc">
-									<h3>Product Name</h3>
-								</div>
-							</div>
-							<div class="one-eight text-center">
-								<div class="display-tc">
-									<span class="price">$68.00</span>
-								</div>
-							</div>
-							<div class="one-eight text-center">
-								<div class="display-tc">
+						<% })} %>
+						
+				<div class="row row-pb-lg">
+					<div class="col-md-12">
+						<div class="total-wrap">
+							<div class="row">
+								<div class="col-sm-8">
 									<form action="#">
-										<input type="text" name="quantity" class="form-control input-number text-center" value="1" min="1" max="100">
+										<div class="row form-group" style="margin-left: auto;">
+											<div class="col-sm-9">
+												<input type="text" name="quantity" class="form-control input-number" placeholder="Your Coupon Number...">
+											</div>
+											<div class="col-sm-3">
+												<input type="submit" value="Apply Coupon" class="btn btn-primary">
+											</div>
+										</div>
 									</form>
 								</div>
-							</div>
-							<div class="one-eight text-center">
-								<div class="display-tc">
-									<span class="price">$120.00</span>
+								<div class="col-sm-4 text-center">
+									<div class="total">
+										<div class="sub">
+											
+										</div>
+										<div class="grand-total">
+											<p><span><strong>Total:</strong></span> <span>₹<%= total.toFixed(2) %></span></p>
+										</div>
+									</div>
 								</div>
-							</div>
-							<div class="one-eight text-center">
-								<div class="display-tc">
-									<a href="#" class="closed"></a>
-								</div>
-							</div>
-						</div>
-						<div class="product-cart d-flex">
-							<div class="one-forth">
-								<div class="product-img" style="background-image: url(images/item-8.jpg);">
-								</div>
-								<div class="display-tc">
-									<h3>Product Name</h3>
-								</div>
-							</div>
-							<div class="one-eight text-center">
-								<div class="display-tc">
-									<span class="price">$68.00</span>
-								</div>
-							</div>
-							<div class="one-eight text-center">
-								<div class="display-tc">
-									<input type="text" id="quantity" name="quantity" class="form-control input-number text-center" value="1" min="1" max="100">
-								</div>
-							</div>
-							<div class="one-eight text-center">
-								<div class="display-tc">
-									<span class="price">$120.00</span>
-								</div>
-							</div>
-							<div class="one-eight text-center">
-								<div class="display-tc">
-									<a href="#" class="closed"></a>
-								</div>
+								<a href="/checkout" id="proceedtocheckout" class="btn btn-primary"  style="margin-left: 750px;">Proceed to Checkout</a>
 							</div>
 						</div>
 					</div>
 				</div>
-				<div class="row">
-					<div class="col-sm-8 offset-sm-2 text-center colorlib-heading colorlib-heading-sm">
-						<h2>Shop more</h2>
-					</div>
-				</div>
-				<div class="row">
-					<div class="col-md-3 col-lg-3 mb-4 text-center">
-						<div class="product-entry border">
-							<a href="#" class="prod-img">
-								<img src="images/item-1.jpg" class="img-fluid" alt="Free html5 bootstrap 4 template">
-							</a>
-							<div class="desc">
-								<h2><a href="#">Women's Boots Shoes Maca</a></h2>
-								<span class="price">$139.00</span>
-							</div>
-						</div>
-					</div>
-					<div class="col-md-3 col-lg-3 mb-4 text-center">
-						<div class="product-entry border">
-							<a href="#" class="prod-img">
-								<img src="images/item-2.jpg" class="img-fluid" alt="Free html5 bootstrap 4 template">
-							</a>
-							<div class="desc">
-								<h2><a href="#">Women's Minam Meaghan</a></h2>
-								<span class="price">$139.00</span>
-							</div>
-						</div>
-					</div>
-					<div class="col-md-3 col-lg-3 mb-4 text-center">
-						<div class="product-entry border">
-							<a href="#" class="prod-img">
-								<img src="images/item-3.jpg" class="img-fluid" alt="Free html5 bootstrap 4 template">
-							</a>
-							<div class="desc">
-								<h2><a href="#">Men's Taja Commissioner</a></h2>
-								<span class="price">$139.00</span>
-							</div>
-						</div>
-					</div>
-					<div class="col-md-3 col-lg-3 mb-4 text-center">
-						<div class="product-entry border">
-							<a href="#" class="prod-img">
-								<img src="images/item-4.jpg" class="img-fluid" alt="Free html5 bootstrap 4 template">
-							</a>
-							<div class="desc">
-								<h2><a href="#">Russ Men's Sneakers</a></h2>
-								<span class="price">$139.00</span>
-							</div>
-						</div>
-					</div>
-				</div>
-			</div>
-		</div>
 
 		<footer id="colorlib-footer" role="contentinfo">
 			<div class="container">
@@ -403,7 +320,40 @@ Copyright &copy;<script>document.write(new Date().getFullYear());</script> All r
 	<script src="js/jquery.stellar.min.js"></script>
 	<!-- Main -->
 	<script src="js/main.js"></script>
+	<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+	<script>
+
+		document.querySelectorAll(".closebtn").forEach(button=>{
+			button.addEventListener("click", async(e)=>{
+				e.preventDefault()
+
+				const itemId=button.getAttribute("data-id")
+                const response=await fetch("/cart/remove",{
+					method:"DELETE",
+					headers:{
+						"Content-Type":"application/json"
+                    },
+					body:JSON.stringify({itemId})
+				})
+				const result=await response.json()
+				if(result.success){
+					Swal.fire({
+						title: result.message,
+                        icon: "success",
+					})
+					setTimeout(() => {
+						window.location.reload()
+					}, 1000);
+					} else {
+						Swal.fire({
+                        title: result.message || "Failed to remove item from cart",
+                        icon: "error",
+                    })
+				}
+            })
+		})
+
+	</script>
 
 	</body>
 </html>
-

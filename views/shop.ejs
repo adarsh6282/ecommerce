@@ -32,9 +32,55 @@
 	<!-- Flaticons  -->
 	<link rel="stylesheet" href="fonts/flaticon/font/flaticon.css">
 
+
 	<!-- Theme style  -->
 	<link rel="stylesheet" href="css/style.css">
-
+	<link rel="stylesheet" href="/css/main.css">
+	<style>
+		.panel-filter {
+			background-color: #f8f8f8;
+			border: 1px solid #ddd;
+			border-radius: 8px;
+			box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+			padding: 20px;
+		}
+	
+		.wrap-filter {
+			gap: 20px;
+		}
+	
+		.mtext-102 {
+			font-size: 18px;
+			color: #333;
+			margin-bottom: 10px;
+		}
+	
+		.filter-link {
+			text-decoration: none;
+			color: #555;
+			transition: color 0.3s;
+			font-size: 16px;
+		}
+	
+		.filter-link:hover {
+			color: #007BFF;
+		}
+	
+		.filter-link-active {
+			color: #007BFF;
+			font-weight: bold;
+		}
+	
+		ul {
+			padding: 0;
+			list-style: none;
+		}
+	
+		li {
+			margin-bottom: 10px;
+		}
+	</style>
+	
 	</head>
 	<body>
 		
@@ -60,6 +106,131 @@
 			<img src="images/shop.png" alt="" srcset="">
 		</div>
 
+		<body class="animsition">
+
+<!-- Filter -->
+<div class="dis-none panel-filter w-full p-t-10">
+    <div class="wrap-filter bg6 w-full p-lr-40 p-t-27 p-lr-15-sm" 
+         style="display: flex; justify-content: space-between; gap: 20px; flex-wrap: wrap;">
+
+        <!-- Sort By Section -->
+        <div class="filter-col1 p-r-15 p-b-27" 
+             style="flex: 1; min-width: 200px;">
+            <div class="mtext-102 cl2 p-b-15" style="font-weight: bold;">Sort By</div>
+            <ul style="list-style: none; padding: 0;">
+                <li class="p-b-6">
+                    <a href="/shop?sortBy=default&category=<%= selectedCategory %>&priceRange=<%= priceRange %>&search=<%= search %>"
+                        class="filter-link stext-106 trans-04 <% if(sortBy === 'default' || !sortBy) { %>filter-link-active<% } %>">
+                        Default
+                    </a>
+                </li>
+                <li class="p-b-6">
+                    <a href="/shop?sortBy=popularity&category=<%= selectedCategory %>&priceRange=<%= priceRange %>&search=<%= search %>"
+                        class="filter-link stext-106 trans-04 <% if(sortBy === 'popularity') { %>filter-link-active<% } %>">
+                        Popularity
+                    </a>
+                </li>
+                <li class="p-b-6">
+                    <a href="/shop?sortBy=average-rating&category=<%= selectedCategory %>&priceRange=<%= priceRange %>&search=<%= search %>"
+                        class="filter-link stext-106 trans-04 <% if(sortBy === 'average-rating') { %>filter-link-active<% } %>">
+                        Average Rating
+                    </a>
+                </li>
+                <li class="p-b-6">
+                    <a href="/shop?sortBy=latest&category=<%= selectedCategory %>&priceRange=<%= priceRange %>&search=<%= search %>"
+                        class="filter-link stext-106 trans-04 <% if(sortBy === 'latest') { %>filter-link-active<% } %>">
+                        Latest
+                    </a>
+                </li>
+                <li class="p-b-6">
+                    <a href="/shop?sortBy=price-low-to-high&category=<%= selectedCategory %>&priceRange=<%= priceRange %>&search=<%= search %>"
+                        class="filter-link stext-106 trans-04 <% if(sortBy === 'price-low-to-high') { %>filter-link-active<% } %>">
+                        Price: Low to High
+                    </a>
+                </li>
+                <li class="p-b-6">
+                    <a href="/shop?sortBy=price-high-to-low&category=<%= selectedCategory %>&priceRange=<%= priceRange %>&search=<%= search %>"
+                        class="filter-link stext-106 trans-04 <% if(sortBy === 'price-high-to-low') { %>filter-link-active<% } %>">
+                        Price: High to Low
+                    </a>
+                </li>
+            </ul>
+        </div>
+
+        <!-- Category Filter Section -->
+        <div class="filter-col3 p-b-27" 
+             style="flex: 1; min-width: 200px;">
+            <div class="mtext-102 cl2 p-b-15" style="font-weight: bold;">Category</div>
+            <ul style="list-style: none; padding: 0;">
+                <li class="p-b-6">
+                    <a href="/shop?sortBy=<%= sortBy %>&priceRange=<%= priceRange %>&search=<%= search %>"
+                        class="filter-link stext-106 trans-04 <% if(!selectedCategory) { %>filter-link-active<% } %>">
+                        All Categories
+                    </a>
+                </li>
+                <% categories.forEach(category => { %>
+                <li class="p-b-6">
+                    <a href="/shop?category=<%= category.name %>&sortBy=<%= sortBy %>&priceRange=<%= priceRange %>&search=<%= search %>"
+                        class="filter-link stext-106 trans-04 <% if(category.name === selectedCategory) { %>filter-link-active<% } %>">
+                        <%= category.name %>
+                    </a>
+                </li>
+                <% }); %>
+            </ul>
+        </div>
+
+        <!-- Price Filter Section -->
+        <div class="filter-col2 p-r-15 p-b-27" 
+             style="flex: 1; min-width: 200px;">
+            <div class="mtext-102 cl2 p-b-15" style="font-weight: bold;">Price</div>
+            <ul style="list-style: none; padding: 0;">
+                <li class="p-b-6">
+                    <a href="/shop?category=<%= selectedCategory %>&sortBy=<%= sortBy %>&search=<%= search %>"
+                        class="filter-link stext-106 trans-04 <% if(!priceRange) { %>filter-link-active<% } %>">
+                        All
+                    </a>
+                </li>
+                <li class="p-b-6">
+                    <a href="/shop?priceRange=0-500&category=<%= selectedCategory %>&sortBy=<%= sortBy %>&search=<%= search %>"
+                        class="filter-link stext-106 trans-04 <% if(priceRange === '0-500') { %>filter-link-active<% } %>">
+                        ₹0 - ₹500
+                    </a>
+                </li>
+                <li class="p-b-6">
+                    <a href="/shop?priceRange=500-1000&category=<%= selectedCategory %>&sortBy=<%= sortBy %>&search=<%= search %>"
+                        class="filter-link stext-106 trans-04 <% if(priceRange === '500-1000') { %>filter-link-active<% } %>">
+                        ₹500 - ₹1000
+                    </a>
+                </li>
+                <li class="p-b-6">
+                    <a href="/shop?priceRange=1000-5000&category=<%= selectedCategory %>&sortBy=<%= sortBy %>&search=<%= search %>"
+                        class="filter-link stext-106 trans-04 <% if(priceRange === '1000-5000') { %>filter-link-active<% } %>">
+                        ₹1000 - ₹5000
+                    </a>
+                </li>
+                <li class="p-b-6">
+                    <a href="/shop?priceRange=5000-10000&category=<%= selectedCategory %>&sortBy=<%= sortBy %>&search=<%= search %>"
+                        class="filter-link stext-106 trans-04 <% if(priceRange === '5000-10000') { %>filter-link-active<% } %>">
+                        ₹5000 - ₹10,000
+                    </a>
+                </li>
+                <li class="p-b-6">
+                    <a href="/shop?priceRange=10000-50000&category=<%= selectedCategory %>&sortBy=<%= sortBy %>&search=<%= search %>"
+                        class="filter-link stext-106 trans-04 <% if(priceRange === '10000-50000') { %>filter-link-active<% } %>">
+                        ₹10,000 - ₹50,000
+                    </a>
+                </li>
+                <li class="p-b-6">
+                    <a href="/shop?priceRange=50000-100000&category=<%= selectedCategory %>&sortBy=<%= sortBy %>&search=<%= search %>"
+                        class="filter-link stext-106 trans-04 <% if(priceRange === '50000-100000') { %>filter-link-active<% } %>">
+                        ₹50,000 - ₹1,00000
+                    </a>
+                </li>
+            </ul>
+        </div>
+    </div>
+</div>
+
 		<div class="colorlib-product">
 			<div class="container">
 				<div class="row">
@@ -69,7 +240,7 @@
 				</div>
 				
 				<div class="row row-pb-md">
-						<% products.forEach(element => {%>
+						<% productData.forEach(element => {%>
 						<div class="col-md-3 col-lg-3 mb-4 text-center" style="width:255px; height: 371px;">
 							<div class="product-entry border" style="width:255px; height: 371px;">
 								<a href="/productdetail/<%= element._id  %>" class="prod-img">
@@ -143,6 +314,8 @@
 	<script src="js/jquery.stellar.min.js"></script>
 	<!-- Main -->
 	<script src="js/main.js"></script>
+
+
 	<script>
 		document.addEventListener('DOMContentLoaded', function() {
   const items = document.querySelectorAll('[data-carousel="item"]');
@@ -169,6 +342,7 @@
   showItem(currentIndex);
 });
 
+	</script>
 	</script>
 	</body>
 </html>

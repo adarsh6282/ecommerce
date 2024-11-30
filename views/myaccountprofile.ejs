@@ -238,11 +238,15 @@
 									<li><a href="/shop">Shop</a></li>
 									<li><a href="#">About</a></li>
 									<li><a href="#">Contact</a></li>
-									<li><a href="#">My Account</a></li>
+									<li><a href="/myaccount">My Account</a></li>
 								
-									<li class="cart"><a href="/login">Login / Register</a></li>
+									<% if (!user) { %>
+                                        <li class="cart"><a href="/login">Login / Register</a></li>
+                                    <% } else { %>
+                                        <li class="cart"><a href="/logout">Logout</a></li>
+                                    <% } %>
 									
-									<li class="cart"><a href="#"><i class="icon-shopping-cart"></i> Cart</a></li>
+									<li class="cart"><a href="/cart"><i class="icon-shopping-cart"></i> Cart</a></li>
 									<li class="cart"><a href="#">Wishlist</a></li>
 								</ul>
 							</div>
@@ -275,8 +279,8 @@
             <a href="/myaccountorder" class="dashboard-link">ORDERS</a>
             <a href="/address" class="dashboard-link">ADDRESS</a>
             <a href="/updateprofile/<%= user.id %>" class="dashboard-link">UPDATE PROFILE</a>
-            <a href="#" class="dashboard-link">WALLET</a>
-            <a href="#" id="logout-button">LOGOUT</a>
+            <a href="/wallet" class="dashboard-link">WALLET</a>
+            <a href="/logout" id="logout-button">LOGOUT</a>
         </div>
     </nav>
 

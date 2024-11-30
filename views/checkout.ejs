@@ -1,0 +1,515 @@
+<!DOCTYPE HTML>
+<html>
+	<head>
+	<title>Footwear - Free Bootstrap 4 Template by Colorlib</title>
+   <meta charset="utf-8">
+   <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+
+	<link href="https://fonts.googleapis.com/css?family=Montserrat:300,400,500,600,700" rel="stylesheet">
+	<link href="https://fonts.googleapis.com/css?family=Rokkitt:100,300,400,700" rel="stylesheet">
+	<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
+	
+	<!-- Animate.css -->
+	<link rel="stylesheet" href="css/animate.css">
+	<!-- Icomoon Icon Fonts-->
+	<link rel="stylesheet" href="css/icomoon.css">
+	<!-- Ion Icon Fonts-->
+	<link rel="stylesheet" href="css/ionicons.min.css">
+	<!-- Bootstrap  -->
+	<link rel="stylesheet" href="css/bootstrap.min.css">
+
+	<!-- Magnific Popup -->
+	<link rel="stylesheet" href="css/magnific-popup.css">
+
+	<!-- Flexslider  -->
+	<link rel="stylesheet" href="css/flexslider.css">
+
+	<!-- Owl Carousel -->
+	<link rel="stylesheet" href="css/owl.carousel.min.css">
+	<link rel="stylesheet" href="css/owl.theme.default.min.css">
+	
+	<!-- Date Picker -->
+	<link rel="stylesheet" href="css/bootstrap-datepicker.css">
+	<!-- Flaticons  -->
+	<link rel="stylesheet" href="fonts/flaticon/font/flaticon.css">
+
+	<!-- Theme style  -->
+	<link rel="stylesheet" href="css/style.css">
+
+	</head>
+	<body>
+		
+	<div class="colorlib-loader"></div>
+
+    <header>
+		<div id="page">
+			<nav class="colorlib-nav" role="navigation">
+				<div class="top-menu">
+					<div class="container">
+						<div class="row">
+							<div class="col-sm-7 col-md-9">
+								<div id="colorlib-logo"><a href="/"><img src="../../images/Screenshot_2024-10-26_152034-removebg-preview.png" style="height:50px; width:170px"></a></div>
+							</div>
+							<div class="col-sm-5 col-md-3">
+							<form action="#" class="search-wrap">
+							   <div class="form-group">
+								  <input type="search" class="form-control search" placeholder="Search">
+								  <button class="btn btn-primary submit-search text-center" type="submit"><i class="icon-search"></i></button>
+							   </div>
+							</form>
+						 </div>
+					 </div>
+						<div class="row">
+							<div class="col-sm-12 text-left menu-1">
+								<ul>
+									<li><a href="/">Home</a></li>
+									<li><a href="/shop">Shop</a></li>
+									<li><a href="#">About</a></li>
+									<li><a href="#">Contact</a></li>
+									<li><a href="/myaccount">My Account</a></li>
+								
+									<% if (!user) { %>
+                                        <li class="cart"><a href="/login">Login / Register</a></li>
+                                    <% } else { %>
+                                        <li class="cart"><a href="/logout">Logout</a></li>
+                                    <% } %>
+									
+									<li class="cart"><a href="/cart"><i class="icon-shopping-cart"></i> Cart</a></li>
+									<li class="cart"><a href="#">Wishlist</a></li>
+								</ul>
+							</div>
+						</div>
+					</div>
+				</div>
+				<div class="sale">
+					<div class="container">
+						<div class="row">
+							<div class="col-sm-8 offset-sm-2 text-center">
+								<div class="row">
+									<div class="owl-carousel2">
+										<div class="item">
+											<div class="col">
+												<h3><a href="#">25% off (Almost) Everything! Use Code: Summer Sale</a></h3>
+											</div>
+										</div>
+									</div>
+								</div>
+							</div>
+						</div>
+					</div>
+				</div>
+			</nav>
+		</header>
+
+		<div class="breadcrumbs">
+			<div class="container">
+				<div class="row">
+					<div class="col">
+						<p class="bread"><span><a href="index.html">Home</a></span> / <span>Checkout</span></p>
+					</div>
+				</div>
+			</div>
+		</div>
+
+		<form id="placeOrder">
+			<input type="hidden" name="userId" id="userId" value="<%= user._id %>">
+
+			<input type="hidden" name="quantity" id="quantity" value="<%= quantity %>">
+			<input type="hidden" name="items" id="items" value="<%= JSON.stringify(items) %>">
+		<div class="container my-4">
+        <div class="row">
+            <!-- Shipping Address Section -->
+            <div class="col-md-6">
+				<% address.forEach((addr, index) => { %>
+				<div class="card mb-4">
+					<div class="card-body">
+                        <div class="mb-3">
+                            <p class="mb-1"><%= addr.housename %></p>
+							<p class="mb-1"><%= addr.city %></p>
+							<p class="mb-1"><%= addr.district %></p>
+							<p class="mb-1"><%= addr.state %></p>
+							<p class="mb-1"><%= addr.country %></p>
+							<p class="mb-1"><%= addr.pincode %></p>
+                        </div>
+                        <div class="form-check">
+                            <input class="form-check-input checkedinput" data-id="<%= addr._id %>"  type="radio" name="address">
+                        </div>
+						<a href="/checkaddress/edit/<%= addr._id %>" class="btn btn-primary edit-profile-btn">Edit</a>
+                    </div>
+				</div>
+				<% }) %>
+				<a href="/checkaddress/add/<%= user.id %>" class=" btn btn-primary edit-profile-btn" id="editbtn">Add</a>
+				</div>
+
+            <!-- Cart Summary Section -->
+            <div class="col-md-6">
+                <div class="card">
+                    <div class="card-body">
+                        <h5 class="card-title">Cart Totals</h5>
+                        <div class="table-responsive">
+                            <table class="table">
+								<thead>
+									<tr>
+										<th>Products</th>
+                                        <th class="text-end">Total</th>
+                                    </tr>
+									<% items.forEach(item=>{ %>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td>
+                                            <div class="d-flex align-items-center">
+                                                <img src="/<%= item.productId.images[0] %>" alt="Art Night" class="me-2" style="width: 50px;">
+                                                <div>
+                                                   <%= item.productId.name %>
+                                                    <br>
+                                                    <small class="text-muted">× <%= item.quantity %></small>
+                                                </div>
+                                            </div>
+                                        </td>
+                                        <td class="text-end"><%= item.productId.offerPrice %></td>
+                                    </tr>
+									<% }) %>
+                                    <tr>
+                                        <td>Shipping</td>
+                                        <td class="text-end">Free</td>
+                                    </tr>
+                                    <tr>
+                                        <td><strong>Total</strong></td>
+                                        <td class="text-end"><strong id="totalAmount"><%= total %></strong></td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+						
+						<div>
+							<label for="couponCode">Enter Coupon Code:</label>
+							<input type="text" id="couponCode" placeholder="Enter coupon code" style="border-radius: 8px;">
+							<button type="button" id="applyCouponBtn" class="btn btn-primary">Apply Coupon</button>
+						  </div>
+						  
+						 <span id="discountValue" style="display: none;"></span>
+						  <!-- <p id="errorMessage" style="color: red; display: none;">Invalid coupon or expired!</p> -->
+
+							<div class="mt-4">
+								<h6>Payment</h6>
+								<div class="form-check">
+									<input class="form-check-input" type="radio" name="paymentmethod" id="razorpay" value="Razorpay">
+									<label class="form-check-label">Razorpay</label>
+								</div>
+								<div class="form-check">
+									<input class="form-check-input" type="radio" name="paymentmethod" id="cod" value="COD" checked>
+									<label class="form-check-label">Cash on Delivery</label>
+								</div>
+								<div class="form-check">
+									<input class="form-check-input" type="radio" name="paymentmethod" id="wallet" value="wallet">
+									<label class="form-check-label">Wallet</label>
+								</div>
+							</div>
+							<button type="submit" class="btn btn-primary w-100 mt-4">Place Order</button>
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>
+	</form>
+		
+		<footer id="colorlib-footer" role="contentinfo">
+			<div class="container">
+				<div class="row row-pb-md">
+					<div class="col footer-col colorlib-widget">
+						<h4>About Footwear</h4>
+						<p>Even the all-powerful Pointing has no control about the blind texts it is an almost unorthographic life</p>
+						<p>
+							<ul class="colorlib-social-icons">
+								<li><a href="#"><i class="icon-twitter"></i></a></li>
+								<li><a href="#"><i class="icon-facebook"></i></a></li>
+								<li><a href="#"><i class="icon-linkedin"></i></a></li>
+								<li><a href="#"><i class="icon-dribbble"></i></a></li>
+							</ul>
+						</p>
+					</div>
+					<div class="col footer-col colorlib-widget">
+						<h4>Customer Care</h4>
+						<p>
+							<ul class="colorlib-footer-links">
+								<li><a href="#">Contact</a></li>
+								<li><a href="#">Returns/Exchange</a></li>
+								<li><a href="#">Gift Voucher</a></li>
+								<li><a href="#">Wishlist</a></li>
+								<li><a href="#">Special</a></li>
+								<li><a href="#">Customer Services</a></li>
+								<li><a href="#">Site maps</a></li>
+							</ul>
+						</p>
+					</div>
+					<div class="col footer-col colorlib-widget">
+						<h4>Information</h4>
+						<p>
+							<ul class="colorlib-footer-links">
+								<li><a href="#">About us</a></li>
+								<li><a href="#">Delivery Information</a></li>
+								<li><a href="#">Privacy Policy</a></li>
+								<li><a href="#">Support</a></li>
+								<li><a href="#">Order Tracking</a></li>
+							</ul>
+						</p>
+					</div>
+
+					<div class="col footer-col">
+						<h4>News</h4>
+						<ul class="colorlib-footer-links">
+							<li><a href="blog.html">Blog</a></li>
+							<li><a href="#">Press</a></li>
+							<li><a href="#">Exhibitions</a></li>
+						</ul>
+					</div>
+
+					<div class="col footer-col">
+						<h4>Contact Information</h4>
+						<ul class="colorlib-footer-links">
+							<li>291 South 21th Street, <br> Suite 721 New York NY 10016</li>
+							<li><a href="tel://1234567920">+ 1235 2355 98</a></li>
+							<li><a href="mailto:info@yoursite.com">info@yoursite.com</a></li>
+							<li><a href="#">yoursite.com</a></li>
+						</ul>
+					</div>
+				</div>
+			</div>
+			<div class="copy">
+				<div class="row">
+					<div class="col-sm-12 text-center">
+						<p>
+							<span><!-- Link back to Colorlib can't be removed. Template is licensed under CC BY 3.0. -->
+Copyright &copy;<script>document.write(new Date().getFullYear());</script> All rights reserved | This template is made with <i class="icon-heart" aria-hidden="true"></i> by <a href="https://colorlib.com" target="_blank">Colorlib</a>
+<!-- Link back to Colorlib can't be removed. Template is licensed under CC BY 3.0. --></span> 
+							<span class="block">Demo Images: <a href="http://unsplash.co/" target="_blank">Unsplash</a> , <a href="http://pexels.com/" target="_blank">Pexels.com</a></span>
+						</p>
+					</div>
+				</div>
+			</div>
+		</footer>
+	</div>
+
+	<div class="gototop js-top">
+		<a href="#" class="js-gotop"><i class="ion-ios-arrow-up"></i></a>
+	</div>
+	<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" crossorigin="anonymous"></script>
+	<!-- jQuery -->
+	<script src="js/jquery.min.js"></script>
+   <!-- popper -->
+   <script src="js/popper.min.js"></script>
+   <!-- bootstrap 4.1 -->
+   <script src="js/bootstrap.min.js"></script>
+   <!-- jQuery easing -->
+   <script src="js/jquery.easing.1.3.js"></script>
+	<!-- Waypoints -->
+	<script src="js/jquery.waypoints.min.js"></script>
+	<!-- Flexslider -->
+	<script src="js/jquery.flexslider-min.js"></script>
+	<!-- Owl carousel -->
+	<script src="js/owl.carousel.min.js"></script>
+	<!-- Magnific Popup -->
+	<script src="js/jquery.magnific-popup.min.js"></script>
+	<script src="js/magnific-popup-options.js"></script>
+	<!-- Date Picker -->
+	<script src="js/bootstrap-datepicker.js"></script>
+	<!-- Stellar Parallax -->
+	<script src="js/jquery.stellar.min.js"></script>
+	<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+	<script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+	<script>
+		let selectedAddress = null;
+		const checkedinput = document.querySelectorAll(".checkedinput");
+		checkedinput.forEach((element)=>{
+			element.addEventListener("change", (e)=>{
+				element.checked = true;
+                if(element.checked){
+					selectedAddress = e.target.getAttribute("data-id"); 
+				}
+            })
+		})
+
+		document.getElementById("placeOrder").addEventListener("submit",async(e)=>{
+			e.preventDefault()
+			let addressId = selectedAddress;
+			let userId=document.getElementById("userId").value
+			let items = JSON.parse(document.getElementById("items").value);
+			let totalAmount =parseFloat( document.getElementById("totalAmount").textContent)
+			let quantity = document.getElementById("quantity").value
+			let paymentMethod = document.querySelector('input[name="paymentmethod"]:checked').value;
+			let couponCode=document.getElementById("couponCode").value.trim();
+			if(paymentMethod==="COD"){
+			try {
+				const response= await fetch("/placeorder",{
+					method:"POST",
+                    headers:{
+                        "Content-Type":"application/json"
+                    },
+                    body:JSON.stringify({
+						addressId,
+						userId,
+						items,
+						totalAmount,
+						quantity,
+						paymentMethod,
+						couponCode
+					})
+				})
+					const result = await response.json()
+					if(result.success){
+						Swal.fire({
+							text:result.message,
+							icon:"success",
+						})
+						setTimeout(() => {
+						window.location.href = "/ordercomplete";
+					}, 1000);
+					}else{
+						Swal.fire({
+							text:result.message,
+                            icon:"error",
+						})
+					}
+			} catch (error) {
+				console.log(error)
+				Swal.fire({
+                    text:"Failed to place order. Please try again later.",
+                    icon:"error",
+                })
+			}
+		}else if (paymentMethod === "Razorpay") {
+    try {
+        // 1. Create Razorpay order on the server
+        const orderResponse = await fetch("/razorpayorder", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+				addressId,
+				userId,
+				items,
+				totalAmount,
+				quantity,
+				paymentMethod,
+				couponCode
+            })
+        });
+
+        const orderResult = await orderResponse.json();
+
+        if (!orderResult.success) {
+            return Swal.fire({
+                text: "Failed to initialize Razorpay order. Please try again.",
+                icon: "error",
+            });
+        }
+
+
+        // 2. Initialize Razorpay Checkout
+        const options = {
+            key: orderResult.razorpayKey, // Your Razorpay Key ID from the backend
+            amount: orderResult.amount, // Amount in paise
+            currency: orderResult.currency, // Currency
+            name: "TAKRUM", // Name on the payment screen
+            description: "Order Payment", // Optional description
+            order_id: orderResult.orderId, // Razorpay Order ID from the backend
+            handler: async function (response) {
+                // 3. Send Payment Details to the Server for Verification
+                const verifyResponse = await fetch("/verifypayment", {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                    },
+                    body: JSON.stringify({
+                        razorpay_payment_id: response.razorpay_payment_id,
+                        razorpay_order_id: response.razorpay_order_id,
+                        razorpay_signature: response.razorpay_signature,
+                        addressId,
+                        userId,
+                        items,
+                        totalAmount,
+                        paymentMethod: "Razorpay",
+                    }),
+                });
+
+                const verifyResult = await verifyResponse.json();
+
+                if (verifyResult.success) {
+                    Swal.fire({
+                        text: verifyResult.message,
+                        icon: "success",
+                    });
+                    setTimeout(() => {
+                        window.location.href = "/ordercomplete";
+                    }, 1000);
+                } else {
+                    Swal.fire({
+                        text: verifyResult.message,
+                        icon: "error",
+                    });
+                }
+            },
+            theme: {
+                color: "#3399cc", // Theme color for Razorpay Checkout
+            },
+        };
+
+        const rzp = new Razorpay(options);
+        rzp.open();
+
+    } catch (error) {
+        console.error(error);
+        Swal.fire({
+            text: "Failed to complete payment. Please try again later.",
+            icon: "error",
+        	});
+    	}
+	}
+		})
+
+</script>
+<script>
+
+document.getElementById("applyCouponBtn").addEventListener("click", async () => {
+    const couponCode = document.getElementById("couponCode").value.trim();
+    const totalAmount =parseFloat( document.getElementById("totalAmount").textContent)
+	console.log(couponCode, totalAmount)
+
+    if (!couponCode) {
+      alert("Please enter a coupon code.");
+      return;
+    }
+ 
+    try {
+      const response = await fetch("/applycoupon", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ couponCode, totalAmount }),
+      });
+
+      const data = await response.json();
+
+      if (data.success) {
+		const discount=parseFloat(data.discount)
+        // Update discount and final total in the UI
+        document.getElementById("discountValue").textContent = discount
+        document.getElementById("totalAmount").textContent = data.finalAmount
+        alert("Coupon applied successfully!");
+      } else {
+        alert(data.message); // Display error message from the backend
+      }
+    } catch (error) {
+      console.error("Error applying coupon:", error);
+      alert("Something went wrong. Please try again.");
+    }
+  });
+
+
+</script>
+	<!-- Main -->
+	<script src="js/main.js"></script>
+	</body>
+</html>
+

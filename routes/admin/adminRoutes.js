@@ -46,5 +46,14 @@ router.get("/dashboard",isAuthenticated,adminController.loadDashboard)
 router.get("/login",loginAuthentication,adminController.loadAdminLogin)
 router.post("/login",adminController.loginAdmin)
 
+//Order Management
+router.get("/ordermanagement",isAuthenticated,adminController.loadOrderManagement)
+router.get("/orderview/:id",isAuthenticated,adminController.loadOrderView)
+router.put("/updatestatus/:id",adminController.updateStatus)
 
+//Coupon Management
+router.get("/couponmanagement",adminController.loadCoupon)
+router.get("/couponmanagement/add",adminController.loadAddCoupon)
+router.post("/couponmanagement/add",adminController.addCoupon)
+router.get("/couponmanagement/delete/:id",adminController.deleteCoupon)
 module.exports=router

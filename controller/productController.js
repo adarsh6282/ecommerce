@@ -5,15 +5,37 @@ const { response } = require('express')
 const path = require('path')
 
 
-const loadProductmanage=async(req,res)=>{
-    try{
-    const product=await productSchema.find({isDeleted: false}).populate({ path: 'category', select: 'name' })
+const loadProductmanage = async (req, res) => {
+    try {
+        const page = parseInt(req.query.page) || 1; // Default to page 1
+        const limit = 4; // Number of products per page
+        const skip = (page - 1) * limit;
 
-      return res.render('productManagement',{products:product})
+        // Fetch products with pagination and populate the category details
+        const products = await productSchema.find({ isDeleted: false })
+            .skip(skip)
+            .limit(limit)
+            .populate({ path: 'category', select: 'name' });
+
+        // Get the total count of products to calculate the total number of pages
+        const totalProducts = await productSchema.countDocuments({ isDeleted: false });
+        const totalPages = Math.ceil(totalProducts / limit);
+
+        if (!products || products.length === 0) {
+            return res.render('productManagement', { message: "No products found", products, currentPage: page, totalPages });
+        }
+
+        // Render the product management page with products and pagination data
+        res.render('productManagement', {
+            products,
+            currentPage: page,
+            totalPages
+        });
     } catch (error) {
-        console.error(error)
+        console.error("Error loading products:", error);
+        res.status(500).send("Internal Server Error");
     }
-}
+};
 
 
 

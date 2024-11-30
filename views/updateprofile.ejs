@@ -239,11 +239,15 @@
 									<li><a href="/shop">Shop</a></li>
 									<li><a href="#">About</a></li>
 									<li><a href="#">Contact</a></li>
-									<li><a href="#">My Account</a></li>
+									<li><a href="/myaccount">My Account</a></li>
 								
-									<li class="cart"><a href="/login">Login / Register</a></li>
+									<% if (!user) { %>
+                                        <li class="cart"><a href="/login">Login / Register</a></li>
+                                    <% } else { %>
+                                        <li class="cart"><a href="/logout">Logout</a></li>
+                                    <% } %>
 									
-									<li class="cart"><a href="#"><i class="icon-shopping-cart"></i> Cart</a></li>
+									<li class="cart"><a href="/cart"><i class="icon-shopping-cart"></i> Cart</a></li>
 									<li class="cart"><a href="#">Wishlist</a></li>
 								</ul>
 							</div>
@@ -275,9 +279,9 @@
             <a href="/myaccount" class="dashboard-link">PROFILE</a>
             <a href="#" class="dashboard-link">ORDERS</a>
             <a href="/address" class="dashboard-link">ADDRESS</a>
-            <a href="/updateprofile" class="dashboard-link">UPDATE PROFILE</a>
-            <a href="#" class="dashboard-link">WALLET</a>
-            <a href="#" id="logout-button">LOGOUT</a>
+            <a href="/updateprofile/<%= user.id %>" class="dashboard-link">UPDATE PROFILE</a>
+            <a href="/wallet" class="dashboard-link">WALLET</a>
+            <a href="/logout" id="logout-button">LOGOUT</a>
         </div>
     </nav>
 
@@ -299,54 +303,87 @@
                 
                 <div class="form-group">
                     <label for="phone">Phone Number</label>
-                    <input type="tel" id="phone" name="phone" placeholder="Enter your phone number" value="<%= user.Phone %>">
+                    <input type="tel" id="phone" name="phone" placeholder="Enter your phone number" value="<%= user.Phone %>" maxlength="10">
                 </div>
 
                 <div class="form-group">
                     <label for="password">Password</label>
                     <input type="tel" id="password" name="password" placeholder="Enter your Password">
                 </div>
+                <p id="msg" style="color:red"></p>
 
                 <button type="submit" class="submit-btn">Update Profile</button>
             </form>
         </div>
     </main>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
     <script>
 
         const updateprofile=document.getElementById("updateprofile")
         updateprofile.addEventListener("submit", async(e)=> {
             e.preventDefault()
-
             let username=document.getElementById("username").value
             let Phone=document.getElementById("phone").value
-            let password=document.getElementById("password")
+            let password=document.getElementById("password").value
             let id=document.getElementById("profileId").value
+            let passreg= /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{6,}$/
+            const phonePattern = /^\d{10}$/;
 
-            try {
-            const response=await fetch(`/updateprofile/${id}`,{
-                method:"PUT",
-                headers: {
-                    "Content-Type": "application/json"
-                },
-                body: JSON.stringify({
-                    username,
-                    Phone,
-                    password
-                })
-            })
-            const data=await response.json()
-            if(data.success){
-                alert(data.message)
-                window.location.href="/myaccount"
-            }else{
-                alert(data.message||"Failed to update product")
+            let msg=document.getElementById("msg")
 
+            if(username.trim()==""||password==""||phone=="")
+            {
+                msg.innerHTML="These fields are required"
+                return 
             }
-        }catch(error){
-            console.log(error)
-            alert("An error occurred while updating the product")
-        }})
+            else if (!passreg.test(password)) {
+                msg.innerHTML = "Password format is not supported"
+                return 
+            }
+            else if(!phonePattern.test(Phone)){
+                msg.innerHTML="Phone number format is not valid"
+                return 
+            }
+            else{
+                msg.style.display="none"
+                
+                try {
+                const response=await fetch(`/updateprofile/${id}`,{
+                    method:"PUT",
+                    headers: {
+                        "Content-Type": "application/json"
+                    },
+                    body: JSON.stringify({
+                        username,
+                        Phone,
+                        password
+                    })
+                })
+                const data=await response.json()
+                if(data.success){
+                   Swal.fire({
+                    text:data.message,
+                    icon:"success"
+                   })
+                   setTimeout(() => {
+                    window.location.href = "/myaccount";
+                }, 1000);
+                }else{
+                   Swal.fire({
+                    text:data.message || "Failed to update profile",
+                    icon:"error"
+                   })
+    
+                }
+            }catch(error){
+                console.log(error)
+               Swal.fire({
+                text:"Failed to update profile",
+                icon:"error"
+               })
+            }}})
+            
     </script>
 </body>
 </html>

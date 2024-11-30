@@ -48,9 +48,6 @@ const userSchema=new mongoose.Schema({
      isGoogleLogin: { 
         type: Boolean, default: false 
     },
-
- 
-
 })
 
 module.exports=mongoose.model("users",userSchema)

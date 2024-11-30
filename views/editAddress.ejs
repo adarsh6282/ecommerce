@@ -122,7 +122,7 @@
 
         #logout-button {
             margin-left: auto;
-            background: #7b7fda;
+            background: #88c8bc;
             color: white;
             padding: 8px 20px;
             border-radius: 4px;
@@ -239,11 +239,15 @@
 									<li><a href="/shop">Shop</a></li>
 									<li><a href="#">About</a></li>
 									<li><a href="#">Contact</a></li>
-									<li><a href="#">My Account</a></li>
+									<li><a href="/myaccount">My Account</a></li>
 								
-									<li class="cart"><a href="/login">Login / Register</a></li>
+									<% if (!user) { %>
+                                        <li class="cart"><a href="/login">Login / Register</a></li>
+                                    <% } else { %>
+                                        <li class="cart"><a href="/logout">Logout</a></li>
+                                    <% } %>
 									
-									<li class="cart"><a href="#"><i class="icon-shopping-cart"></i> Cart</a></li>
+									<li class="cart"><a href="/cart"><i class="icon-shopping-cart"></i> Cart</a></li>
 									<li class="cart"><a href="#">Wishlist</a></li>
 								</ul>
 							</div>
@@ -274,10 +278,10 @@
         <div class="dashboard-menu">
             <a href="/myaccount" class="dashboard-link">PROFILE</a>
             <a href="/myaccountorder" class="dashboard-link">ORDERS</a>
-            <a href="#" class="dashboard-link">ADDRESS</a>
-            <a href="#" class="dashboard-link">UPDATE PROFILE</a>
+            <a href="/address" class="dashboard-link">ADDRESS</a>
+            <a href="/updateprofile/<%= user.id %>" class="dashboard-link">UPDATE PROFILE</a>
             <a href="#" class="dashboard-link">WALLET</a>
-            <a href="#" id="logout-button">LOGOUT</a>
+            <a href="/logout" id="logout-button">LOGOUT</a>
         </div>
     </nav>
 
@@ -325,7 +329,7 @@
             </form>
         </div>
     </main>
-
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script>
 
         const editaddress=document.getElementById("editaddress")
@@ -359,24 +363,68 @@
                 })
                 const result=await respose.json()
                 if(result.success){
-                    swal({
+                    swal.fire({
                         text:result.message,
                         icon:"success"
                     })
                 }else{
-                    swal({
+                    swal.fire({
                         text:result.message || "Failed to edit address",
                         icon:"error"
                     })
                 }
             }catch(error){
                 console.error(error)
-                Swal({
+                Swal.fire({
                     text:"Failed to edit address",
                     icon:"error"
                 })
             }
 
+            })
+
+    </script>
+
+    <script>
+
+document.getElementById("editaddress").addEventListener("submit",async(e)=>{
+            e.preventDefault();
+            const housename = document.getElementById("housename").value;
+            const city = document.getElementById("city").value;
+            const district = document.getElementById("district").value;
+            const state = document.getElementById("state").value;
+            const country = document.getElementById("country").value;
+            const pincode = document.getElementById("pincode").value;
+            const fullreg=/^[A-Za-z\s]+$/;
+            const pinreg=/^\d{6}$/;
+
+            if(housename.trim()==""||city.trim==""||district.trim==""||state.trim()==""||pincode.trim()==""){
+                Swal.fire({
+                    icon: 'error',
+                    text: 'Please fill all the fields!'
+                })
+                return
+            }
+            if (
+                !fullreg.test(housename) ||
+                !fullreg.test(city) ||
+                !fullreg.test(district) ||
+                !fullreg.test(state) ||
+                !fullreg.test(country)
+            ) {
+                Swal.fire({
+                    icon: 'error',
+                    text: 'These fields should only contain alphabets!',
+                });
+                return;
+             } 
+            if(!pinreg.test(pincode)){
+                    Swal.fire({
+                        icon: 'error',
+                        text: 'Pin Code should be a six-digit number!'
+                    })
+                        return
+                }
             })
 
     </script>

@@ -70,9 +70,13 @@
 									<li><a href="#">Contact</a></li>
 									<li><a href="/myaccount">My Account</a></li>
 								
-									<li class="cart"><a href="/login">Login / Register</a></li>
+									<% if (!user) { %>
+                                        <li class="cart"><a href="/login">Login / Register</a></li>
+                                    <% } else { %>
+                                        <li class="cart"><a href="/logout">Logout</a></li>
+                                    <% } %>
 									
-									<li class="cart"><a href="#"><i class="icon-shopping-cart"></i> Cart</a></li>
+									<li class="cart"><a href="/cart"><i class="icon-shopping-cart"></i> Cart</a></li>
 									<li class="cart"><a href="#">Wishlist</a></li>
 								</ul>
 							</div>
@@ -102,10 +106,10 @@
             <div class="dashboard-menu">
                 <a href="/myaccount" class="dashboard-link">PROFILE</a>
                 <a href="/myaccountorder" class="dashboard-link">ORDERS</a>
-                <a href="#" class="dashboard-link">ADDRESS</a>
-                <a href="#" class="dashboard-link">UPDATE PROFILE</a>
-                <a href="#" class="dashboard-link">WALLET</a>
-                <a href="#" id="logout-button">LOGOUT</a>
+                <a href="/address" class="dashboard-link">ADDRESS</a>
+                <a href="/updateprofile/<%= user.id %>" class="dashboard-link">UPDATE PROFILE</a>
+                <a href="/wallet" class="dashboard-link">WALLET</a>
+                <a href="/logout" id="logout-button">LOGOUT</a>
             </div>
         </nav>
     
@@ -117,35 +121,129 @@
                         <th>Order ID</th>
                         <th>Date</th>
                         <th>Status</th>
+                        <th>Payment Status</th>
                         <th>Total</th>
+                        <th>Order Details</th>
                         <th>Actions</th>
                     </tr>
                 </thead>
                 <tbody>
+					<% orders.forEach(order => { %>
                     <tr>
-                        <td>#1357</td>
-                        <td>March 19, 2022</td>
-                        <td>Processing</td>
-                        <td>$125.00</td>
-                        <td><a href="#" class="action-btn">View</a></td>
+                        <td>#<%= order._id %></td>
+                        <td><%= order.createdAt.toLocaleDateString() %></td>
+                        <td><%= order.status %></td>
+                        <td><%= order.paymentStatus %></td>
+                        <td><%= order.totalAmount %></td>
+                        <td><a href="userorderview/<%= order._id %>" class="action-btn">View</a></td>
+                        <td>
+							<% if (order.status === 'Delivered') { %>
+								<button class="btn btn-primary returnorderbtn" data-id="<%= order._id %>">Request Return</button>
+							<% } else if (order.status === 'Pending') { %>
+								<button class="btn btn-danger cancelorderbtn" data-id="<%= order._id %>">Cancel Order</button>
+							<% } else { %>
+								<button class="btn disabled" disabled>No Action</button>
+							<% } %>
+						</td>
                     </tr>
-                    <tr>
-                        <td>#2468</td>
-                        <td>June 29, 2022</td>
-                        <td>Completed</td>
-                        <td>$364.00</td>
-                        <td><a href="#" class="action-btn">View</a></td>
-                    </tr>
-                    <tr>
-                        <td>#2366</td>
-                        <td>August 02, 2022</td>
-                        <td>Completed</td>
-                        <td>$280.00</td>
-                        <td><a href="#" class="action-btn">View</a></td>
-                    </tr>
+                <% }); %>
                 </tbody>
             </table>
         </main>
+		<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
         <%- include("./layouts/footer") %>
+
+		<script>
+
+document.querySelectorAll('.cancelorderbtn').forEach(button => {
+        button.addEventListener('click', async () => {
+            const orderId = button.getAttribute('data-id');
+			console.log(orderId);
+
+			try {
+                    const response = await fetch(`/cancelorder/${orderId}`, {
+                        method: 'PUT',
+                        headers: { 'Content-Type': 'application/json' },
+						body: JSON.stringify({ orderId: orderId })
+                    });
+					const result = await response.json();
+                    if (result.success) {
+                        Swal.fire({
+							text:result.message,
+							icon:"success"
+						})
+						button.textContent = "Order Canceled";
+						button.disabled = true;
+						button.classList.add('disabled');
+
+						const row = button.closest('tr');
+						const statusCell = row.querySelector('td:nth-child(3)');
+						if (statusCell) {
+							statusCell.textContent = "Cancelled";
+						}
+                    } else {
+                        Swal.fire({
+							text:result.message,
+                            icon:"error"
+						})
+                    }
+                } catch (error) {
+                    console.error('Error:', error);
+                    Swal.fire({
+						text: "An error occurred while canceling the order",
+                        icon:"error"
+					})
+                }
+			});
+		});
+
+		</script>
+
+		<script>
+
+document.querySelectorAll('.returnorderbtn').forEach(button => {
+    button.addEventListener('click', async () => {
+        const orderId = button.getAttribute('data-id');
+
+        try {
+            const response = await fetch(`/returnorder/${orderId}`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ orderId })
+            });
+
+            const result = await response.json();
+            if (result.success) {
+                Swal.fire({
+                    text: result.message,
+                    icon: "success"
+                });
+
+                button.textContent = "Return Requested";
+                button.disabled = true;
+                button.classList.add('disabled');
+
+                const row = button.closest('tr');
+                const statusCell = row.querySelector('td:nth-child(3)');
+                if (statusCell) {
+                    statusCell.textContent = "Returned";
+                }
+            } else {
+                Swal.fire({
+                    text: result.message,
+                    icon: "error"
+                });
+            }
+        } catch (error) {
+            console.error('Error:', error);
+            Swal.fire({
+                text: "An error occurred while requesting a return",
+                icon: "error"
+            });
+        }
+    });
+});
+
+		</script>
     </body>
     </html>

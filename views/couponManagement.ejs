@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <title>Admin Panel</title>
+    <link rel="stylesheet" href="/css/admin.css">
+  </head>
+  <body>
+    <div class="container-scroller">
+        <%- include("./layouts/aheader") %>
+        <div class="row ">
+            <div class="col-12 grid-margin">
+              <div class="card">
+                <div class="card-body">
+                  <h4 class="card-title mt-5" >Coupons</h4>
+                  <div class="table-responsive">
+                    <table class="table">
+                      <thead>
+                        <tr>
+                          <th> Coupon Code </th>
+                          <th> Discount </th>
+                          <th> Created Date </th>
+                          <th> Expiration Date </th>
+                          <th> Max Count </th>
+                          <th> Used Count </th>
+                          <th> IsActive </th>
+                          <th> Action </th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        <% coupons.forEach((coupon) => { %>
+                          <tr>
+                            <td> <%= coupon.code %> </td>
+                            <td> <%= coupon.discount %> % </td>
+                            <td> <%= coupon.createdAt.toLocaleDateString() %> </td>
+                            <td> <%= coupon.expirationDate.toLocaleDateString() %> </td>
+                            <td> <%= coupon.maxCount %> </td>
+                            <td> <%= coupon.usedCount %> </td>
+                            <td>
+                              <% if (coupon.isActive) { %>
+                                <span style="color:green;">Active</span>
+                              <% } else { %>
+                                <span style="color:red;">Inactive</span>
+                              <% } %>
+                            </td>
+                            <td>
+                              <a href="/admin/couponmanagement/delete/<%= coupon._id %>" class="btn btn-sm btn-danger">Delete</a>
+                            </td>
+                          </tr>
+                        <% }); %>
+                      </tbody>                      
+                </table>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div style="margin-top: 100px;" class="col-md-4 grid-margin stretch-card userInfoView">
+        <a href="/admin/couponmanagement/add" class="btn btn-primary categorybtn pt-3" style="width: 200px; margin-right: 5px;">Add New Coupon</a>
+      </div>
+
+      <script>
+
+        document.getElementById("coupon")
+
+      </script>
+    </body>
+    </html>

@@ -31,7 +31,10 @@
   <a href="/admin/categorymanagement" class="btn btn-secondary mt-3">Cancel</a>
 </form>
 </div>
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 <script>
+      
+
 
 const updateform=document.getElementById("updatecategory")
 updateform.addEventListener("submit",async(e)=>{
@@ -57,14 +60,25 @@ updateform.addEventListener("submit",async(e)=>{
     })
     const data = await response.json();
         if (data.success) {
-          alert('Category updated successfully!');
-          window.location.href = '/admin/categorymanagement';
+          Swal.fire({
+            text:data.message,
+            icon:"success"
+          })
+          setTimeout(() => {
+            window.location.href = '/admin/categorymanagement';
+          }, 1000);
         } else {
-          alert(data.message || 'Failed to update category');
+          Swal.fire({
+            text:data.message,
+            icon:"error"
+          })
         }
       } catch (error) {
         console.error('Error updating category:', error);
-        alert('An error occurred while updating the category.');
+        Swal.fire({
+          text: 'An error occurred while updating the category.',
+          icon: 'error',
+        })
 }
 });
 </script>

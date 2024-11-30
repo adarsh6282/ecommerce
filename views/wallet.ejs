@@ -1,0 +1,285 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Takrum - Wallet</title>
+    <link rel="stylesheet" href="/css/style.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: Arial, sans-serif;
+        }
+
+        .header {
+            padding: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid #eee;
+        }
+
+        .logo {
+            color: #ff9966;
+            font-size: 24px;
+            font-weight: bold;
+        }
+
+        .nav {
+            display: flex;
+            gap: 20px;
+        }
+
+        .nav a {
+            text-decoration: none;
+            color: #333;
+            text-transform: uppercase;
+            font-size: 14px;
+        }
+
+        .cart-section {
+            display: flex;
+            gap: 20px;
+            align-items: center;
+        }
+
+        .search-bar {
+            padding: 5px 10px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+        }
+
+        .summer-sale {
+            background-color: #7B7BE7;
+            color: white;
+            text-align: center;
+            padding: 10px;
+            font-size: 20px;
+            font-weight: bold;
+        }
+
+        .account-nav {
+            display: flex;
+            justify-content: center;
+            gap: 30px;
+            padding: 20px;
+            background-color: #f9f9f9;
+        }
+
+        .account-nav a {
+            text-decoration: none;
+            color: #333;
+            text-transform: uppercase;
+            font-size: 14px;
+        }
+
+        .logout-btn {
+            background-color: #5A2B9C;
+            color: white;
+            border: none;
+            padding: 8px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+
+        .wallet-section {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .wallet-title {
+            font-size: 24px;
+            color: #333;
+            margin-left: 200px;
+            margin-bottom: 20px;
+        }
+
+        .card {
+            background-color: #5A2B9C;
+            position: relative;
+            left: 200px;
+            color: white;
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            width: 350px;
+        }
+
+        .card-number {
+            margin: 20px 0;
+            letter-spacing: 2px;
+        }
+
+        .card-balance {
+            font-size: 24px;
+            margin-bottom: 10px;
+        }
+
+        .card-valid {
+            font-size: 12px;
+        }
+
+        .amount-input {
+            width: 100%;
+            padding: 10px;
+            margin-bottom: 20px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+        }
+
+        .button-group {
+            display: flex;
+            gap: 10px;
+        }
+
+        .footer {
+            background-color: #f9f9f9;
+            padding: 40px 20px;
+            margin-top: 40px;
+        }
+
+        .footer-content {
+            max-width: 1200px;
+            margin: 0 auto;
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 20px;
+        }
+
+        .footer-section h3 {
+            color: #333;
+            margin-bottom: 15px;
+            font-size: 14px;
+            text-transform: uppercase;
+        }
+
+        .footer-section p, .footer-section a {
+            color: #666;
+            text-decoration: none;
+            font-size: 12px;
+            line-height: 1.8;
+        }
+
+        #user-dashboard-nav {
+            background: #fff;
+            padding: 20px 5%;
+            border-bottom: 1px solid #eee;
+        }
+
+        .dashboard-menu {
+            display: flex;
+            gap: 25px;
+            align-items: center;
+        }
+
+        .dashboard-link {
+            text-decoration: none;
+            color: #444;
+            font-weight: 500;
+        }
+
+        #logout-button {
+            margin-left: auto;
+            background: #7b7fda;
+            color: white;
+            padding: 8px 20px;
+            border-radius: 4px;
+            text-decoration: none;
+        }
+    </style>
+</head>
+<body>
+    <header>
+		<div id="page">
+			<nav class="colorlib-nav" role="navigation">
+				<div class="top-menu">
+					<div class="container">
+						<div class="row">
+							<div class="col-sm-7 col-md-9">
+								<div id="colorlib-logo"><a href="/"><img src="../../images/Screenshot_2024-10-26_152034-removebg-preview.png" style="height:50px; width:170px"></a></div>
+							</div>
+							<div class="col-sm-5 col-md-3">
+							<form action="#" class="search-wrap">
+							   <div class="form-group">
+								  <input type="search" class="form-control search" placeholder="Search">
+								  <button class="btn btn-primary submit-search text-center" type="submit"><i class="icon-search"></i></button>
+							   </div>
+							</form>
+						 </div>
+					 </div>
+						<div class="row">
+							<div class="col-sm-12 text-left menu-1">
+								<ul>
+									<li><a href="/">Home</a></li>
+									<li><a href="/shop">Shop</a></li>
+									<li><a href="#">About</a></li>
+									<li><a href="#">Contact</a></li>
+									<li><a href="/myaccount">My Account</a></li>
+								
+									<% if (!user) { %>
+                                        <li class="cart"><a href="/login">Login / Register</a></li>
+                                    <% } else { %>
+                                        <li class="cart"><a href="/logout">Logout</a></li>
+                                    <% } %>
+									
+									<li class="cart"><a href="/cart"><i class="icon-shopping-cart"></i> Cart</a></li>
+									<li class="cart"><a href="#">Wishlist</a></li>
+								</ul>
+							</div>
+						</div>
+					</div>
+				</div>
+				<div class="sale">
+					<div class="container">
+						<div class="row">
+							<div class="col-sm-8 offset-sm-2 text-center">
+								<div class="row">
+									<div class="owl-carousel2">
+										<div class="item">
+											<div class="col">
+												<h3><a href="#">25% off (Almost) Everything! Use Code: Summer Sale</a></h3>
+											</div>
+										</div>
+									</div>
+								</div>
+							</div>
+						</div>
+					</div>
+				</div>
+			</nav>
+		</header>
+
+    <nav id="user-dashboard-nav">
+        <div class="dashboard-menu">
+            <a href="/myaccount" class="dashboard-link">PROFILE</a>
+            <a href="/myaccountorder" class="dashboard-link">ORDERS</a>
+            <a href="/address" class="dashboard-link">ADDRESS</a>
+            <a href="/updateprofile/<%= user.id %>" class="dashboard-link">UPDATE PROFILE</a>
+            <a href="/wallet" class="dashboard-link">WALLET</a>
+            <a href="/logout" id="logout-button">LOGOUT</a>
+        </div>
+    </nav>
+
+    <main class="wallet-section">
+        <h1 class="wallet-title">Wallet</h1>
+        
+        <% if (wallet) { %> 
+            <div class="card">
+                <div>TAKRUM</div>
+                <div class="card-number">**** **** **** 8529</div>
+                <div class="card-balance">&#8377;<%= wallet.balance %></div>
+                <div class="card-valid">Valid Thru: 12/29</div>
+            </div>
+        <% } else { %>
+            <div class="card">
+                <p>No wallet information available.</p>
+            </div>
+        <% } %>
+    </main>
+
+   <%- include("./layouts/footer")%>
+</body>
+</html>

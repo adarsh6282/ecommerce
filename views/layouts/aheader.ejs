@@ -4,33 +4,33 @@
       <a class="sidebar-brand brand-logo-mini" href="index.html"><img src="assets/images/logo-mini.svg" alt="logo" /></a>
     </div>
     <ul class="nav">
-      <li class="nav-item menu-items">
+      <li class="nav-item menu-items <%= currentRoute === '/admin/dashboard' ? 'active' : '' %>">
         <a class="nav-link" href="/admin/dashboard">
           <span class="menu-title">Dashboard</span>
         </a>
       </li>
-      <li class="nav-item menu-items">
+      <li class="nav-item menu-items <%= currentRoute === '/admin/usermanagement' ? 'active' : '' %>">
         <a class="nav-link" href="/admin/usermanagement">
           <span class="menu-title">User Management</span>
         </a>
       </li>
-      <li class="nav-item menu-items">
+      <li class="nav-item menu-items <%= currentRoute === '/admin/productmanagement' ? 'active' : '' %>">
         <a class="nav-link" href="/admin/productmanagement">
           <span class="menu-title">Products Management</span>
         </a>
       </li>
-      <li class="nav-item menu-items">
-        <a class="nav-link" href="#">
+      <li class="nav-item menu-items <%= currentRoute === '/admin/ordermanagement' ? 'active' : '' %>">
+        <a class="nav-link" href="/admin/ordermanagement">
           <span class="menu-title">Order Management</span>
         </a>
       </li>
-      <li class="nav-item menu-items">
+      <li class="nav-item menu-items <%= currentRoute === '/admin/categorymanagement' ? 'active' : '' %>">
         <a class="nav-link" href="/admin/categorymanagement">
           <span class="menu-title">Category Management</span>
         </a>
       </li>
-      <li class="nav-item menu-items">
-        <a class="nav-link" href="#">
+      <li class="nav-item menu-items <%= currentRoute === '/admin/couponmanagement' ? 'active' : '' %>">
+        <a class="nav-link" href="/admin/couponmanagement">
           <span class="menu-title">Coupon Management</span>
         </a>
       </li>

@@ -238,11 +238,15 @@
 									<li><a href="/shop">Shop</a></li>
 									<li><a href="#">About</a></li>
 									<li><a href="#">Contact</a></li>
-									<li><a href="#">My Account</a></li>
+									<li><a href="/myaccount">My Account</a></li>
 								
-									<li class="cart"><a href="/login">Login / Register</a></li>
+									<% if (!user) { %>
+                                        <li class="cart"><a href="/login">Login / Register</a></li>
+                                    <% } else { %>
+                                        <li class="cart"><a href="/logout">Logout</a></li>
+                                    <% } %>
 									
-									<li class="cart"><a href="#"><i class="icon-shopping-cart"></i> Cart</a></li>
+									<li class="cart"><a href="/cart"><i class="icon-shopping-cart"></i> Cart</a></li>
 									<li class="cart"><a href="#">Wishlist</a></li>
 								</ul>
 							</div>
@@ -273,10 +277,10 @@
         <div class="dashboard-menu">
             <a href="/myaccount" class="dashboard-link">PROFILE</a>
             <a href="/myaccountorder" class="dashboard-link">ORDERS</a>
-            <a href="#" class="dashboard-link">ADDRESS</a>
-            <a href="#" class="dashboard-link">UPDATE PROFILE</a>
-            <a href="#" class="dashboard-link">WALLET</a>
-            <a href="#" id="logout-button">LOGOUT</a>
+            <a href="/address" class="dashboard-link">ADDRESS</a>
+            <a href="/updateprofile/<%= user.id %>" class="dashboard-link">UPDATE PROFILE</a>
+            <a href="/wallet" class="dashboard-link">WALLET</a>
+            <a href="/logout" id="logout-button">LOGOUT</a>
         </div>
     </nav>
 
@@ -286,37 +290,41 @@
                 <h2 class="section-title">Your Addresses</h2>
             </div>
 
-            <div class="profile-grid">
+            <div class="profile-grid" style="display: flow-root;">
                 <% if (address && address.length > 0) { %>
                     <% address.forEach(address => { %>
-                        <div class="profile-item">
-                            <div class="profile-label">House name:</div>
-                            <div class="profile-value"><%= address.housename %></div>
-                        </div>
-                        <div class="profile-item">
-                            <div class="profile-label">City:</div>
-                            <div class="profile-value"><%= address.city %></div>
-                        </div>
-                        <div class="profile-item">
-                            <div class="profile-label">District:</div>
-                            <div class="profile-value"><%= address.district %></div>
-                        </div>
-                        <div class="profile-item">
-                            <div class="profile-label">State:</div>
-                            <div class="profile-value"><%= address.state %></div>
-                        </div>
-                        <div class="profile-item">
-                            <div class="profile-label">Postal Code:</div>
-                            <div class="profile-value"><%= address.pincode %></div>
-                            <a href="/address/edit/<%= address._id %>" class="edit-profile-btn">Edit</a>
-                            <a href="/address/delete/<%= address._id %>" class="edit-profile-btn">Delete</a>
+                        <div class="address-container" style="margin-bottom: 20px; padding: 15px; border: 1px solid #ccc; border-radius: 8px; background-color: #f9f9f9;">
+                            <div class="profile-item">
+                                <div class="profile-label">House name:</div>
+                                <div class="profile-value"><%= address.housename %></div>
+                            </div>
+                            <div class="profile-item">
+                                <div class="profile-label">City:</div>
+                                <div class="profile-value"><%= address.city %></div>
+                            </div>
+                            <div class="profile-item">
+                                <div class="profile-label">District:</div>
+                                <div class="profile-value"><%= address.district %></div>
+                            </div>
+                            <div class="profile-item">
+                                <div class="profile-label">State:</div>
+                                <div class="profile-value"><%= address.state %></div>
+                            </div>
+                            <div class="profile-item">
+                                <div class="profile-label">Postal Code:</div>
+                                <div class="profile-value"><%= address.pincode %></div>
+                            </div>
+                            <div class="profile-actions">
+                                <a href="/address/edit/<%= address._id %>" class="edit-profile-btn">Edit</a>
+                                <a href="/address/delete/<%= address._id %>" class="edit-profile-btn">Delete</a>
+                            </div>
                         </div>
                     <% }); %>
                 <% } else { %>
                     <p>No addresses found. Please add an address.</p>
                 <% } %>
             </div>
-            <a href="/address/add/<%= user.id %>" class="edit-profile-btn" id="editbtn">Add</a>
+            <a href="/address/add/<%= user.id %>" class="edit-profile-btn" id="editbtn">Add</a>            
         </div>
     </main>
     

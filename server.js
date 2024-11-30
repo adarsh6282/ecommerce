@@ -9,6 +9,7 @@ const passport = require("./config/passport")
 const nocache=require("nocache")
 const auth=require("./middleware/auth")
 const checkBan=require("./middleware/bancheck")
+const {cartCount,wishCount}=require("./middleware/cartandwishcount")
 
 app.use(session({
     secret:"secretkey",
@@ -18,6 +19,13 @@ app.use(session({
         maxAge:1000*60*60*24
     }
 }))
+
+app.use(cartCount)
+app.use(wishCount)
+app.use((req, res, next) => {
+    res.locals.currentRoute = req.path;
+    next();
+  });
 app.set("view engine","ejs")
 app.set("views",path.join(__dirname,"views"))
 app.use(nocache())

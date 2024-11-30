@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <title>Admin Panel</title>
+    <link rel="stylesheet" href="/css/admin.css">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
+    
+  </head>
+  <style>
+    .container-fluid {
+      background-color: #191c24;
+      padding-top: 3rem;
+      padding-bottom: 3rem;
+    }
+    .card {
+      background-color:#191c24 ;
+    }
+    .card-header {
+      padding: 1rem;
+    }
+    .dropdown-toggle {
+      width: 100%;
+    }
+    .table {
+      margin-bottom: 0;
+    }
+    .table th, .table td {
+      border-top: none;
+      border-bottom: 1px solid #dee2e6;
+    }
+    /* Custom styles for horizontal layout */
+    .table-container, .address-container {
+      padding: 1rem;
+    } 
+  </style>
+  <body>
+    <div class="container-scroller" >
+        <%- include("./layouts/aheader") %>
+        <div class="content-header" style="margin-top: 100px;">
+          <div>
+              <h2 class="content-title card-title" style="color: white;">Order Details</h2>
+          </div>
+      </div>
+        
+      <div class="container-fluid">
+               <!-- Buttons Section -->
+               <div class="row mt-3">
+                <div class="col-md-8 d-flex justify-content-start align-items-center">
+                    <button type="button" id="updatestatus" class="btn btn-primary me-2">Update Status</button>
+                    <div class="dropdown">
+                        <button class="btn btn-primary dropdown-toggle" type="button"  id="processingDropdown" data-bs-toggle="dropdown" aria-expanded="false" <%= order.status === "Cancelled" ? "disabled" : "" %>>
+                          <%= order.status %>
+                        </button>
+                        <ul class="dropdown-menu" aria-labelledby="processingDropdown">
+                            <li><a class="dropdown-item" href="#" data-status="Shipped">Shipped</a></li>
+                            <li><a class="dropdown-item" href="#" data-status="Delivered">Delivered</a></li>
+                            <li><a class="dropdown-item" href="#" data-status="Cancelled">Cancelled</a></li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        <div class="row">
+            <!-- Product Table -->
+            <div class="col-md-8 table-container" >
+                <div class="card" >
+                    <div class="card-body" >
+                        <div class="table-responsive">
+                            <table class="table table-hover">
+                                <thead>
+                                    <tr style="background-color:#191c24">
+                                        <th>Image</th>
+                                        <th>Product Name</th>
+                                        <th>Price</th>
+                                        <th>Quantity</th>
+                                        <th>Total</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                  <% order.orderItems.forEach((item) => { %>
+                                    <tr>
+                                        <td>
+                                            <img src="/<%= item.productId.images[0] %>" alt="" style="width: 50px; height: 50px; object-fit: cover;">
+                                        </td>
+                                        <td><%= item.productId.name %></td>
+                                        <td>₹<%= item.productId.price.toFixed(2) %></td>
+                                        <td><%= item.quantity %></td>
+                                        <td>₹<%= (item.productId.price * item.quantity).toFixed(2) %></td>
+                                    </tr>
+                                </tbody>
+                                <% }); %>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+    
+            <!-- Shipping Address -->
+             <input type="hidden" name="orderId" id="orderId" value="<%= order._id %>">
+            <div class="col-md-4 address-container">
+                <div class="card">
+                    <div class="card-body" style="color: white;">
+                        <h5 class="card-title">Shipping Address</h5>
+                        <p class="card-text">
+                           <b> House Name:</b> <%= order.addressId.housename %> <br>
+                            <b>City:</b> <%= order.addressId.city %><br>
+                            <b>District:</b> <%= order.addressId.district %> <br>
+                            <b>State:</b> <%= order.addressId.state %> <br>
+                           <b> Country:</b> <%= order.addressId.country %><br>
+                           <b> Pin Code:</b> <%= order.addressId.pincode %>
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.11.6/dist/umd/popper.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+    <script>
+
+      const updatestatus=document.getElementById("updatestatus")
+      const dropdownButton = document.getElementById('processingDropdown');
+      const dropdownItems = document.querySelectorAll('.dropdown-item');
+
+dropdownItems.forEach(item => {
+    item.addEventListener('click', (event) => {
+        const selectedstatus = event.target.getAttribute('data-status');
+        dropdownButton.textContent = selectedstatus;
+    });
+});
+
+      updatestatus.addEventListener("click",async()=>{
+        const selectedstatus=dropdownButton.textContent.trim()
+        const orderId=document.getElementById('orderId').value
+        console.log(orderId,selectedstatus);
+
+        if (selectedstatus === 'Processing') {
+                Swal.fire({
+                  text:"please select a status",
+                  icon:"question"
+                })
+            }
+
+            try{
+              const response=await fetch(`/admin/updatestatus/${orderId}`,{
+                method:"PUT",
+                headers:{
+                  "Content-Type":"application/json"
+                },
+                body:JSON.stringify({
+                  status:selectedstatus
+                })
+              })
+              const result=await response.json()
+              if(result.success){
+                Swal.fire({
+                  text:result.message,
+                  icon:"success"
+                })
+                if (selectedStatus === "Cancelled") {
+                    button.disabled = true;
+                } else {
+                    button.disabled = false;
+                }
+
+                // Optionally update the status cell in the table
+                const row = button.closest('tr');
+                const statusCell = row.querySelector('td:nth-child(3)'); // Adjust column index as needed
+                if (statusCell) {
+                    statusCell.textContent = selectedStatus;
+                }
+            } 
+                setTimeout(() => {
+        window.location.href = "/admin/ordermanagement";
+    }, 1000);
+              }
+            catch(error)
+            {
+              console.error(error);
+              Swal.fire({
+                  text:"Error updating status please try again later",
+                  icon:"error"
+                })
+            }
+          })
+
+    </script>
+    </body>
+    </html>

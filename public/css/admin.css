@@ -21216,3 +21216,55 @@
     margin-left: auto;
     width: 45%;
   }
+
+  .custom-pagination {
+    display: flex;
+    justify-content: center; /* Centers pagination items horizontally */
+    align-items: center; /* Ensures the items are vertically centered */
+    margin-top: 20px;
+    padding: 10px;
+    text-align: center;
+  }
+  
+  .custom-pagination .page-item {
+    list-style: none;
+  }
+  
+  .custom-pagination .page-link {
+    display: flex;
+    justify-content: center; /* Horizontally centers the content */
+    align-items: center; /* Vertically centers the content */
+    color: #007bff;
+    padding: 10px 15px;
+    margin: 0 5px;
+    text-decoration: none;
+    border: 1px solid #ddd;
+    border-radius: 5px;
+    background-color: transparent; /* Transparent background */
+    font-size: 16px; /* Adjust font size */
+    width: auto; /* Fixed width for small box */
+    height: 35px; /* Fixed height for small box */
+    line-height: 35px; /* Center text vertically if necessary */
+  }
+  
+  .custom-pagination .page-link:hover {
+    background-color: #d1d1d1; /* Hover effect */
+  }
+  
+  .custom-pagination .active .page-link {
+    background-color: #007bff;
+    color: white;
+  }
+  
+  .custom-pagination .page-link:focus {
+    outline: none;
+  }
+  
+  .custom-pagination .page-link:first-child {
+    border-radius: 5px 0 0 5px; /* Rounded left edge for "Previous" */
+  }
+  
+  .custom-pagination .page-link:last-child {
+    border-radius: 0 5px 5px 0; /* Rounded right edge for "Next" */
+  }
+  
