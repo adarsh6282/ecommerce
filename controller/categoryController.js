@@ -12,11 +12,10 @@ const loadAddCategory=(req,res)=>{
 
 const loadCategoryManagement = async (req, res) => {
     try {
-        const page = parseInt(req.query.page) || 1; // Default to page 1
-        const limit = 4; // Number of categories per page
+        const page = parseInt(req.query.page) || 1;
+        const limit = 4;
         const skip = (page - 1) * limit;
 
-        // Fetch categories with pagination
         const categories = await categorySchema.find({ isDeleted: false })
             .skip(skip)
             .limit(limit);
@@ -25,7 +24,6 @@ const loadCategoryManagement = async (req, res) => {
             return res.render('admin-categorymanagement', { categories, message: 'No categories found' });
         }
 
-        // Fetch product count for each category
         const categoriesWithCounts = await Promise.all(
             categories.map(async (category) => {
                 const productCount = await productSchema.countDocuments({ categories: category._id });
@@ -36,11 +34,9 @@ const loadCategoryManagement = async (req, res) => {
             })
         );
 
-        // Get the total number of categories to calculate totalPages
         const totalCategories = await categorySchema.countDocuments({ isDeleted: false });
         const totalPages = Math.ceil(totalCategories / limit);
 
-        // Render the category management page with categories and pagination data
         res.render('admin-categorymanagement', {
             categories: categoriesWithCounts,
             currentPage: page,

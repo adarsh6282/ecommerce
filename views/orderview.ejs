@@ -84,9 +84,9 @@
                                             <img src="/<%= item.productId.images[0] %>" alt="" style="width: 50px; height: 50px; object-fit: cover;">
                                         </td>
                                         <td><%= item.productId.name %></td>
-                                        <td>₹<%= item.productId.price.toFixed(2) %></td>
+                                        <td>₹<%= item.productId.offerPrice.toFixed(2) %></td>
                                         <td><%= item.quantity %></td>
-                                        <td>₹<%= (item.productId.price * item.quantity).toFixed(2) %></td>
+                                        <td>₹<%= (item.productId.offerPrice * item.quantity).toFixed(2) %></td>
                                     </tr>
                                 </tbody>
                                 <% }); %>
@@ -120,72 +120,81 @@
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
     <script>
-
-      const updatestatus=document.getElementById("updatestatus")
-      const dropdownButton = document.getElementById('processingDropdown');
-      const dropdownItems = document.querySelectorAll('.dropdown-item');
-
-dropdownItems.forEach(item => {
-    item.addEventListener('click', (event) => {
-        const selectedstatus = event.target.getAttribute('data-status');
-        dropdownButton.textContent = selectedstatus;
+    const updatestatus = document.getElementById("updatestatus");
+    const dropdownButton = document.getElementById("processingDropdown");
+    const dropdownItems = document.querySelectorAll(".dropdown-item");
+    
+    dropdownItems.forEach(item => {
+        item.addEventListener("click", (event) => {
+            const selectedStatus = event.target.getAttribute("data-status");
+            dropdownButton.textContent = selectedStatus;
+        });
     });
-});
-
-      updatestatus.addEventListener("click",async()=>{
-        const selectedstatus=dropdownButton.textContent.trim()
-        const orderId=document.getElementById('orderId').value
-        console.log(orderId,selectedstatus);
-
-        if (selectedstatus === 'Processing') {
-                Swal.fire({
-                  text:"please select a status",
-                  icon:"question"
-                })
-            }
-
-            try{
-              const response=await fetch(`/admin/updatestatus/${orderId}`,{
-                method:"PUT",
-                headers:{
-                  "Content-Type":"application/json"
+    
+    
+    updatestatus.addEventListener("click", async () => {
+        const selectedstatus = dropdownButton.textContent.trim();
+        const orderId = document.getElementById("orderId").value;
+    
+        console.log("Order ID:", orderId);
+        console.log("Selected Status:", selectedstatus);
+    
+        if (selectedstatus === "Processing") {
+            Swal.fire({
+                text: "Please select a valid status",
+                icon: "question",
+            });
+            return;
+        }
+    
+        try {
+            const response = await fetch(`/admin/updatestatus/${orderId}`, {
+                method: "PUT",
+                headers: {
+                    "Content-Type": "application/json",
                 },
-                body:JSON.stringify({
-                  status:selectedstatus
-                })
-              })
-              const result=await response.json()
-              if(result.success){
+                body: JSON.stringify({
+                    status: selectedstatus,
+                }),
+            });
+    
+            const result = await response.json();
+    
+            if (result.success) {
                 Swal.fire({
-                  text:result.message,
-                  icon:"success"
-                })
-                if (selectedStatus === "Cancelled") {
-                    button.disabled = true;
+                    text: result.message,
+                    icon: "success",
+                });
+    
+                if (selectedstatus === "Cancelled") {
+                    updatestatus.disabled = true;
                 } else {
-                    button.disabled = false;
+                    updatestatus.disabled = false;
+                }
+    
+                const statusCell = document.querySelector(`#orderRow-${orderId} .status-cell`);
+                if (statusCell) {
+                    statusCell.textContent = selectedstatus;
                 }
 
-                // Optionally update the status cell in the table
-                const row = button.closest('tr');
-                const statusCell = row.querySelector('td:nth-child(3)'); // Adjust column index as needed
-                if (statusCell) {
-                    statusCell.textContent = selectedStatus;
-                }
-            } 
                 setTimeout(() => {
-        window.location.href = "/admin/ordermanagement";
-    }, 1000);
-              }
-            catch(error)
-            {
-              console.error(error);
-              Swal.fire({
-                  text:"Error updating status please try again later",
-                  icon:"error"
-                })
+                    window.location.href = "/admin/ordermanagement";
+                }, 1000);
+            } else {
+                Swal.fire({
+                    text: result.message || "Failed to update status",
+                    icon: "error",
+                });
             }
-          })
+        } catch (error) {
+            console.error("Error updating status:", error);
+            Swal.fire({
+                text: "Error updating status. Please try again later.",
+                icon: "error",
+            });
+        }
+    });
+    
 
     </script>
     </body>

@@ -43,7 +43,7 @@ const loaduserBan=async(req,res)=>{
 
 const loadEditProfile=async(req,res)=>{
     if (!req.session.userData || !req.session.userData.email) {
-        return res.redirect('/login'); // Redirect to login if session is invalid
+        return res.redirect('/login');
     }
     const profileId=req.params.id
     const user=await userSchema.findById(profileId)
@@ -218,7 +218,7 @@ const loginUser=async(req,res)=>{
 
 const loadProductDetail=async(req,res)=>{
     if (!req.session.userData || !req.session.userData.email) {
-        return res.redirect('/login'); // Redirect to login if session is invalid
+        return res.redirect('/login');
     }
     const user=await userSchema.findOne({email:req.session.userData.email})
     const userId=user.id
@@ -232,7 +232,7 @@ const loadProductDetail=async(req,res)=>{
 const loadShop=async(req,res)=>{
     try{
         if (!req.session.userData || !req.session.userData.email) {
-            return res.redirect('/login'); // Redirect to login if session is invalid
+            return res.redirect('/login');
         }
     const categories = await categorySchema.find({ isDeleted: false });
     const { category, priceRange, sortBy, search } = req.query;
@@ -286,7 +286,7 @@ const loadAddress=async(req,res)=>{
     
     try{
         if (!req.session.userData || !req.session.userData.email) {
-            return res.redirect('/login'); // Redirect to login if session is invalid
+            return res.redirect('/login');
         }
         const user=await userSchema.findOne({email:email});
         const address=await addressSchema.find({userId:user._id})
@@ -300,7 +300,7 @@ const loadAddress=async(req,res)=>{
 const loadAddAddress=async(req,res)=>{
     try {
         if (!req.session.userData || !req.session.userData.email) {
-            return res.redirect('/login'); // Redirect to login if session is invalid
+            return res.redirect('/login');
         }
         const id=req.params.id
         const user=await userSchema.findById(id)
@@ -343,7 +343,7 @@ const addAddress=async(req,res)=>{
 
 const loadEditAddress = async(req,res)=>{
     if (!req.session.userData || !req.session.userData.email) {
-        return res.redirect('/login'); // Redirect to login if session is invalid
+        return res.redirect('/login');
     }
     const id=req.params.id
     const address=await addressSchema.findById(id)
@@ -355,7 +355,7 @@ const loadEditAddress = async(req,res)=>{
 
 const loadCheckoutEditAddress= async(req,res)=>{
     if (!req.session.userData || !req.session.userData.email) {
-        return res.redirect('/login'); // Redirect to login if session is invalid
+        return res.redirect('/login');
     }
     const id=req.params.id
     const address=await addressSchema.findById(id)
@@ -393,7 +393,7 @@ const checkouteditAddress= async(req,res)=>{
 const loadCheckoutAddAddress=async (req, res) => {
     try {
         if (!req.session.userData || !req.session.userData.email) {
-            return res.redirect('/login'); // Redirect to login if session is invalid
+            return res.redirect('/login');
         }
         const id=req.params.id
         const user=await userSchema.findById(id)
@@ -408,7 +408,6 @@ const loadCheckoutAddAddress=async (req, res) => {
 
 const checkoutaddAddress=async(req,res)=>{
     try{
-        console.log("fathah")
         const {housename,city,district,state,country,pincode}=req.body;
         const {email} = req.session.userData;
         console.log(email)
@@ -479,7 +478,7 @@ const deleteAddress = async (req, res) => {
 const loadCart = async (req, res) => {
     try {
         if (!req.session.userData || !req.session.userData.email) {
-            return res.redirect('/login'); // Redirect to login if session is invalid
+            return res.redirect('/login');
         }
 
         const user=await userSchema.findOne({email:req.session.userData.email})
@@ -576,7 +575,7 @@ const addToCart = async (req, res) => {
 const loadCheckout=async (req, res) => {
     try {
         if (!req.session.userData || !req.session.userData.email) {
-            return res.redirect('/login'); // Redirect to login if session is invalid
+            return res.redirect('/login');
         }
         const user=await userSchema.findOne({email:req.session.userData.email})
         const userId=user._id
@@ -619,42 +618,33 @@ const placeOrder = async (req, res) => {
         let finalAmount = totalAmount;
 
         if (couponCode) {
-            // Find the coupon from the database
             const coupon = await couponSchema.findOne({ code: couponCode, isActive: true });
             if (!coupon) {
                 return res.status(400).json({ success: false, message: 'Invalid or expired coupon code' });
             }
 
-            // Check if the coupon has expired
             if (coupon.expirationDate && new Date(coupon.expirationDate) < new Date()) {
                 return res.status(400).json({ success: false, message: 'Coupon has expired' });
             }
 
-            // Check if the order meets the minimum purchase requirement for the coupon
             if (totalAmount < coupon.minPurchase) {
                 return res.status(400).json({ success: false, message: `Minimum purchase of ${coupon.minPurchase} required for this coupon` });
             }
 
-            // Check if the coupon usage limit has been reached
             if (coupon.usedCount >= coupon.maxCount) {
                 return res.status(400).json({ success: false, message: 'Coupon usage limit reached' });
             }
 
-            // Calculate the discount (percentage)
-            let discountAmount = (totalAmount * coupon.discount) / 100; // Discount as percentage of totalAmount
+            let discountAmount = (totalAmount * coupon.discount) / 100;
 
-            // Ensure the discount does not exceed the maximum discount allowed
             if (discountAmount > coupon.maxDiscount) {
                 discountAmount = coupon.maxDiscount;
             }
 
-            // Subtract discount from totalAmount
             finalAmount -= discountAmount;
 
-            // Ensure finalAmount doesn't go below zero
             if (finalAmount < 0) finalAmount = 0;
 
-            // Increment the coupon's used count
             coupon.usedCount += 1;
             await coupon.save();
         }
@@ -743,6 +733,18 @@ const razorPayOrder=async(req,res) => {
             await coupon.save();
         }
 
+        for(let i=0;i<items.length;i++){
+            const product = await productSchema.findById(items[i].productId);
+            if(!product){
+                return res.status(404).json({success:false, message: 'Product not found'})
+            }
+            if(product.stock<items[i].quantity){
+                return res.status(400).json({success:false, message: 'Not enough stock for this product'})
+            }
+            product.stock-=items[i].quantity
+            await product.save()
+        }
+
 
         const amountInPaise = totalAmount * 100;
 
@@ -775,13 +777,11 @@ const verifyPayment=async(req,res) => {
     try {
         const { razorpay_payment_id, razorpay_order_id, razorpay_signature, addressId, userId, items, totalAmount, paymentMethod } = req.body;
 
-        // Verify the payment signature
         const generatedSignature = crypto
             .createHmac("sha256", process.env.RAZORPAY_SECRET)
             .update(`${razorpay_order_id}|${razorpay_payment_id}`)
             .digest("hex");
 
-        // Check if the signature matches
         if (generatedSignature !== razorpay_signature) {
             return res.status(400).json({
                 success: false,
@@ -789,7 +789,6 @@ const verifyPayment=async(req,res) => {
             });
         }
 
-        // If signature matches, proceed with saving the order
         const newOrder = new orderSchema({
             userId,
             addressId,
@@ -800,13 +799,9 @@ const verifyPayment=async(req,res) => {
             status: "Pending",
         });
 
-        // Save the order to the database
         await newOrder.save();
-
-        // Optionally, you can clear the cart after successful payment
         await cartSchema.deleteOne({ userId });
 
-        // Respond with success message
         res.status(200).json({
             success: true,
             message: "Order placed successfully",
@@ -828,7 +823,7 @@ const loadOrderComplete = async (req,res)=>{
 const loadOrder = async (req, res) => {
     try {
         if (!req.session.userData || !req.session.userData.email) {
-            return res.redirect('/login'); // Redirect to login if session is invalid
+            return res.redirect('/login');
         }
         const user=await userSchema.findOne({email:req.session.userData.email});
         const userId=user._id
@@ -846,7 +841,7 @@ const loadOrder = async (req, res) => {
 const loadOrderView = async (req, res) => {
     try {
         if (!req.session.userData || !req.session.userData.email) {
-            return res.redirect('/login'); // Redirect to login if session is invalid
+            return res.redirect('/login');
         }
         const orderId = req.params.id;
         const order = await orderSchema.findById(orderId).populate('orderItems.productId').populate("addressId")
@@ -883,13 +878,12 @@ const cancelOrder = async (req, res) => {
             const wallet = await walletSchema.findOne({ userId: order.userId });
 
             if (wallet) {
-                wallet.balance += order.totalAmount; // Refund the order amount to the wallet
-                await wallet.save(); // Save the updated wallet balance
+                wallet.balance += order.totalAmount;
+                await wallet.save();
             } else {
-                // If the wallet doesn't exist, create a new one
                 const newWallet = new walletSchema({
                     userId: order.userId,
-                    balance: order.totalAmount, // Initialize balance with the refund amount
+                    balance: order.totalAmount,
                 });
                 await newWallet.save();
             }
@@ -923,30 +917,26 @@ const returnOrder = async (req, res) => {
         order.status = "Returned";
 
         if (order.paymentMethod === "Razorpay" && order.paymentStatus === "Completed") {
-            // Update the wallet balance for Online payment
             let wallet = await walletSchema.findOne({ userId: order.userId });
             if (wallet) {
-                wallet.balance += order.totalAmount; // Refund the total amount to wallet
+                wallet.balance += order.totalAmount;
                 await wallet.save();
             } else {
-                // If wallet doesn't exist, create a new one
                 wallet = new walletSchema({
                     userId: order.userId,
-                    balance: order.totalAmount, // Initialize with refund amount
+                    balance: order.totalAmount,
                 });
                 await wallet.save();
             }
         } else if (order.paymentMethod === "COD" && order.paymentStatus === "Completed") {
-            // Update the wallet balance for Cash on Delivery payment
             let wallet = await walletSchema.findOne({ userId: order.userId });
             if (wallet) {
-                wallet.balance += order.totalAmount; // Refund the total amount to wallet
+                wallet.balance += order.totalAmount;
                 await wallet.save();
             } else {
-                // If wallet doesn't exist, create a new one
                 wallet = new walletSchema({
                     userId: order.userId,
-                    balance: order.totalAmount, // Initialize with refund amount
+                    balance: order.totalAmount,
                 });
                 await wallet.save();
             }
@@ -969,27 +959,22 @@ const applyCoupon = async (req, res) => {
     try {
       const { couponCode, totalAmount } = req.body;
       const total = parseFloat(totalAmount);
-  
-      // Find the coupon in the database
+
       const coupon = await couponSchema.findOne({ code: couponCode });
-  
-      // Validate the coupon
+
       if (!coupon) {
         return res.status(400).json({ success: false, message: 'Invalid coupon code' });
       }
   
-      // Check if the coupon is active and not expired
       const currentDate = new Date();
       if (!coupon.isActive || currentDate > coupon.expirationDate) {
         return res.status(400).json({ success: false, message: 'Coupon is expired or inactive' });
       }
-  
-      // Check if the coupon usage limit has been reached
+
       if (coupon.usedCount >= coupon.maxCount) {
         return res.status(400).json({ success: false, message: 'This coupon has reached its usage limit' });
       }
   
-      // Calculate the discount and final amount
       let discountAmount = (total * coupon.discount) / 100; 
 
       if (discountAmount > coupon.maxDiscount) {
@@ -999,7 +984,6 @@ const applyCoupon = async (req, res) => {
 
       finalAmount = parseFloat(finalAmount)
   
-      // Send the discount and final amount back to the client
       return res.status(200).json({
         success: true,
         discount: discountAmount,
@@ -1050,7 +1034,7 @@ const removeFromCart= async (req, res) => {
 const loadWishlist=async(req, res) => {
     try {
         if (!req.session.userData || !req.session.userData.email) {
-            return res.redirect('/login'); // Redirect to login if session is invalid
+            return res.redirect('/login'); 
         }
         const user=await userSchema.findOne({email:req.session.userData.email})
         const userId=user._id

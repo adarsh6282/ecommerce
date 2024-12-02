@@ -3,28 +3,138 @@ const adminSchema=require("../models/adminModel")
 const userSchema=require("../models/userModel")
 const orderSchema=require("../models/orderModel")
 const couponSchema=require("../models/couponModel")
+const productSchema=require("../models/productModel")
+const moment = require('moment');
 
 const loadAdminLogin=(req,res)=>{
     res.render("admin-login")
 }
 
-const loadDashboard=async(req,res)=>{
-    res.render("admin-dashboard")
-}
+const loadDashboard = async (req, res) => {
+  try {
+    const totalSales = await orderSchema.aggregate([
+      { $group: { _id: null, totalSales: { $sum: "$totalAmount" } } },
+    ]);
+    const totalOrders = await orderSchema.countDocuments();
+    const totalUsers = await userSchema.countDocuments();
+    const totalProducts = await productSchema.countDocuments();
+
+    const productsSold = await orderSchema.aggregate([
+      { $unwind: "$orderItems" },
+      { $group: { _id: "$orderItems.productId", quantity: { $sum: "$orderItems.quantity" } } },
+      { $lookup: { from: "products", localField: "_id", foreignField: "_id", as: "productDetails" } },
+      { $unwind: "$productDetails" },
+      { $project: { productName: "$productDetails.name", quantity: 1 } }
+    ]);
+
+    return res.render("admin-dashboard", {
+      totalSales: totalSales[0]?.totalSales || 0,
+      totalOrders,
+      totalUsers,
+      totalProducts,
+      productsSold,
+    });
+  } catch (error) {
+    console.error("Error loading dashboard:", error);
+    res.status(500).send("Failed to load dashboard");
+  }
+};
+
+const loadDashboardData = async (req, res) => {
+  try {
+    let matchCondition = {};
+    const { startDate, endDate, period } = req.query;
+
+    if (startDate && endDate) {
+      matchCondition.createdAt = { $gte: moment(startDate).toDate(), $lte: moment(endDate).toDate() };
+    }
+
+    switch (period) {
+      case 'daily':
+        matchCondition.createdAt = {
+          $gte: moment().startOf('day').toDate(),
+          $lte: moment().endOf('day').toDate()
+        };
+        break;
+        case 'weekly':
+          const startOfWeek = moment().startOf('week').toDate();
+          const endOfWeek = moment().endOf('day').toDate();
+          matchCondition.createdAt = { $gte: startOfWeek, $lte: endOfWeek };
+          break;
+      
+          case 'monthly':
+            const startOfMonth = moment().startOf('month').toDate();
+            const endOfMonth = moment().endOf('month').toDate();
+            matchCondition.createdAt = { $gte: startOfMonth, $lte: endOfMonth };
+            break;
+                        
+      case 'yearly':
+        matchCondition.createdAt = {
+          $gte: moment().startOf('year').toDate(),
+          $lte: moment().endOf('year').toDate()
+        };
+        break;
+      default:
+        matchCondition.createdAt = {
+          $gte: moment().startOf('year').toDate(),
+          $lte: moment().endOf('year').toDate() 
+        };
+        break;
+    }
+
+    const productsSold = await orderSchema.aggregate([
+      { $match: matchCondition },
+      { $unwind: "$orderItems" },
+      { 
+        $group: { 
+          _id: "$orderItems.productId", 
+          totalProductsSold: { $sum: "$orderItems.quantity" } 
+        } 
+      },
+      { $lookup: { from: "products", localField: "_id", foreignField: "_id", as: "productDetails" } },
+      { $unwind: "$productDetails" },
+      { $project: { 
+          productName: "$productDetails.name", 
+          quantity: "$totalProductsSold" 
+        } 
+      },
+      { $sort: { "productName": 1 } }
+    ]);
+
+    const totalSales = await orderSchema.aggregate([
+      { $match: matchCondition },
+      { $group: { _id: null, totalSales: { $sum: "$totalAmount" } } },
+    ]);
+    const totalOrders = await orderSchema.countDocuments(matchCondition);
+    const totalUsers = await userSchema.countDocuments();
+    const totalProducts = await productSchema.countDocuments();
+
+    return res.json({
+      totalSales: totalSales[0]?.totalSales || 0,
+      totalOrders,
+      totalUsers,
+      totalProducts,
+      productsSold,
+    });
+  } catch (error) {
+    console.error("Error fetching data:", error);
+    res.status(500).send("Failed to fetch data");
+  }
+};
+
+
+  
 
 const loadUsermanage = async (req, res) => {
     try {
-        // Get the page number and limit from the query parameters, or set defaults
-        const page = parseInt(req.query.page) || 1; // Default to page 1
-        const limit = 4; // Number of users per page
+        const page = parseInt(req.query.page) || 1;
+        const limit = 4; 
         const skip = (page - 1) * limit;
 
-        // Fetch users with pagination
         const users = await userSchema.find({ role: "user" })
             .skip(skip)
             .limit(limit);
 
-        // Get the total count of users to calculate the total number of pages
         const totalUsers = await userSchema.countDocuments({ role: "user" });
         const totalPages = Math.ceil(totalUsers / limit);
 
@@ -32,7 +142,6 @@ const loadUsermanage = async (req, res) => {
             return res.render("admin-usermanagement", { message: "No users found", user: [], currentPage: page, totalPages });
         }
 
-        // Pass users and pagination data to the EJS template
         return res.render("admin-usermanagement", {
             user: users,
             currentPage: page,
@@ -107,21 +216,18 @@ const loadUserView = async (req, res) => {
 
     const loadOrderManagement = async (req, res) => {
         try {
-            const page = parseInt(req.query.page) || 1; // Default to page 1
-            const limit = 4; // Number of orders per page
+            const page = parseInt(req.query.page) || 1;
+            const limit = 4;
             const skip = (page - 1) * limit;
-    
-            // Fetch orders with pagination and populate the user details
+
             const orders = await orderSchema.find()
                 .skip(skip)
                 .limit(limit)
                 .populate("userId");
-    
-            // Get the total count of orders to calculate the total number of pages
+
             const totalOrders = await orderSchema.countDocuments();
             const totalPages = Math.ceil(totalOrders / limit);
     
-            // Add quantity (orderItems length) to each order
             orders.forEach(order => {
                 order.quantity = order.orderItems.length;
             });
@@ -129,8 +235,7 @@ const loadUserView = async (req, res) => {
             if (!orders || orders.length === 0) {
                 return res.render("orderManagement", { message: "No orders found", orders, quantity: [], currentPage: page, totalPages });
             }
-    
-            // Render the order management page with orders and pagination data
+
             res.render("orderManagement", {
                 orders,
                 quantity: orders.map(order => order.quantity),
@@ -156,6 +261,7 @@ const loadUserView = async (req, res) => {
     const updateStatus= async (req, res) => {
         const orderId=req.params.id
         const {status}=req.body
+        console.log(status)
         try {
             const order=await orderSchema.findByIdAndUpdate(orderId, {status:status}, {new: true})
 
@@ -244,6 +350,7 @@ module.exports={
     loadUsermanage,
     loginAdmin,
     loadDashboard,
+    loadDashboardData,
     userBan,
     loadUserView,
     loadOrderManagement,

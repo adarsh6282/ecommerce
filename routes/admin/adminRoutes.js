@@ -43,6 +43,7 @@ router.put("/productmanagement/update/:id",upload.fields([
 
 // Admin Authentication
 router.get("/dashboard",isAuthenticated,adminController.loadDashboard)
+router.get("/dashboard/data",adminController.loadDashboardData)
 router.get("/login",loginAuthentication,adminController.loadAdminLogin)
 router.post("/login",adminController.loginAdmin)
 

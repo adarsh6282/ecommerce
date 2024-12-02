@@ -7,17 +7,15 @@ const path = require('path')
 
 const loadProductmanage = async (req, res) => {
     try {
-        const page = parseInt(req.query.page) || 1; // Default to page 1
-        const limit = 4; // Number of products per page
+        const page = parseInt(req.query.page) || 1; 
+        const limit = 4; 
         const skip = (page - 1) * limit;
 
-        // Fetch products with pagination and populate the category details
         const products = await productSchema.find({ isDeleted: false })
             .skip(skip)
             .limit(limit)
             .populate({ path: 'category', select: 'name' });
 
-        // Get the total count of products to calculate the total number of pages
         const totalProducts = await productSchema.countDocuments({ isDeleted: false });
         const totalPages = Math.ceil(totalProducts / limit);
 
@@ -25,7 +23,6 @@ const loadProductmanage = async (req, res) => {
             return res.render('productManagement', { message: "No products found", products, currentPage: page, totalPages });
         }
 
-        // Render the product management page with products and pagination data
         res.render('productManagement', {
             products,
             currentPage: page,
