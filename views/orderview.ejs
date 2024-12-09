@@ -94,6 +94,25 @@
                         </div>
                     </div>
                 </div>
+                <% if (order.status=="Requested") { %>
+                    <div class="reason-container">
+                      <h5 style="color: white;">Return Request Reason</h5>
+                      <p style="color: white;"><%= order.refundReason %></p>
+                      <button class="btn btn-success" id="approveReturn">Approve</button>
+                      <button class="btn btn-danger" id="rejectReturn">Reject</button>
+                    </div>
+                  <% } %>
+                  <% order.orderItems.forEach(item => { %>
+                    <% if (item.itemStatus === "Requested") { %>
+                      <div class="reason-container">
+                        <h5 style="color: white;">Return Request Reason for <%= item.productId.name %></h5> <!-- Display product name or any other information you want -->
+                        <p style="color: white;"><%= item.refundReason %></p>
+                        <button class="btn btn-success approve" data-product-id="<%= item.productId._id %>">Approve</button>
+                        <button class="btn btn-danger reject" data-product-id="<%= item.productId._id %>">Reject</button>
+                      </div>
+                    <% } %>
+                  <% }); %>
+                  
             </div>
     
             <!-- Shipping Address -->
@@ -166,7 +185,7 @@
                     icon: "success",
                 });
     
-                if (selectedstatus === "Cancelled") {
+                if (selectedstatus === "Cancelled"||selectedstatus ==="Delivered"||selectedstatus ==="Requested"||selectedstatus ==="Returned") {
                     updatestatus.disabled = true;
                 } else {
                     updatestatus.disabled = false;
@@ -195,6 +214,176 @@
         }
     });
     
+
+    </script>
+
+    <script>
+
+const approveButton = document.getElementById('approveReturn');
+const rejectButton = document.getElementById('rejectReturn');
+
+approveButton.addEventListener('click', async () => {
+    const orderId = document.getElementById('orderId').value;
+    const items=approveButton.getAttribute('data-product-id');
+    
+    try {
+        const response = await fetch(`/admin/processreturn/${orderId}`, {
+            method: 'PUT',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                action: 'approve',
+                items:items
+            }),
+        });
+
+        const result = await response.json();
+        
+        if (result.success) {
+            Swal.fire({
+                text: result.message,
+                icon: 'success',
+            });
+        } else {
+            Swal.fire({
+                text: result.message || 'Failed to approve the return',
+                icon: 'error',
+            });
+        }
+    } catch (error) {
+        console.error('Error approving return:', error);
+        Swal.fire({
+            text: 'Error approving return. Please try again later.',
+            icon: 'error',
+        });
+    }
+});
+
+rejectButton.addEventListener('click', async () => {
+    const orderId = document.getElementById('orderId').value;
+    const items=rejectButton.getAttribute('data-product-id')
+
+    try {
+        const response = await fetch(`/admin/processreturn/${orderId}`, {
+            method: 'PUT',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                action: 'reject',
+                items:items
+            }),
+        });
+
+        const result = await response.json();
+
+        if (result.success) {
+            Swal.fire({
+                text: result.message,
+                icon: 'success',
+            });
+        } else {
+            Swal.fire({
+                text: result.message || 'Failed to reject the return',
+                icon: 'error',
+            });
+        }
+    } catch (error) {
+        console.error('Error rejecting return:', error);
+        Swal.fire({
+            text: 'Error rejecting return. Please try again later.',
+            icon: 'error',
+        });
+    }
+});
+
+    </script>
+
+    <script>
+
+        document.querySelectorAll('.approve').forEach(button => {
+        button.addEventListener('click', async () => {
+            const orderId = document.getElementById('orderId').value;
+            const itemId = button.getAttribute('data-product-id');
+            console.log(orderId, itemId);
+
+            try {
+            const response = await fetch(`/admin/processitemreturn/${orderId}`, {
+                method: 'PUT',
+                headers: {
+                'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                action: 'approve',
+                items: [itemId],
+                }),
+            });
+
+            const result = await response.json();
+            
+            if (result.success) {
+                Swal.fire({
+                text: result.message,
+                icon: 'success',
+                });
+            } else {
+                Swal.fire({
+                text: result.message || 'Failed to approve the return',
+                icon: 'error',
+                });
+            }
+            } catch (error) {
+            console.error('Error approving return:', error);
+            Swal.fire({
+                text: 'Error approving return. Please try again later.',
+                icon: 'error',
+            });
+            }
+        });
+        });
+
+        document.querySelectorAll('.reject').forEach(button => {
+        button.addEventListener('click', async () => {
+            const orderId = document.getElementById('orderId').value;
+            const itemId = button.getAttribute('data-product-id');
+            console.log(orderId, itemId);
+
+            try {
+            const response = await fetch(`/admin/processitemreturn/${orderId}`, {
+                method: 'PUT',
+                headers: {
+                'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                action: 'reject',
+                items: [itemId],
+                }),
+            });
+
+            const result = await response.json();
+
+            if (result.success) {
+                Swal.fire({
+                text: result.message,
+                icon: 'success',
+                });
+            } else {
+                Swal.fire({
+                text: result.message || 'Failed to reject the return',
+                icon: 'error',
+                });
+            }
+            } catch (error) {
+            console.error('Error rejecting return:', error);
+            Swal.fire({
+                text: 'Error rejecting return. Please try again later.',
+                icon: 'error',
+            });
+            }
+        });
+        });
+
 
     </script>
     </body>

@@ -247,8 +247,8 @@
                                         <li class="cart"><a href="/logout">Logout</a></li>
                                     <% } %>
 									
-									<li class="cart"><a href="/cart"><i class="icon-shopping-cart"></i> Cart</a></li>
-									<li class="cart"><a href="#">Wishlist</a></li>
+									<li class="cart"><a href="/cart"><i class="icon-shopping-cart"></i> Cart <span id="cart-count" class="badge badge-danger"><%= cartCount %></span></a></li>
+								<li class="cart"><a href="/wishlist">Wishlist</a><span id="wishlist-count" class="badge badge-danger"><%= wishlistCount %></span></li>
 								</ul>
 							</div>
 						</div>
@@ -277,7 +277,7 @@
     <nav id="user-dashboard-nav">
         <div class="dashboard-menu">
             <a href="/myaccount" class="dashboard-link">PROFILE</a>
-            <a href="#" class="dashboard-link">ORDERS</a>
+            <a href="/myaccountorder" class="dashboard-link">ORDERS</a>
             <a href="/address" class="dashboard-link">ADDRESS</a>
             <a href="/updateprofile/<%= user.id %>" class="dashboard-link">UPDATE PROFILE</a>
             <a href="/wallet" class="dashboard-link">WALLET</a>

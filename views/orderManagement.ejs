@@ -45,7 +45,11 @@
                           <td> <%= order.paymentStatus%> </td>
                           <td> <%= order.paymentMethod%> </td>
                           <td>
+                            <% if(order.status==="Requested"){ %>
+                            <a style="background-color: green;" href="orderview/<%= order._id %>" class="badge badge-outline-warning">View</div>
+                            <% }else{ %>
                             <a href="orderview/<%= order._id %>" class="badge badge-outline-warning">View</div>
+                            <% } %>
                           </td>
                         </tr>
                         <% }); %>

@@ -4,6 +4,8 @@ const userSchema=require("../models/userModel")
 const orderSchema=require("../models/orderModel")
 const couponSchema=require("../models/couponModel")
 const productSchema=require("../models/productModel")
+const walletSchema=require("../models/walletModel")
+const ejs=require("ejs")
 const moment = require('moment');
 
 const loadAdminLogin=(req,res)=>{
@@ -44,9 +46,17 @@ const loadDashboardData = async (req, res) => {
   try {
     let matchCondition = {};
     const { startDate, endDate, period } = req.query;
+    console.log(startDate, endDate, period)
 
     if (startDate && endDate) {
-      matchCondition.createdAt = { $gte: moment(startDate).toDate(), $lte: moment(endDate).toDate() };
+      const start = new Date(startDate);
+      const end = new Date(endDate);
+      end.setHours(23, 59, 59, 999);
+    
+      matchCondition.createdAt = {
+        $gte: start,
+        $lte: end,
+      };
     }
 
     switch (period) {
@@ -122,7 +132,177 @@ const loadDashboardData = async (req, res) => {
   }
 };
 
+const loadSalesReport = async (req, res) => {
+  if(!req.session.admin){
+    return res.redirect("/admin/login")
+  }
+  try {
+    const { startDate, endDate } = req.query;
 
+    let orders = [];
+    let totalSales = 0;
+    let totalDiscounts = 0;
+
+    if (startDate && endDate) {
+      const start = new Date(startDate);
+      const end = new Date(endDate);
+      end.setHours(23, 59, 59, 999);
+
+      orders = await orderSchema.find(
+        { createdAt: { $gte: start, $lte: end } },
+        'orderId createdAt totalAmount'
+      );
+
+      const salesData = await orderSchema.aggregate([
+        { $match: { createdAt: { $gte: start, $lte: end } } },
+        { $group: { _id: null, totalSales: { $sum: "$totalAmount" } } },
+      ]);
+      totalSales = salesData[0]?.totalSales || 0;
+
+      totalDiscounts = 0;
+    }
+
+    res.render('salesreport', {
+      orders,
+      totalSales,
+      totalDiscounts,
+      startDate,
+      endDate,
+    });
+  } catch (error) {
+    console.error("Error loading sales report:", error);
+    res.status(500).send("Failed to load sales report");
+  }
+};
+
+
+
+const salesReport=async(req, res) => {
+  if(!req.session.admin){
+    return res.redirect("/admin/login")
+  }
+  try {
+    const { startDate, endDate } = req.query;
+    let matchCondition = {};
+
+    if (startDate && endDate) {
+      const start = new Date(startDate);
+      const end = new Date(endDate);
+      end.setHours(23, 59, 59, 999);
+
+      matchCondition.createdAt = { $gte: start, $lte: end };
+    }
+
+    const orders = await orderSchema.find(matchCondition, 'orderId createdAt totalAmount');
+    const totalSales = await orderSchema.aggregate([
+      { $match: matchCondition },
+      { $group: { _id: null, totalSales: { $sum: "$totalAmount" } } },
+    ]);
+    const totalDiscounts = 0;
+
+    res.render('salesreport', {
+      orders,
+      totalSales: totalSales[0]?.totalSales || 0,
+      totalDiscounts,
+      startDate,
+      endDate,
+    });
+  } catch (error) {
+    console.error("Error loading sales report:", error);
+    res.status(500).send("Failed to load sales report");
+  }
+}
+
+
+const downloadPdf=async(req,res)=>{
+  if(!req.session.admin){
+    return res.redirect("/admin/login")
+  }
+  try {
+    const { startDate, endDate } = req.query;
+    let matchCondition = {};
+
+    if (startDate && endDate) {
+      const start = new Date(startDate);
+      const end = new Date(endDate);
+      end.setHours(23, 59, 59, 999);
+
+      matchCondition.createdAt = { $gte: start, $lte: end };
+    }
+
+    const orders = await orderSchema.find(matchCondition).populate('userId', 'username').populate('orderItems.productId', 'name price').exec();
+    const totalSales = await orderSchema.aggregate([
+      { $match: matchCondition },
+      { $group: { _id: null, totalSales: { $sum: "$totalAmount" } } },
+    ]);
+
+    const totalDiscounts = 0;
+
+    const html = await ejs.renderFile('views/salesreport.ejs', {
+      orders,
+      totalSales: totalSales[0]?.totalSales || 0,
+      totalDiscounts,
+      startDate,
+      endDate,
+    });
+
+    const pdf = require('html-pdf');
+    pdf.create(html).toStream((err, stream) => {
+      if (err) return res.status(500).send("PDF generation failed");
+      res.set({
+        'Content-Type': 'application/pdf',
+        'Content-Disposition': 'attachment; filename="salesreport.pdf"',
+      });
+      stream.pipe(res);
+    });
+  } catch (error) {
+    console.error("Error downloading PDF:", error);
+    res.status(500).send("Failed to download PDF");
+  }
+}
+
+const downloadExcel=async(req,res) => {
+  try {
+    const { startDate, endDate } = req.query;
+    let matchCondition = {};
+
+    if (startDate && endDate) {
+      const start = new Date(startDate);
+      const end = new Date(endDate);
+      end.setHours(23, 59, 59, 999);
+
+      matchCondition.createdAt = { $gte: start, $lte: end };
+    }
+
+    const orders = await orderSchema.find(matchCondition, 'orderId createdAt totalAmount');
+
+    const ExcelJS = require('exceljs');
+    const workbook = new ExcelJS.Workbook();
+    const worksheet = workbook.addWorksheet('Sales Report');
+    worksheet.columns = [
+      { header: 'Order ID', key: 'orderId', width: 15 },
+      { header: 'Order Date', key: 'createdAt', width: 20 },
+      { header: 'Amount', key: 'totalAmount', width: 15 },
+    ];
+
+    orders.forEach(order => {
+      worksheet.addRow({
+        orderId: order.id,
+        createdAt: order.createdAt.toLocaleDateString(),
+        totalAmount: order.totalAmount,
+      });
+    });
+
+    res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+    res.setHeader('Content-Disposition', 'attachment; filename="sales-report.xlsx"');
+
+    await workbook.xlsx.write(res);
+    res.end();
+  } catch (error) {
+    console.error("Error downloading Excel:", error);
+    res.status(500).send("Failed to download Excel");
+  }
+}
   
 
 const loadUsermanage = async (req, res) => {
@@ -131,9 +311,7 @@ const loadUsermanage = async (req, res) => {
         const limit = 4; 
         const skip = (page - 1) * limit;
 
-        const users = await userSchema.find({ role: "user" })
-            .skip(skip)
-            .limit(limit);
+        const users = await userSchema.find({ role: "user" }).skip(skip).limit(limit);
 
         const totalUsers = await userSchema.countDocuments({ role: "user" });
         const totalPages = Math.ceil(totalUsers / limit);
@@ -220,10 +398,7 @@ const loadUserView = async (req, res) => {
             const limit = 4;
             const skip = (page - 1) * limit;
 
-            const orders = await orderSchema.find()
-                .skip(skip)
-                .limit(limit)
-                .populate("userId");
+            const orders = await orderSchema.find().sort({createdAt:-1}).skip(skip).limit(limit).populate("userId");
 
             const totalOrders = await orderSchema.countDocuments();
             const totalPages = Math.ceil(totalOrders / limit);
@@ -258,34 +433,73 @@ const loadUserView = async (req, res) => {
         res.render("orderView",{order})
     }
 
-    const updateStatus= async (req, res) => {
-        const orderId=req.params.id
-        const {status}=req.body
-        console.log(status)
-        try {
-            const order=await orderSchema.findByIdAndUpdate(orderId, {status:status}, {new: true})
 
-            if(!order){
-                return res.status(404).json({ success: false, message: 'Order not found' });
-            }
-            return res.status(200).json({ success: true, message: 'Successfully updated status', status:order.status });
-        } catch (error) {
-            console.error('Error updating status:', error);
-            res.status(500).json({ success:false, message: 'Internal Server Error' });
-        }
-    }
+    const updateStatus = async (req, res) => {
+      const orderId = req.params.id;
+      const { status } = req.body;
+  
+      try {
+          const order = await orderSchema.findById(orderId);
+  
+          if (!order) {
+              return res.status(404).json({ success: false, message: 'Order not found' });
+          }
+  
+          if (order.paymentMethod === "COD" && status === "Delivered") {
+              order.status = status;
+              order.paymentStatus = "Completed";
+          } else {
+              order.status = status;
+          }
+          if(order.status === "Delivered") {
+            order.orderItems.forEach(item => {
+              item.itemStatus = "Delivered";
+          });
+          }
+          await order.save();
+  
+          return res.status(200).json({
+              success: true,
+              message: 'Successfully updated status',
+              status: order.status,
+              paymentStatus: order.paymentStatus
+          });
+      } catch (error) {
+          console.error('Error updating status:', error);
+          res.status(500).json({ success: false, message: 'Internal Server Error' });
+      }
+  };
+  
 
-    const loadCoupon=async(req,res) => {
-        try {
-            const coupons=await couponSchema.find({})
-            if(!coupons){
-                return res.render("couponManagement",{message:"no coupons found"})
-            }
-            return res.render("couponManagement",{coupons})
-        } catch (error) {
-            console.error("error while loading coupons",error)
-        }
+  const loadCoupon = async (req, res) => {
+    try {
+      const page = parseInt(req.query.page) || 1;
+      const limit = parseInt(req.query.limit) || 5;
+      const skip = (page - 1) * limit;
+  
+      const totalCoupons = await couponSchema.countDocuments();
+      const coupons = await couponSchema.find({}).skip(skip).limit(limit);
+  
+      if (!coupons.length) {
+        return res.render("couponManagement", {
+          message: "No coupons found",
+          coupons: [],
+          currentPage: page,
+          totalPages: Math.ceil(totalCoupons / limit),
+        });
+      }
+  
+      return res.render("couponManagement", {
+        coupons,
+        currentPage: page,
+        totalPages: Math.ceil(totalCoupons / limit),
+      });
+    } catch (error) {
+      console.error("Error while loading coupons:", error);
+      return res.status(500).render("couponManagement", { message: "An error occurred." });
     }
+  };
+  
 
     const loadAddCoupon=async(req,res)=>{
         try {
@@ -293,6 +507,40 @@ const loadUserView = async (req, res) => {
         } catch (error) {
             console.error(error)
         }
+    }
+
+    const loadEditCoupon=async(req,res)=>{
+       const {id}=req.params
+       const coupon=await couponSchema.findById(id)
+       if(!coupon){
+           return res.status(404).json({success:false,message:"Coupon not found"})
+       }
+       return res.render('editCoupon',{coupon})
+    }
+
+    const editCoupon=async(req,res)=>{
+      const {id}=req.params
+      const {code,discount,minpurchase,maxdiscount,expire,maxcount}=req.body
+
+      try{
+
+      const coupon=await couponSchema.findById(id)
+      if(!coupon){
+        return res.status(404).json({success:false,message:"Coupon not found"})
+      }
+       coupon.code=code
+       coupon.discount=discount
+       coupon.minPurchase=minpurchase
+       coupon.maxDiscount=maxdiscount
+       coupon.expirationDate=expire
+       coupon.maxCount=maxcount
+
+       await coupon.save()
+      return res.status(200).json({success:true,message:"Coupon updated successfully"})
+    }catch(error)
+    {
+      console.error(error)
+    }
     }
 
     const addCoupon=async(req,res)=>{
@@ -345,12 +593,246 @@ const deleteCoupon = async (req, res) => {
 };
 
 
+const proceedReturn = async (req, res) => {
+  console.log("proceeding")
+  try {
+    const { id } = req.params;
+    const { action } = req.body; 
+
+    const order = await orderSchema.findById(id);
+    if (!order) {
+      return res.status(404).json({ success: false, message: "Order not found" });
+    }
+
+    if (order.refundStatus !== "Requested") {
+      return res.status(400).json({
+        success: false,
+        message: "Refund has already been processed or is not requested.",
+      });
+    }
+
+    if (action === "approve") {
+      order.refundStatus = "Approved";
+      order.orderItems.forEach(item =>{
+        item.itemStatus = "Approved";
+      })
+      order.orderItems.forEach(item => {
+        item.itemStatus = "Returned";
+      })
+      order.status = "Returned";
+      
+
+      const wallet = await walletSchema.findOne({ userId: order.userId });
+
+      if (wallet) {
+        wallet.balance += order.totalAmount;
+        wallet.transactions.push({
+          amount: order.totalAmount,
+          type: "Credit",
+          description: `Refund for returned products in order ${order._id}`,
+        });
+
+        wallet.updatedAt = new Date();
+
+        await wallet.save();
+      } else {
+        const newWallet = new walletSchema({
+          userId: order.userId,
+          balance: order.totalAmount,
+          transactions: [
+            {
+              amount: order.totalAmount,
+              type: "Credit",
+              description: `Refund for returned products in order ${order._id}`,
+            },
+          ],
+        });
+
+        await newWallet.save();
+      }
+
+      await order.save();
+
+      return res.status(200).json({
+        success: true,
+        message: "Return approved and refund processed successfully.",
+        order,
+      });
+    }
+
+    else if (action === "reject") {
+      order.refundStatus = "Rejected";
+      order.status = "Delivered";
+
+      await order.save();
+
+      return res.status(200).json({
+        success: true,
+        message: "Return request has been rejected.",
+        order,
+      });
+    } else {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid action specified. Use 'approve' or 'reject'.",
+      });
+    }
+  } catch (error) {
+    console.error("Error processing return:", error);
+    return res.status(500).json({
+      success: false,
+      message: "An error occurred",
+    });
+  }
+};
+
+const processItemReturn = async (req, res) => {
+  try {
+    const { id } = req.params;
+    console.log(id + "sjhdncsdnc");
+    const { action, items } = req.body;
+    console.log(action, items);
+
+    const order = await orderSchema.findById(id).lean();
+    console.log(order.orderItems);
+
+    if (!order) {
+      return res.status(404).json({ success: false, message: "Order not found" });
+    }
+
+    let totalRefundAmount = 0;
+
+    const productIds = order.orderItems.map(item => item.productId);
+    const products = await productSchema.find({ '_id': { $in: productIds } }).lean();
+
+    const productMap = products.reduce((acc, product) => {
+      acc[product._id.toString()] = product;
+      return acc;
+    }, {});
+
+    for (let itemId of items) {
+      const item = order.orderItems.find(item => item.productId.toString() === itemId);
+      console.log(itemId, item ? item.productId : null);
+      console.log(item);
+
+      if (!item) {
+        return res.status(404).json({
+          success: false,
+          message: `Item with ID ${itemId} not found in the order.`,
+        });
+      }
+
+      const product = productMap[item.productId.toString()];
+
+      if (!product) {
+        return res.status(404).json({
+          success: false,
+          message: `Product with ID ${item.productId} not found.`,
+        });
+      }
+
+      if (action === "approve") {
+        if (item.itemStatus === "Requested") {
+          item.refundStatus = "Approved";
+          item.itemStatus = "Returned";
+          totalRefundAmount += product.offerPrice;
+        } else {
+          return res.status(400).json({
+            success: false,
+            message: `Item with ID ${itemId} cannot be approved as it is already ${item.itemStatus}.`,
+          });
+        }
+      } else if (action === "reject") {
+        if (item.itemStatus === "Requested") {
+          item.refundStatus = "Rejected";
+          item.itemStatus = "Rejected";
+        } else {
+          return res.status(400).json({
+            success: false,
+            message: `Item with ID ${itemId} cannot be rejected as it is already ${item.itemStatus}.`,
+          });
+        }
+      } else {
+        return res.status(400).json({
+          success: false,
+          message: "Invalid action specified. Use 'approve' or 'reject'.",
+        });
+      }
+    }
+
+    const allItemsProcessed = order.orderItems.every(
+      item => item.refundStatus === "Approved" || item.refundStatus === "Rejected"
+    );
+    if (allItemsProcessed) {
+      order.status = "Returned";
+    } else {
+      order.status = "Delivered";
+    }
+
+    order.refundStatus = totalRefundAmount > 0 ? "Returned" : "Rejected";
+
+    await orderSchema.findByIdAndUpdate(id, {
+      status: order.status,
+      refundStatus: order.refundStatus,
+      orderItems: order.orderItems,
+    }, { new: true });
+
+    if (totalRefundAmount > 0) {
+      const wallet = await walletSchema.findOne({ userId: order.userId });
+
+      if (wallet) {
+        wallet.balance += totalRefundAmount;
+        wallet.transactions.push({
+          amount: totalRefundAmount,
+          type: "Credit",
+          description: `Refund for returned products in order ${order._id}`,
+        });
+        wallet.updatedAt = new Date();
+
+        await wallet.save();
+      } else {
+        const newWallet = new walletSchema({
+          userId: order.userId,
+          balance: totalRefundAmount,
+          transactions: [
+            {
+              amount: totalRefundAmount,
+              type: "Credit",
+              description: `Refund for returned products in order ${order._id}`,
+            },
+          ],
+        });
+
+        await newWallet.save();
+      }
+    }
+
+    return res.status(200).json({
+      success: true,
+      message: `Return request processed successfully. ${
+        totalRefundAmount > 0 ? `Refund of ${totalRefundAmount} added to your wallet.` : ''
+      }`,
+      order,
+    });
+  } catch (error) {
+    console.error("Error processing return:", error);
+    return res.status(500).json({
+      success: false,
+      message: "An error occurred while processing the return. Please try again later.",
+    });
+  }
+};
+
 module.exports={
     loadAdminLogin,
     loadUsermanage,
     loginAdmin,
     loadDashboard,
     loadDashboardData,
+    loadSalesReport,
+    salesReport,
+    downloadPdf,
+    downloadExcel,
     userBan,
     loadUserView,
     loadOrderManagement,
@@ -358,6 +840,10 @@ module.exports={
     updateStatus,
     loadCoupon,
     loadAddCoupon,
+    loadEditCoupon,
     addCoupon,
-    deleteCoupon
+    editCoupon,
+    deleteCoupon,
+    proceedReturn,
+    processItemReturn
 }

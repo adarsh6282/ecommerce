@@ -54,18 +54,11 @@ const loadCategoryManagement = async (req, res) => {
 const addCategory=async(req, res)=>{
     
     try {
-        const {name,description,image}=req.body
-
-      if (!req.file || req.file.length === 0) {
-        return res.status(400).json({ val: false, msg: "No files were uploaded" });
-      }
-
-      const imagePaths=path.relative(path.join(__dirname,"..","public"),req.file.path)
+        const {name,description}=req.body
         
         const category=new categorySchema({
             name,
             description,
-            image:imagePaths,
             createdAt: new Date(),
             updatedAt: new Date(),
             isDeleted: false
@@ -77,6 +70,39 @@ const addCategory=async(req, res)=>{
     res.status(500).send("Error adding category");
     }
 }
+
+
+const applyOffer = async (req, res) => {
+    const { currentCategoryId } = req.params;
+    const { offerPercentage } = req.body;
+  
+    if (!offerPercentage || isNaN(offerPercentage)) {
+      return res.status(400).json({ success: false, message: 'Invalid offer percentage.' });
+    }
+  
+    try {
+      const products = await productSchema.find({ category: currentCategoryId });
+  
+      if (products.length === 0) {
+        return res.status(404).json({ success: false, message: 'No products found in this category.' });
+      }
+
+      for (const product of products) {
+        const originalPrice = product.offerPrice;
+        const discount = (originalPrice * offerPercentage) / 100;
+        const newPrice = originalPrice - discount;
+
+        product.offerPrice = newPrice.toFixed(2);
+        product.offerPercentage = offerPercentage;
+        await product.save();
+      }
+  
+      res.json({ success: true, message: 'Offer applied successfully!' });
+    } catch (error) {
+      console.error("Error applying offer:", error);
+      res.status(500).json({ success: false, message: 'An error occurred while applying the offer.' });
+    }
+  };
 
 
 
@@ -92,7 +118,7 @@ const loadUpdateCategory=async(req,res)=>{
 
 
 const updateCategory=async(req,res)=>{
-    const {categoryname,categorydescription,categoryimage}=req.body
+    const {categoryname,categorydescription}=req.body
     const categoryid=req.params.id
     
     try {
@@ -102,7 +128,6 @@ const updateCategory=async(req,res)=>{
         }
         category.name=categoryname
         category.description=categorydescription
-        category.image=categoryimage
         category.updatedAt=Date.now()
 
         await category.save()
@@ -165,6 +190,7 @@ const recoverCategory=async(req,res)=>{
 module.exports = {
     loadCategoryManagement,
     addCategory,
+    applyOffer,
     loadAddCategory,
     loadUpdateCategory,
     updateCategory,

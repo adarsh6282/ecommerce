@@ -74,8 +74,8 @@
                                         <li class="cart"><a href="/logout">Logout</a></li>
                                     <% } %>
 									
-									<li class="cart"><a href="/cart"><i class="icon-shopping-cart"></i> Cart</a></li>
-									<li class="cart"><a href="#">Wishlist</a></li>
+									<li class="cart"><a href="/cart"><i class="icon-shopping-cart"></i> Cart <span id="cart-count" class="badge badge-danger"><%= cartCount %></span></a></li>
+								<li class="cart"><a href="/wishlist">Wishlist</a><span id="wishlist-count" class="badge badge-danger"><%= wishlistCount %></span></li>
 								</ul>
 							</div>
 						</div>
@@ -186,10 +186,10 @@
 							<label for="couponCode">Enter Coupon Code:</label>
 							<input type="text" id="couponCode" placeholder="Enter coupon code" style="border-radius: 8px;">
 							<button type="button" id="applyCouponBtn" class="btn btn-primary">Apply Coupon</button>
+							<p id="couponMessage" style="color: green;"></p>
 						  </div>
 						  
 						 <span id="discountValue" style="display: none;"></span>
-						  <!-- <p id="errorMessage" style="color: red; display: none;">Invalid coupon or expired!</p> -->
 
 							<div class="mt-4">
 								<h6>Payment</h6>
@@ -338,6 +338,7 @@ Copyright &copy;<script>document.write(new Date().getFullYear());</script> All r
 			let totalAmount =parseFloat( document.getElementById("totalAmount").textContent)
 			let quantity = document.getElementById("quantity").value
 			let paymentMethod = document.querySelector('input[name="paymentmethod"]:checked').value;
+			console.log(paymentMethod);
 			let couponCode=document.getElementById("couponCode").value.trim();
 			if(paymentMethod==="COD"){
 			try {
@@ -380,52 +381,51 @@ Copyright &copy;<script>document.write(new Date().getFullYear());</script> All r
 			}
 		}else if (paymentMethod === "Razorpay") {
     try {
-        // 1. Create Razorpay order on the server
         const orderResponse = await fetch("/razorpayorder", {
             method: "POST",
             headers: {
                 "Content-Type": "application/json",
             },
             body: JSON.stringify({
-				addressId,
-				userId,
-				items,
-				totalAmount,
-				quantity,
-				paymentMethod,
-				couponCode
+                addressId,
+                userId,
+                items,
+                totalAmount,
+                quantity,
+                paymentMethod,
+                couponCode
             })
         });
 
         const orderResult = await orderResponse.json();
+		console.log(orderResult)
 
         if (!orderResult.success) {
             return Swal.fire({
-                text: "Failed to initialize Razorpay order. Please try again.",
+                text: orderResult.message,
                 icon: "error",
             });
         }
 
-
-        // 2. Initialize Razorpay Checkout
         const options = {
-            key: orderResult.razorpayKey, // Your Razorpay Key ID from the backend
-            amount: orderResult.amount, // Amount in paise
-            currency: orderResult.currency, // Currency
-            name: "TAKRUM", // Name on the payment screen
-            description: "Order Payment", // Optional description
-            order_id: orderResult.orderId, // Razorpay Order ID from the backend
+            key: orderResult.razorpayKey,
+            amount: orderResult.amount,
+            currency: orderResult.currency,
+            name: "TAKRUM",
+            description: "Order Payment",
+            order_id: orderResult.razorpayOrderId,
             handler: async function (response) {
-                // 3. Send Payment Details to the Server for Verification
+				console.log(response)
+				const { razorpay_payment_id, razorpay_order_id, razorpay_signature } = response;
                 const verifyResponse = await fetch("/verifypayment", {
                     method: "POST",
                     headers: {
                         "Content-Type": "application/json",
                     },
                     body: JSON.stringify({
-                        razorpay_payment_id: response.razorpay_payment_id,
-                        razorpay_order_id: response.razorpay_order_id,
-                        razorpay_signature: response.razorpay_signature,
+                        razorpay_payment_id: razorpay_payment_id,
+                        razorpay_order_id: razorpay_order_id,
+                        razorpay_signature: razorpay_signature,
                         addressId,
                         userId,
                         items,
@@ -436,7 +436,7 @@ Copyright &copy;<script>document.write(new Date().getFullYear());</script> All r
 
                 const verifyResult = await verifyResponse.json();
 
-                if (verifyResult.success) {
+				if (verifyResult.success) {
                     Swal.fire({
                         text: verifyResult.message,
                         icon: "success",
@@ -446,13 +446,13 @@ Copyright &copy;<script>document.write(new Date().getFullYear());</script> All r
                     }, 1000);
                 } else {
                     Swal.fire({
-                        text: verifyResult.message,
+                        text: verifyResult.message || "Payment verification failed.",
                         icon: "error",
                     });
                 }
             },
             theme: {
-                color: "#3399cc", // Theme color for Razorpay Checkout
+                color: "#3399cc",
             },
         };
 
@@ -464,9 +464,9 @@ Copyright &copy;<script>document.write(new Date().getFullYear());</script> All r
         Swal.fire({
             text: "Failed to complete payment. Please try again later.",
             icon: "error",
-        	});
-    	}
-	}
+        });
+    }
+}
 		})
 
 </script>
@@ -475,10 +475,14 @@ Copyright &copy;<script>document.write(new Date().getFullYear());</script> All r
 document.getElementById("applyCouponBtn").addEventListener("click", async () => {
     const couponCode = document.getElementById("couponCode").value.trim();
     const totalAmount =parseFloat( document.getElementById("totalAmount").textContent)
+	const message=document.getElementById("couponMessage")
 	console.log(couponCode, totalAmount)
 
     if (!couponCode) {
-      alert("Please enter a coupon code.");
+      Swal.fire({
+		text: "Please enter a coupon code",
+        icon: "error",
+      })
       return;
     }
  
@@ -493,16 +497,31 @@ document.getElementById("applyCouponBtn").addEventListener("click", async () => 
 
       if (data.success) {
 		const discount=parseFloat(data.discount)
-        // Update discount and final total in the UI
-        document.getElementById("discountValue").textContent = discount
-        document.getElementById("totalAmount").textContent = data.finalAmount
-        alert("Coupon applied successfully!");
+        document.getElementById("couponMessage").textContent = `You saved ${discount} rupees`
+        const totalAmountElement = document.getElementById("totalAmount");
+            totalAmountElement.textContent = data.finalAmount.toFixed(2);
+
+            if (totalAmountElement.tagName === "INPUT") {
+                totalAmountElement.value = data.finalAmount.toFixed(2);
+            }
+        Swal.fire({
+			text: "Coupon applied successfully",
+            icon: "success",
+		})
+		document.getElementById("applyCouponBtn").disabled=true
+		document.getElementById("couponCode").disabled=true
       } else {
-        alert(data.message); // Display error message from the backend
+        Swal.fire({
+			text: data.message,
+            icon: "error",
+		})
       }
     } catch (error) {
       console.error("Error applying coupon:", error);
-      alert("Something went wrong. Please try again.");
+      Swal.fire({
+		text: "Failed to apply coupon. Please try again later.",
+        icon: "error",
+	  })
     }
   });
 

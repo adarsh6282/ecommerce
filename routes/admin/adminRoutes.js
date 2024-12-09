@@ -18,6 +18,7 @@ router.get("/categorymanagement/update/:id",isAuthenticated,categoryController.l
 router.get("/categorymanagement/delete",isAuthenticated,categoryController.loadDeleteCategory)
 router.post("/categorymanagement/add",upload.single('categoryImage'),categoryController.addCategory)
 router.put("/categorymanagement/delete",categoryController.deleteCategory)
+router.post("/applyoffer/:currentCategoryId",categoryController.applyOffer)
 router.put("/categorymanagement/update/:id",categoryController.updateCategory)
 router.put("/categorymanagement/recover",categoryController.recoverCategory)
 
@@ -44,17 +45,25 @@ router.put("/productmanagement/update/:id",upload.fields([
 // Admin Authentication
 router.get("/dashboard",isAuthenticated,adminController.loadDashboard)
 router.get("/dashboard/data",adminController.loadDashboardData)
+router.get("/salesreport",adminController.loadSalesReport)
+router.get("/api/salesreport",adminController.salesReport)
+router.get("/downloadpdf",adminController.downloadPdf)
+router.get("/downloadexcel",adminController.downloadExcel)
 router.get("/login",loginAuthentication,adminController.loadAdminLogin)
 router.post("/login",adminController.loginAdmin)
 
 //Order Management
 router.get("/ordermanagement",isAuthenticated,adminController.loadOrderManagement)
 router.get("/orderview/:id",isAuthenticated,adminController.loadOrderView)
+router.put("/processreturn/:id",adminController.proceedReturn)
+router.put("/processitemreturn/:id",adminController.processItemReturn)
 router.put("/updatestatus/:id",adminController.updateStatus)
 
 //Coupon Management
 router.get("/couponmanagement",adminController.loadCoupon)
 router.get("/couponmanagement/add",adminController.loadAddCoupon)
+router.get("/couponmanagement/edit/:id",adminController.loadEditCoupon)
 router.post("/couponmanagement/add",adminController.addCoupon)
+router.put("/couponmanagement/edit/:id",adminController.editCoupon)
 router.get("/couponmanagement/delete/:id",adminController.deleteCoupon)
 module.exports=router

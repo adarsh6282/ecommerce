@@ -20,16 +20,16 @@
     <input type="text" id="code" name="code" class="form-control mb-3">
 
     <label for="discount" class="pt-3">Coupon Discount</label>
-    <input type="text" id="discount" name="discount" class="form-control mb-3">
+    <input type="number" id="discount" name="discount" class="form-control mb-3">
     
     <label for="expire" class="pt-3">Expiration Date</label>
     <input type="date" id="expire" name="expire" class="form-control mb-3">
     
     <label for="minpurchase" class="pt-3">Minimum Purchase</label>
-    <input type="text" id="minpurchase" name="minpurchase" class="form-control mb-3">
+    <input type="number" id="minpurchase" name="minpurchase" class="form-control mb-3">
     
     <label for="maxdiscount" class="pt-3">Maximum Discount</label>
-    <input type="text" id="maxdiscount" name="maxdiscount" class="form-control mb-3">
+    <input type="number" id="maxdiscount" name="maxdiscount" class="form-control mb-3">
    
     <label for="maxcount" class="pt-3">Max Count</label>
     <input type="tel" id="maxcount" name="maxcount" class="form-control mb-3">
@@ -41,6 +41,71 @@
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+<script>
+
+  document.getElementById("form").addEventListener("submit", async (e) => {
+    if(!addCouponValidate()){
+      e.preventDefault();
+    }
+    })
+  
+  function addCouponValidate() {
+    let code = document.getElementById("code").value;
+    let discount = document.getElementById("discount").value;
+    let expire = document.getElementById("expire").value;
+    let minpurchase = document.getElementById("minpurchase").value;
+    let maxdiscount = document.getElementById("maxdiscount").value;
+    let maxcount = document.getElementById("maxcount").value;
+  
+    if (code.trim() === "" || discount.trim() === "" || expire.trim() === "" || minpurchase.trim() === "" || maxdiscount.trim() === "" || maxcount.trim() === "") {
+      Swal.fire({
+        text: "Please fill all the fields",
+        icon: "error",
+      });
+      return false;
+    } else if (discount < 0) {
+      Swal.fire({
+        text: "Discount cannot be negative",
+        icon: "error",
+      });
+      return false;
+    } else if (discount > 100) {
+      Swal.fire({
+        text: "Discount cannot be greater than 100%",
+        icon: "error",
+      });
+      return false;
+    } else if (minpurchase < 0) {
+      Swal.fire({
+        text: "Minimum purchase cannot be negative",
+        icon: "error",
+      });
+      return false;
+    } else if (maxdiscount < 0) {
+      Swal.fire({
+        text: "Maximum discount cannot be negative",
+        icon: "error",
+      });
+      return false;
+    } else if (maxcount < 0) {
+      Swal.fire({
+        text: "Max count cannot be negative",
+        icon: "error",
+      });
+      return false;
+    } else if (new Date(expire) < new Date()) {
+      Swal.fire({
+        text: "Expiration date cannot be in the past",
+        icon: "error",
+      });
+      return false;
+    }
+    return true;
+  }
+  
+  </script>
+
 <script>
 
   document.getElementById("form").addEventListener("submit",async (e)=>{
@@ -53,6 +118,49 @@
       let maxdiscount=document.getElementById("maxdiscount").value
       let maxcount=document.getElementById("maxcount").value
 
+      if (code.trim() === "" || discount.trim() === "" || expire.trim() === "" || minpurchase.trim() === "" || maxdiscount.trim() === "" || maxcount.trim() === "") {
+      Swal.fire({
+        text: "Please fill all the fields",
+        icon: "error",
+      });
+      return false;
+    } else if (discount < 0) {
+      Swal.fire({
+        text: "Discount cannot be negative",
+        icon: "error",
+      });
+      return false;
+    } else if (discount > 100) {
+      Swal.fire({
+        text: "Discount cannot be greater than 100%",
+        icon: "error",
+      });
+      return false;
+    } else if (minpurchase < 0) {
+      Swal.fire({
+        text: "Minimum purchase cannot be negative",
+        icon: "error",
+      });
+      return false;
+    } else if (maxdiscount < 0) {
+      Swal.fire({
+        text: "Maximum discount cannot be negative",
+        icon: "error",
+      });
+      return false;
+    } else if (maxcount < 0) {
+      Swal.fire({
+        text: "Max count cannot be negative",
+        icon: "error",
+      });
+      return false;
+    } else if (new Date(expire) < new Date()) {
+      Swal.fire({
+        text: "Expiration date cannot be in the past",
+        icon: "error",
+      });
+      return false;
+    }else{
       try{
       
       const response=await fetch("/admin/couponmanagement/add",{
@@ -78,7 +186,7 @@
         text:"Failed to add coupon",
         icon:"error"
       })
-    }
+    }}
   })
 
 </script>

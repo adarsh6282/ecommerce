@@ -76,8 +76,8 @@
                                         <li class="cart"><a href="/logout">Logout</a></li>
                                     <% } %>
 									
-									<li class="cart"><a href="/cart"><i class="icon-shopping-cart"></i> Cart</a></li>
-									<li class="cart"><a href="#">Wishlist</a></li>
+									<li class="cart"><a href="/cart"><i class="icon-shopping-cart"></i> Cart <span id="cart-count" class="badge badge-danger"><%= cartCount %></span></a></li>
+								<li class="cart"><a href="/wishlist">Wishlist</a><span id="wishlist-count" class="badge badge-danger"><%= wishlistCount %></span></li>
 								</ul>
 							</div>
 						</div>
@@ -149,6 +149,26 @@
                 <% }); %>
                 </tbody>
             </table>
+
+			<nav aria-label="Order Pagination">
+				<ul class="pagination justify-content-center">
+					<% if (currentPage > 1) { %>
+						<li class="page-item">
+							<a class="page-link" href="?page=<%= currentPage - 1 %>">Previous</a>
+						</li>
+					<% } %>
+					<% for (let i = 1; i <= totalPages; i++) { %>
+						<li class="page-item <%= i === currentPage ? 'active' : '' %>">
+							<a class="page-link" href="?page=<%= i %>"><%= i %></a>
+						</li>
+					<% } %>
+					<% if (currentPage < totalPages) { %>
+						<li class="page-item">
+							<a class="page-link" href="?page=<%= currentPage + 1 %>">Next</a>
+						</li>
+					<% } %>
+				</ul>
+			</nav>
         </main>
 		<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
         <%- include("./layouts/footer") %>
@@ -201,49 +221,54 @@ document.querySelectorAll('.cancelorderbtn').forEach(button => {
 
 		<script>
 
-document.querySelectorAll('.returnorderbtn').forEach(button => {
-    button.addEventListener('click', async () => {
-        const orderId = button.getAttribute('data-id');
+        const returnButtons = document.querySelectorAll(".returnorderbtn");
 
-        try {
-            const response = await fetch(`/returnorder/${orderId}`, {
-                method: 'PUT',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ orderId })
-            });
+        returnButtons.forEach(button => {
+            button.addEventListener("click", async (e) => {
+                const orderId = e.target.dataset.id;
 
-            const result = await response.json();
-            if (result.success) {
-                Swal.fire({
-                    text: result.message,
-                    icon: "success"
+				const { value: reason } = await Swal.fire({
+                    title: 'Request Return',
+                    input: 'textarea',
+                    inputLabel: 'Reason for Return',
+                    inputPlaceholder: 'Enter your reason here...',
+                    inputAttributes: {
+                        'aria-label': 'Enter your reason here'
+                    },
+                    showCancelButton: true,
+                    confirmButtonText: 'Submit',
+                    cancelButtonText: 'Cancel',
+                    inputValidator: (value) => {
+                        if (!value) {
+                            return 'You need to write a reason!';
+                        }
+                    }
                 });
 
-                button.textContent = "Return Requested";
-                button.disabled = true;
-                button.classList.add('disabled');
+                if (reason) {
+                    try {
+                        const response = await fetch('/requestreturn', {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json'
+                            },
+                            body: JSON.stringify({ orderId, reason })
+                        });
 
-                const row = button.closest('tr');
-                const statusCell = row.querySelector('td:nth-child(3)');
-                if (statusCell) {
-                    statusCell.textContent = "Returned";
+                        const data = await response.json();
+
+                        if (data.success) {
+                            Swal.fire('Success!', 'Your return request has been submitted.', 'success');
+                        } else {
+                            Swal.fire('Error!', 'Something went wrong. Try again later.', 'error');
+                        }
+                    } catch (error) {
+                        Swal.fire('Error!', 'Failed to send request. Please try again.', 'error');
+                    }
                 }
-            } else {
-                Swal.fire({
-                    text: result.message,
-                    icon: "error"
-                });
-            }
-        } catch (error) {
-            console.error('Error:', error);
-            Swal.fire({
-                text: "An error occurred while requesting a return",
-                icon: "error"
             });
-        }
-    });
-});
-
+        });
 		</script>
+		
     </body>
     </html>

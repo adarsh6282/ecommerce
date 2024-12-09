@@ -4,7 +4,6 @@ let checkBan = async (req, res, next) => {
 
     if (req.session.user) { 
         const {email} = req.session.userData;
-        console.log(email); 
 
         const user = await userModel.findOne({email });
 

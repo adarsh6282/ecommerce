@@ -38,11 +38,14 @@
                             <td> <%= coupon.maxCount %> </td>
                             <td> <%= coupon.usedCount %> </td>
                             <td>
-                              <% if (coupon.isActive) { %>
+                              <% if (coupon.usedCount<coupon.maxCount) { %>
                                 <span style="color:green;">Active</span>
                               <% } else { %>
                                 <span style="color:red;">Inactive</span>
                               <% } %>
+                            </td>
+                            <td>
+                              <a href="/admin/couponmanagement/edit/<%= coupon._id %>" class="btn btn-sm btn-primary">Edit</a>
                             </td>
                             <td>
                               <a href="/admin/couponmanagement/delete/<%= coupon._id %>" class="btn btn-sm btn-danger">Delete</a>
@@ -51,13 +54,28 @@
                         <% }); %>
                       </tbody>                      
                 </table>
+                <div class="pagination">
+                  <% if (currentPage > 1) { %>
+                    <a href="?page=<%= currentPage - 1 %>&limit=10" class="btn btn-secondary">Previous</a>
+                  <% } %>
+                
+                  <% for (let i = 1; i <= totalPages; i++) { %>
+                    <a href="?page=<%= i %>&limit=10" class="btn <%= currentPage === i ? 'btn-primary' : 'btn-secondary' %>">
+                      <%= i %>
+                    </a>
+                  <% } %>
+                
+                  <% if (currentPage < totalPages) { %>
+                    <a href="?page=<%= currentPage + 1 %>&limit=10" class="btn btn-secondary">Next</a>
+                  <% } %>
+                </div>
               </div>
             </div>
           </div>
         </div>
       </div>
       <div style="margin-top: 100px;" class="col-md-4 grid-margin stretch-card userInfoView">
-        <a href="/admin/couponmanagement/add" class="btn btn-primary categorybtn pt-3" style="width: 200px; margin-right: 5px;">Add New Coupon</a>
+        <a href="/admin/couponmanagement/add" class="btn btn-primary categorybtn pt-3" style="width: 200px; margin-right: 100px;">Add New Coupon</a>
       </div>
 
       <script>

@@ -18,10 +18,10 @@
                 <input type="hidden" id="productId" name="productId" value="<%= product.id %>">
 
               <label for="name" class="pt-3">Product Name</label>
-              <input type="text" id="name" name="name" class="form-control mb-3" required value="<%= product.name %>">
+              <input type="text" id="name" name="name" class="form-control mb-3" value="<%= product.name %>">
           
               <label for="description" class="pt-3"> Description</label>
-              <input type="text" id="description" name="description" class="form-control mb-3" required value="<%= product.description %>">
+              <input type="text" id="description" name="description" class="form-control mb-3"  value="<%= product.description %>">
           
               <div class="form-group">
 
@@ -68,229 +68,219 @@
               </div>
       
               <label for="category" class="pt-3">Category</label>
-              <select id="category" name="category" class="form-control mb-3" required value="<%= product.category %>">
-                <option value="">Select Category</option>
+              <select id="category" name="category" class="form-control mb-3"  value="<%= product.category %>">
                 <% categories.forEach(function(product) { %>
                   <option value="<%= product.name %>"> <%=product.name%></option>
                 <% }) %>
               </select>
 
               <label for="image" class="pt-3">Price</label>
-              <input type="number" id="price" name="price" class="form-control mb-3" required value="<%= product.price %>">
+              <input type="number" id="price" name="price" class="form-control mb-3"  value="<%= product.price %>">
       
               <label for="image" class="pt-3">Offerprice</label>
-              <input type="number" id="offerprice" name="offerprice" class="form-control mb-3" required value="<%= product.offerPrice %>">
+              <input type="number" id="offerprice" name="offerprice" class="form-control mb-3"  value="<%= product.offerPrice %>">
       
               <label for="image" class="pt-3">Stock</label>
-              <input type="number" id="stock" name="stock" class="form-control mb-3" required value="<%= product.stock %>">
+              <input type="number" id="stock" name="stock" class="form-control mb-3"  value="<%= product.stock %>">
 
               <label for="image" class="pt-3">Tags(should be seperated by commas)</label>
-              <input type="text" id="tags" name="tags" class="form-control mb-3" required value="<%= product.tags %>">
+              <input type="text" id="tags" name="tags" class="form-control mb-3"  value="<%= product.tags %>">
       
               <label for="image" class="pt-3">Sizes(should be seperated by commas)</label>
-              <input type="text" id="sizes" name="sizes" class="form-control mb-3" required value="<%= product.sizes %>">
+              <input type="text" id="sizes" name="sizes" class="form-control mb-3"  value="<%= product.sizes %>">
       
               <label for="image" class="pt-3">Warranty</label>
-              <input type="text" id="warranty" name="warranty" class="form-control mb-3" required value="<%= product.warranty %>">
+              <input type="text" id="warranty" name="warranty" class="form-control mb-3"  value="<%= product.warranty %>">
       
               <label for="image" class="pt-3">Return Policy</label>
-              <input type="text" id="returnpolicy" name="returnpolicy" class="form-control mb-3" required value="<%= product.returnPolicy %>">
+              <input type="text" id="returnpolicy" name="returnpolicy" class="form-control mb-3"  value="<%= product.returnPolicy %>">
       
-              <label for="cashOnDelivery" class="pt-3">Cash On Delivery</label>
-                  <select id="cashOnDelivery" name="cashOnDelivery" class="form-control mb-3" required value="<%= product.cashOnDelivery %>">
-                    <option value="">Select Option</option>
-                    <option value="yes">Yes</option>
-                    <option value="no">No</option>
-                  </select>
             </div>
-          
+
+            <p id="msg" style="color:red"></p>
+           
             <button type="submit" class="btn btn-primary mt-3 updatebtn" data-id="<%=product._id%>">Save Changes</button>
             <a href="/admin/productmanagement" class="btn btn-secondary mt-3">Cancel</a>
           </form>
           </div>
           </body>
 
+          <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
           <script>
+            document.getElementById("updateproduct").addEventListener("submit", async (e) => {
+              e.preventDefault();
+              const isValid = updateProductValidate();
 
-            const updatebtn = document.querySelector(".updatebtn")
-            updatebtn.addEventListener("click",async(e)=>{
-                e.preventDefault()
-                
-                let id=document.getElementById("productId").value
-                let name=document.getElementById("name").value
-                let description=document.getElementById("description").value
-                let category=document.getElementById("category").value
-                let price=document.getElementById("price").value
-                let offerprice=document.getElementById("offerprice").value
-                let stock=document.getElementById("stock").value
-                let warranty=document.getElementById("warranty").value
-                let returnpolicy=document.getElementById("returnpolicy").value
-                let cashOnDelivery=document.getElementById("cashOnDelivery").value
+              if (!isValid) return;
 
-                const formData=new FormData()
-                formData.append("name",name)
-                formData.append("description",description)
-                formData.append("category",category)
-                formData.append("price",price)
-                formData.append("offerprice",offerprice)
-                formData.append("stock",stock)
-                formData.append("warranty",warranty)
-                formData.append("returnpolicy",returnpolicy)
-                formData.append("cashOnDelivery",cashOnDelivery)
-                formData.append("tags",tags)
-                formData.append("sizes",sizes)
-                formData.append("productImage1",document.getElementById("productImage1").files[0])
-                formData.append("productImage2",document.getElementById("productImage2").files[0])
-                formData.append("productImage3",document.getElementById("productImage3").files[0])
-                formData.append("productImage4",document.getElementById("productImage4").files[0])
+              const formData = new FormData();
+              const id = document.getElementById("productId").value;
+              formData.append("name", document.getElementById("name").value.trim());
+              formData.append("description", document.getElementById("description").value.trim());
+              formData.append("category", document.getElementById("category").value.trim());
+              formData.append("price", document.getElementById("price").value.trim());
+              formData.append("offerprice", document.getElementById("offerprice").value.trim());
+              formData.append("stock", document.getElementById("stock").value.trim());
+              formData.append("warranty", document.getElementById("warranty").value.trim());
+              formData.append("returnpolicy", document.getElementById("returnpolicy").value.trim());
+              formData.append("tags", document.getElementById("tags").value.trim());
+              formData.append("sizes", document.getElementById("sizes").value.trim());
 
-                try {
-                    const response = await fetch(`/admin/productmanagement/update/${id}`,{
-                        method:"PUT",
-                        body:formData
-                    })
+              croppedImages.forEach((image, index) => {
+                formData.append(`productImage${index + 1}`, image);
+              });
 
-                    let result=await response.json()
-                    if(result.success){
-                        alert(result.message)
-                        window.location.href="/admin/productmanagement"
-                    }
-                    else{
-                        alert(result.message || "Failed to update product")
-                    }
+              try {
+                const response = await fetch(`/admin/productmanagement/update/${id}`, {
+                  method: "PUT",
+                  body: formData,
+                });
+                const result = await response.json();
 
-                } catch (error) {
-                    console.error(error)
+                if (result.success) {
+                 swal.fire({
+                  text:result.message,
+                  icon:"success"
+                 })
+                 setTimeout(() => {
+                  window.location.href = "/admin/productmanagement";
+                 }, 2000);
+                } else {
+                  swal.fire({
+                    text:result.message,
+                    icon:"error"
+                  })
                 }
-              })
-    
-          </script>
-          <script>
-
-              document.getElementById("form").addEventListener("submit",(e)=>{
-                  if(!addProductValidate){
-                    e.preventDefault()
-                  }
+              } catch (error) {
+                console.error("Error:", error);
+                swal.fire({
+                  text:"An error occured .Please try again later"
                 })
+              }
+            });
 
-                function addProductValidate(){
-                  const msg=document.getElementById("msg")
-                  const name=document.getElementById("name").value
-                  const description=document.getElementById("description").value
-                  const price=document.getElementById("price").value
-                  const offerprice=document.getElementById("offerprice").value
-                  const stock=document.getElementById("stock").value
-                  const tags=document.getElementById("tags").value
-                  const sizes=document.getElementById("sizes").value
-                  const warranty=document.getElementById("warranty").value
-                  const returnpolicy=document.getElementById("returnpolicy").value
-                  const cashOnDelivery=document.getElementById("cashOnDelivery").value
-                  const namereg=/^[a-zA-Z\s]+$/
-                  const desreg=/^(\b\w+\b[\s]*){10,}$/
-                  const tagreg=/^(\w+)(,\s*\w+)*$/
+            function updateProductValidate() {
+              const name = document.getElementById("name").value.trim();
+              const description = document.getElementById("description").value.trim();
+              const price = document.getElementById("price").value.trim();
+              const offerprice = document.getElementById("offerprice").value.trim();
+              const stock = document.getElementById("stock").value.trim();
+              const tags = document.getElementById("tags").value.trim();
+              const sizes = document.getElementById("sizes").value.trim();
+              const warranty = document.getElementById("warranty").value.trim();
+              const returnpolicy = document.getElementById("returnpolicy").value.trim();
 
-                  if(name.trim()==""){
-                    msg.innerHTML ="Enter a name"
-                    return false
-                  }
-                  else if(namereg.test(name)){
-                    msg.innerHTML = "Please enter a name in correct format"
-                    return false
-                  }
-                  else if(description.trim()==""){
-                    msg.innerHTML="Description is required"
-                    return false
-                  }
-                  else  if(desreg.test(description))
-                  {
-                    msg.innerHTML="Description need to be atleast 10 words"
-                    return false
-                  }
-                  else if(price.trim()==""){
-                    msg.innerHTML="Price is required"
-                    return false
-                  }
-                  else if(isNaN(price)){
-                    msg.innerHTML="Price should be a number"
-                    return false
-                  }
-                  else if(offerprice.trim()==""){
-                    msg.innerHTML="Offer price is required"
-                    return false
-                  }
-                  else if(isNaN(offerprice)){
-                    msg.innerHTML="Offer price should be a number"
-                    return false
-                  }
-                  else if(stock.trim()==""){
-                    msg.innerHTML="Stock is required"
-                    return false
-                  }
-                  else if(isNaN(stock)){
-                    msg.innerHTML="Stock should be a number"
-                    return false
-                  }
-                  else if(tags.trim()==""){
-                    msg.innerHTML="Tags are required"
-                    return false
-                  }
-                  else if(tagreg.test(tags)){
-                    msg.innerHTML="Tags should be comma separated"
-                    return false
-                  }
-                  else if(sizes.trim()==""){
-                    msg.innerHTML="Sizes are required"
-                    return false
-                  }
-                  else if(warranty.trim()==""){
-                    msg.innerHTML="Warranty is required"
-                    return false
-                  }
-                  else if(returnpolicy.trim()==""){
-                    msg.innerHTML="Return policy is required"
-                    return false
-                  }
-                }
+              const namereg = /^[a-zA-Z\s]+$/;
+              const tagreg = /^(\w+)(,\s*\w+)*$/;
 
-          </script>
-           <script>
+              const msg = document.getElementById("msg");
+
+              if (name === "") {
+                msg.innerHTML = "Enter a name";
+                return false;
+              }
+              if (!namereg.test(name)) {
+                msg.innerHTML = "Please enter a valid name (letters only)";
+                return false;
+              }
+              if (description === "") {
+                msg.innerHTML = "Description is required";
+                return false;
+              }
+              if (price === "") {
+                msg.innerHTML = "Price is required";
+                return false;
+              }
+              if (price < 0) {
+                msg.innerHTML = "Price cannot be negative";
+                return false;
+              }
+              if (offerprice === "") {
+                msg.innerHTML = "Offer price is required";
+                return false;
+              }
+              if (offerprice < 0) {
+                msg.innerHTML = "Offer price cannot be negative";
+                return false;
+              }
+              if (offerprice > price) {
+                msg.innerHTML = "Offer price cannot be greater than original price";
+                return false;
+              }
+              if (stock === "") {
+                msg.innerHTML = "Stock is required";
+                return false;
+              }
+              if (stock < 0) {
+                msg.innerHTML = "Stock cannot be negative";
+                return false;
+              }
+              if (tags === "") {
+                msg.innerHTML = "Tags are required";
+                return false;
+              }
+              if (!tagreg.test(tags)) {
+                msg.innerHTML = "Tags should be comma-separated";
+                return false;
+              }
+              if (sizes === "") {
+                msg.innerHTML = "Sizes are required";
+                return false;
+              }
+              if (warranty === "") {
+                msg.innerHTML = "Warranty is required";
+                return false;
+              }
+              if (returnpolicy === "") {
+                msg.innerHTML = "Return policy is required";
+                return false;
+              }
+
+              msg.innerHTML = "";
+              return true;
+            }
+
             const cropperInstances = [];
             const croppedImages = [];
-        
+
             function previewAndCrop(event, index) {
-          const file = event.target.files[0];
-          if (!file) return;
-        
-          const cropPreview = document.getElementById(`cropPreview${index}`);
-          const cropPreviewSection = document.getElementById(`cropPreviewSection${index}`);
-        
-          cropPreview.src = URL.createObjectURL(file);
-          cropPreviewSection.style.display = "block";
-          if (cropperInstances[index]) {
-            cropperInstances[index].destroy();
-          }
-          cropperInstances[index] = new Cropper(cropPreview, {
-            aspectRatio: 1,
-            viewMode: 1,
-            autoCropArea: 1,
-            scalable: true,
-            zoomable: true,
-            movable: true,
-          });
-        
-        }
-        
-        function startCropping(index) {
-          const cropper = cropperInstances[index];
-          if (!cropper) return;
-        
-          cropper.getCroppedCanvas().toBlob((blob) => {
-              croppedImages[index] = blob; 
+              const file = event.target.files[0];
+              if (!file) return;
+
+              const cropPreview = document.getElementById(`cropPreview${index}`);
               const cropPreviewSection = document.getElementById(`cropPreviewSection${index}`);
-              cropPreviewSection.style.display = "none";
-              console.log("Cropped image stored for upload or further use.");
-          });
-        }
+
+              cropPreview.src = URL.createObjectURL(file);
+              cropPreviewSection.style.display = "block";
+
+              if (cropperInstances[index]) {
+                cropperInstances[index].destroy();
+              }
+
+              cropperInstances[index] = new Cropper(cropPreview, {
+                aspectRatio: 1,
+                viewMode: 1,
+                autoCropArea: 1,
+                scalable: true,
+                zoomable: true,
+                movable: true,
+              });
+            }
+
+            function startCropping(index) {
+              const cropper = cropperInstances[index];
+              if (!cropper) return;
+
+              cropper.getCroppedCanvas().toBlob((blob) => {
+                croppedImages[index] = blob;
+
+                const cropPreviewSection = document.getElementById(`cropPreviewSection${index}`);
+                cropPreviewSection.style.display = "none";
+
+                console.log(`Cropped image ${index + 1} stored.`);
+              });
+            }
+
         </script>
 
           </html>

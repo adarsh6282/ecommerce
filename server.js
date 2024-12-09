@@ -20,12 +20,10 @@ app.use(session({
     }
 }))
 
-app.use(cartCount)
-app.use(wishCount)
 app.use((req, res, next) => {
     res.locals.currentRoute = req.path;
     next();
-  });
+});
 app.set("view engine","ejs")
 app.set("views",path.join(__dirname,"views"))
 app.use(nocache())
@@ -36,6 +34,8 @@ app.use(passport.session())
 app.use(express.static(path.join(__dirname,"public")))
 app.use(express.urlencoded({extended:true}))
 app.use(express.json())
+app.use(cartCount)
+app.use(wishCount)
 app.use(auth)
 app.use(checkBan)
 

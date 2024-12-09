@@ -4,13 +4,14 @@
     <link rel="stylesheet" href="../css/otpverify.css">
 </head>
 <body>
-    <form action="/home" method="post" id="form">
+    <form action="/forgotverify" method="post" id="form">
     <div class="container">
         <h2>Enter Verification Code</h2>
         <input type="text" name="otp" maxlength="6" class="otp-input" placeholder="------" 
                oninput="this.value = this.value.replace(/[^0-9]/g, '')"
                onkeypress="if(this.value.length==6) return false;" autofocus>
         <p class="message">Please enter the 6-digit code sent to your device</p>
+        <p style="color: red;"><%= message %></p>
         <button type="submit" class="verify-btn" id="btn">Verify Code</button>
     </form>
     <form action="/forgotresend" method="post">

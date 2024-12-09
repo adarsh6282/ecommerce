@@ -73,8 +73,8 @@
                                         <li class="cart"><a href="/logout">Logout</a></li>
                                     <% } %>
 									
-									<li class="cart"><a href="/cart"><i class="icon-shopping-cart"></i> Cart</a></li>
-									<li class="cart"><a href="#">Wishlist</a></li>
+									<li class="cart"><a href="/cart"><i class="icon-shopping-cart"></i> Cart <span id="cart-count" class="badge badge-danger"><%= cartCount %></span></a></li>
+								<li class="cart"><a href="/wishlist">Wishlist</a><span id="wishlist-count" class="badge badge-danger"><%= wishlistCount %></span></li>
 								</ul>
 							</div>
 						</div>

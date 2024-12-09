@@ -12,7 +12,6 @@ const productSchema = new mongoose.Schema({
   colors: [{ type: String }],
    category:{type:mongoose.Schema.ObjectId, ref:"Category"},
   brand: { type: String },
-  cashOnDelivery: { type:Boolean },
   warranty: { type:String },
   returnPolicy: { type:String },
   rating: { type: Number, default: 0 },

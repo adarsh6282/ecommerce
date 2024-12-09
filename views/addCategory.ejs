@@ -17,12 +17,12 @@
 <form id="form" action="/admin/categorymanagement/add" method="POST" enctype="multipart/form-data">
   <div class="form-group">
     <label for="name" class="pt-3">Category Name</label>
-    <input type="text" id="name" name="name" class="form-control mb-3" required>
+    <input type="text" id="name" name="name" class="form-control mb-3" >
 
     <label for="description" class="pt-3">Category Description</label>
-    <input type="text" id="description" name="description" class="form-control mb-3" required>
+    <input type="text" id="description" name="description" class="form-control mb-3" >
 
-    <div class="form-group">
+    <!-- <div class="form-group">
       <label for="categoryImage">Image</label>
       <input type="file" class="form-control" id="categoryImage" name="categoryImage" accept="image/*" onchange="previewAndCrop(event, 0)"/>
       <div class="cropPreviewSection" id="cropPreviewSection0" style="display: none">
@@ -30,7 +30,7 @@
         <button type="button" onclick="startCropping(0)">
           Crop Image 1
         </button>
-      </div>
+      </div> -->
   </div>
 
   <p id="msg" style="color:red"></p>
@@ -72,7 +72,7 @@
     }
   }
 </script>
-<script>
+<!-- <script>
 const cropperInstances = [];
 const croppedImages = [];
 let currentImageIndex = null;
@@ -112,6 +112,6 @@ function startCropping(index) {
       console.log("Cropped image stored for upload or further use.");
   });
 }
-</script>
+</script> -->
 </body>
 </html>

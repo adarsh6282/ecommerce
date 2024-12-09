@@ -10,6 +10,10 @@ router.post("/login",userController.loginUser)
 router.post("/requestotp",userController.requestOtp)
 router.get("/verify",userController.loadVerify)
 router.get("/forgotpassword",userController.loadForgotPassword)
+router.post("/forgotpassword",userController.forgotPassword)
+router.get("/forgotverify",userController.loadForgotVerify)
+router.post("/forgotverify",userController.forgotVerify)
+router.post("/submitpassword",userController.forgotSuccess)
 router.post("/verify",userController.registerUser);
 router.get("/",userController.loadHome)
 router.post("/resend",userController.resendOtp)
@@ -33,26 +37,38 @@ router.get("/cart",userController.loadCart)
 router.delete("/cart/remove",userController.removeFromCart)
 router.delete("/wishlist/remove",userController.removeFromWishlist)
 router.post("/addtocart",userController.addToCart)
+router.post("/updatecart",userController.updateCart)
+router.post("/wishtocart",userController.wishlistToCart)
 router.get("/checkout",userController.loadCheckout)
 router.post("/placeorder",userController.placeOrder)
 router.post("/razorpayorder",userController.razorPayOrder)
 router.post("/verifypayment",userController.verifyPayment)
 router.post("/applycoupon",userController.applyCoupon)
 router.get('/auth/google',passport.authenticate('google',{scope: ['profile','email']}));
-router.get('/auth/google/callback',passport.authenticate('google',{failureRedirect:'/register'}),(req, res) => 
-    {
-        req.session.user=true
+router.get('/auth/google/callback',passport.authenticate('google',{failureRedirect:'/register'}), async (req, res) => {
+    try {
+        const user = req.user;
+        req.session.user = true;
+        req.session.userData = {
+            email: user.email,
+            isDeleted: user.isDeleted || false,
+        };
         res.redirect('/');
+    } catch (error) {
+        console.error("Error during Google login:", error);
+        res.redirect('/login');
     }
-)
+});
 router.get("/ordercomplete",userController.loadOrderComplete)
 router.get("/myaccountorder",userController.loadOrder)
 router.get("/userorderview/:id",userController.loadOrderView)
 router.put("/cancelorder/:id",userController.cancelOrder)
-router.put('/returnorder/:id',userController.returnOrder);
+router.post("/cancelitem/:orderId/:productId",userController.cancelOrderItem)
+router.post('/requestreturn',userController.requestReturn);
+router.post('/requestitemreturn',userController.requestItemReturn);
 router.get("/wishlist",userController.loadWishlist)
 router.post("/wishlist/add",userController.addToWishlist)
 router.get("/wallet",userController.loadWallet)
 router.get("/logout",userController.logout)
 
-module.exports=router                                                                                                                                                                                                                                                                                                                                                                                       
+module.exports=router                                                                                                                                                                                                                                                                                                                                                               

@@ -16,10 +16,10 @@
     <form id="form" action="/admin/productmanagement/add" method="POST" enctype="multipart/form-data">
       <div class="form-group">
         <label for="name" class="pt-3">Product Name</label>
-        <input type="text" id="name" name="name" class="form-control mb-3" required>
+        <input type="text" id="name" name="name" class="form-control mb-3" >
     
         <label for="description" class="pt-3"> Description</label>
-        <input type="text" id="description" name="description" class="form-control mb-3" required>
+        <input type="text" id="description" name="description" class="form-control mb-3" >
 
         <div class="form-group">
 
@@ -63,7 +63,7 @@
     
 
         <label for="category" class="pt-3">Category</label>
-        <select id="category" name="category" class="form-control mb-3" required>
+        <select id="category" name="category" class="form-control mb-3" >
           <option value="">Select Category</option>
           <% categories.forEach(function(product) { %>
             <option value="<%= product._id %>"><%= product.name %></option>
@@ -71,29 +71,29 @@
         </select>   
 
         <label for="image" class="pt-3">Price</label>
-        <input type="number" id="price" name="price" class="form-control mb-3" required>
+        <input type="number" id="price" name="price" class="form-control mb-3" >
 
         <label for="image" class="pt-3">Offerprice</label>
-        <input type="number" id="offerprice" name="offerprice" class="form-control mb-3" required>
+        <input type="number" id="offerprice" name="offerprice" class="form-control mb-3" >
 
         <label for="image" class="pt-3">Stock</label>
-        <input type="number" id="stock" name="stock" class="form-control mb-3" required>
+        <input type="number" id="stock" name="stock" class="form-control mb-3" >
 
         <label for="image" class="pt-3">Tags(should be seperated by commas)</label>
-        <input type="text" id="tags" name="tags" class="form-control mb-3" required>
+        <input type="text" id="tags" name="tags" class="form-control mb-3" >
 
         <label for="image" class="pt-3">Sizes(should be seperated by commas)</label>
-        <input type="text" id="sizes" name="sizes" class="form-control mb-3" required>
+        <input type="text" id="sizes" name="sizes" class="form-control mb-3" >
 
         <label for="image" class="pt-3">Warranty</label>
-        <input type="text" id="warranty" name="warranty" class="form-control mb-3" required>
+        <input type="text" id="warranty" name="warranty" class="form-control mb-3" >
 
 
         <label for="image" class="pt-3">Return Policy</label>
-        <input type="text" id="returnpolicy" name="returnpolicy" class="form-control mb-3" required>
+        <input type="text" id="returnpolicy" name="returnpolicy" class="form-control mb-3" >
 
         <label for="cashOnDelivery" class="pt-3">Cash On Delivery</label>
-            <select id="cashOnDelivery" name="cashOnDelivery" class="form-control mb-3" required>
+            <select id="cashOnDelivery" name="cashOnDelivery" class="form-control mb-3">
               <option value="yes">Yes</option>
               <option value="no">No</option>
             </select>
@@ -148,14 +148,14 @@ function startCropping(index) {
 </script>
 
 <script>
-
-  document.getElementById("form").addEventListener("submit",(e)=>{
-    if(!addProductValidate){
-      e.preventDefault()
+    document.getElementById("form").addEventListener("submit", (e) => {
+    if (!addProductValidate()) {
+        e.preventDefault();
     }
-  })
+});
 
   function addProductValidate(){
+    
     const msg=document.getElementById("msg")
     const name=document.getElementById("name").value
     const description=document.getElementById("description").value
@@ -168,74 +168,94 @@ function startCropping(index) {
     const returnpolicy=document.getElementById("returnpolicy").value
     const cashOnDelivery=document.getElementById("cashOnDelivery").value
     const namereg=/^[a-zA-Z\s]+$/
-    const desreg=/^(\b\w+\b[\s]*){10,}$/
+    const desreg = /^(\b\w+\b[\s,]*){10,}$/;
     const tagreg=/^(\w+)(,\s*\w+)*$/
+    console.log(name,description,price,offerprice,stock,tags,sizes)
 
     if(name.trim()==""){
       msg.innerHTML ="Enter a name"
       return false
     }
-    else if(namereg.test(name)){
+    if(!namereg.test(name)){
       msg.innerHTML = "Please enter a name in correct format"
       return false
     }
-    else if(description.trim()==""){
+    if(description.trim()==""){
       msg.innerHTML="Description is required"
       return false
     }
-    else  if(desreg.test(description))
+    if(!desreg.test(description))
     {
       msg.innerHTML="Description need to be atleast 10 words"
       return false
     }
-    else if(price.trim()==""){
+    if(price.trim()==""){
       msg.innerHTML="Price is required"
       return false
     }
-    else if(isNaN(price)){
+    if(price<0){
+      msg.innerHTML="Price cant be negative"
+      return false
+    }
+    if(offerprice<0){
+      msg.innerHTML="Price cant be negative"
+      return false
+    }
+    if(isNaN(price)){
       msg.innerHTML="Price should be a number"
       return false
     }
-    else if(offerprice.trim()==""){
+    if(offerprice.trim()==""){
       msg.innerHTML="Offer price is required"
       return false
     }
-    else if(isNaN(offerprice)){
+    if(offerprice>price){
+      msg.innerHTML="Offer price Cant be greater than Original Price"
+      return false
+    }
+    if(isNaN(offerprice)){
       msg.innerHTML="Offer price should be a number"
       return false
     }
-    else if(stock.trim()==""){
+    if(stock.trim()==""){
       msg.innerHTML="Stock is required"
       return false
     }
-    else if(isNaN(stock)){
+    if(stock<0){
+      msg.innerHTML="Stock cant be negative"
+      return false
+    }
+    if(isNaN(stock)){
       msg.innerHTML="Stock should be a number"
       return false
     }
-    else if(tags.trim()==""){
+    if(tags.trim()==""){
       msg.innerHTML="Tags are required"
       return false
     }
-    else if(tagreg.test(tags)){
+    if(!tagreg.test(tags)){
       msg.innerHTML="Tags should be comma separated"
       return false
     }
-    else if(sizes.trim()==""){
+    if(sizes.trim()==""){
       msg.innerHTML="Sizes are required"
       return false
     }
-    else if(warranty.trim()==""){
+    if(sizes<0){
+      msg.innerHTML="Sizes cant be negative"
+      return false
+    }
+    if(warranty.trim()==""){
       msg.innerHTML="Warranty is required"
       return false
     }
-    else if(returnpolicy.trim()==""){
+    if(returnpolicy.trim()==""){
       msg.innerHTML="Return policy is required"
       return false
-    }else{
-      msg.innerHTML=""
-      return true
     }
-  }
+    return true
+    }
+  
 
 </script>
 </body>

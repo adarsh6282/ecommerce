@@ -5,6 +5,114 @@
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
     <title>Admin Panel</title>
     <link rel="stylesheet" href="/css/admin.css">
+  <style>
+/* Modal Background */
+.modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.6); /* Semi-transparent background */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 999;
+}
+
+/* Modal Content */
+.modal-content {
+  background: #ffffff;
+  border-radius: 8px;
+  padding: 20px 30px;
+  width: 350px;
+  max-width: 90%;
+  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
+  text-align: center;
+  animation: fadeIn 0.3s ease-out;
+  transform: translateY(0); /* Ensure it stays centered */
+}
+
+
+/* Heading */
+.modal-content h4 {
+  margin-bottom: 20px;
+  font-size: 1.5em;
+  color: #333;
+  font-weight: bold;
+}
+
+/* Input Field */
+.modal-content input {
+  width: 100%;
+  padding: 10px;
+  margin: 10px 0 20px 0;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  font-size: 1em;
+  transition: 0.3s;
+}
+
+/* Input Focus */
+.modal-content input:focus {
+  border-color: #007BFF;
+  outline: none;
+  box-shadow: 0 0 8px rgba(0, 123, 255, 0.3);
+}
+
+/* Buttons Container */
+.modal-buttons {
+  display: flex;
+  gap: 10px;
+  justify-content: center;
+}
+
+/* Apply Button */
+.apply-button {
+  background-color: #28a745;
+  color: #fff;
+  padding: 10px 20px;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 1em;
+  transition: 0.3s;
+}
+
+.apply-button:hover {
+  background-color: #218838;
+  transform: scale(1.05);
+}
+
+/* Cancel Button */
+.cancel-button {
+  background-color: #dc3545;
+  color: #fff;
+  padding: 10px 20px;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 1em;
+  transition: 0.3s;
+}
+
+.cancel-button:hover {
+  background-color: #c82333;
+  transform: scale(1.05);
+}
+
+/* Fade In Animation */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(-20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+</style>
   </head>
   <body>
     <div class="container-scroller">
@@ -78,6 +186,9 @@
                             <%= updatedFormattedDate%>
                           </td>
                           <td>
+                            <button class="badge badge-outline-success btn-offer" onclick="showOfferModal('<%= category._id %>')">Apply Offer</button>
+                          </td>
+                          <td>
                             <a href="/admin/categorymanagement/update/<%= category._id %>" class="badge badge-outline-primary btn-update">
                             Update</button>
                           </td>
@@ -88,6 +199,17 @@
                       <% }) %>
                     </tbody>
                   </table>
+
+                  <div id="offerModal" class="modal" style="display: none; position: relative;left: 175px;top: -329px;" >
+                    <div class="modal-content">
+                      <h4>Apply Offer</h4>
+                      <label for="offerPercentage">Offer Percentage:</label>
+                      <input type="number" id="offerPercentage" placeholder="Enter offer percentage" />
+                      <button onclick="applyOffer()">Apply Offer</button>
+                      <button onclick="closeModal()">Cancel</button>
+                    </div>
+                  </div>
+
                   <div class="custom-pagination">
                     <% if (currentPage > 1) { %>
                         <a href="/admin/categorymanagement?page=<%= currentPage - 1 %>" class="page-link">Previous</a>
@@ -105,10 +227,7 @@
               </div>
             </div>
           </div>
-        </div>
-
-
-          
+        </div> 
         <div style="margin-top: 100px;" class="col-md-4 grid-margin stretch-card userInfoView">
           <a href="/admin/categorymanagement/add" class="btn btn-primary categorybtn pt-3" style="width: 200px;">Add New Category</a>
           <a href="/admin/categorymanagement/delete" class="btn btn-danger categorybtn1 pt-3" style="width: 200px;">Deleted Category</a>
@@ -117,6 +236,7 @@
     </div>
   </body>
 
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
   <script>
     document.querySelectorAll('.btn-delete').forEach(button =>{
       button.addEventListener('click', async function() {
@@ -140,6 +260,68 @@
         }
       });
     })
+</script>
+
+<script>
+
+let currentCategoryId = '';
+
+function showOfferModal(categoryId) {
+  currentCategoryId = categoryId;
+  document.getElementById("offerModal").style.display = "block";
+}
+
+async function applyOffer() {
+  const offerPercentage = document.getElementById("offerPercentage").value;
+  
+  if (!offerPercentage) {
+    Swal.fire({
+      text:"Please enter an offer percentage",
+      icon:"error"
+    })
+    return;
+  }
+  if(offerPercentage<0){
+    Swal.fire({
+      text:"Offer Percentage must be positive",
+      icon:"error"
+    })
+    return;
+  }
+  if(offerPercentage>100){
+    Swal.fire({
+      text:"Offer Percentage must not exceed 100",
+      icon:"error"
+    })
+    return;
+  }
+
+  try {
+    const response = await fetch(`/admin/applyoffer/${currentCategoryId}`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ offerPercentage })
+    });
+
+    const data = await response.json();
+
+    if (data.success) {
+      alert("Offer applied successfully!");
+      location.reload();
+    } else {
+      alert("Failed to apply offer.");
+    }
+  } catch (error) {
+    console.error("Error applying offer:", error);
+    alert("An error occurred while applying the offer.");
+  }
+}
+
+function closeModal() {
+    document.getElementById("offerModal").style.display = "none";
+  }
 </script>
 
 </html>

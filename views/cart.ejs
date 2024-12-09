@@ -119,12 +119,8 @@
 					<h2 style="margin-left: 200px;">Your Cart</h2>
 				</div>
 
-				<% if (items.length === 0) { %>
-					<div style="height:200px">
-					<p style="font-size:50px; text-align: center; font-weight: 700;">Your cart is empty!</p>
-				</div>
-				<% } else { %>
-				<div class="row row-pb-lg" style="width:65%; margin-left: 200px;">
+				<% if (items.length !== 0) { %>
+					<div class="row row-pb-lg" style="width:65%; margin-left: 200px;">
 					<div class="col-md-12">
 						<div class="product-name d-flex">
 							<div class="one-forth text-left px-4">
@@ -168,12 +164,12 @@
 							</div>
 							<div class="one-eight text-center">
 								<div class="display-tc">
-									<input type="text" id="quantity" name="quantity" class="form-control input-number text-center" value="<%= item.quantity %>" min="1" max="100">
+									<input type="number" id="quantity" name="quantity" class="form-control input-number text-center" value="<%= item.quantity %>" data-max="<%= item.productId.stock %>" min="1" max="100">
 								</div>
 							</div>
 							<div class="one-eight text-center">
 								<div class="display-tc">
-									<span class="price">₹<%= (item.productId.offerPrice * item.quantity).toFixed(2) %></span></span>
+									<span id="price" class="pricetot">₹<%= (item.productId.offerPrice * item.quantity).toFixed(2) %></span></span>
 								</div>
 							</div>
 							<div class="one-eight text-center">
@@ -182,31 +178,24 @@
 								</div>
 							</div>
 						</div>
-						<% })} %>
-						
+						<% }) %>
+				<% } else { %>
+					<div style="height:200px">
+						<p style="font-size:50px; text-align: center; font-weight: 700;">Your cart is empty!</p>
+					</div>
+				<%} %>
+				<% if (items && items.length > 0) { %>
 				<div class="row row-pb-lg">
 					<div class="col-md-12">
 						<div class="total-wrap">
 							<div class="row">
-								<div class="col-sm-8">
-									<form action="#">
-										<div class="row form-group" style="margin-left: auto;">
-											<div class="col-sm-9">
-												<input type="text" name="quantity" class="form-control input-number" placeholder="Your Coupon Number...">
-											</div>
-											<div class="col-sm-3">
-												<input type="submit" value="Apply Coupon" class="btn btn-primary">
-											</div>
-										</div>
-									</form>
-								</div>
 								<div class="col-sm-4 text-center">
-									<div class="total">
+									<div class="total" style="margin-left: 661px;margin-bottom: 10px;">
 										<div class="sub">
 											
 										</div>
 										<div class="grand-total">
-											<p><span><strong>Total:</strong></span> <span>₹<%= total.toFixed(2) %></span></p>
+											<p><span><strong>Total:</strong></span> <span id="grandtotal">₹<%= total.toFixed(2) %></span></p>
 										</div>
 									</div>
 								</div>
@@ -215,6 +204,7 @@
 						</div>
 					</div>
 				</div>
+				<% } %>
 
 		<footer id="colorlib-footer" role="contentinfo">
 			<div class="container">
@@ -352,8 +342,82 @@ Copyright &copy;<script>document.write(new Date().getFullYear());</script> All r
 				}
             })
 		})
+</script>
 
-	</script>
+
+
+
+<script>
+	document.querySelectorAll(".input-number").forEach(function(input) {
+	  input.addEventListener('input', async function(event) {
+		let quantity = parseInt(event.target.value);
+		const productCart = event.target.closest(".product-cart");
+		const productId = event.target.closest('.product-cart').querySelector('.closed').getAttribute('data-id');
+		const maxAllowed = parseInt(productCart.querySelector(".input-number").getAttribute("data-max"));
+		console.log(maxAllowed);
+    	const maxQuantity = 10; 
+
+		if (quantity > maxQuantity) {
+      swal.fire({
+		    title: 'Quantity Limit Exceeded',
+            text: `You cannot order more than ${maxQuantity} of this product.`,
+            icon: 'error',
+            confirmButtonText: 'Okay'
+	  })
+      event.target.value = maxQuantity; 
+      quantity = maxQuantity; 
+    }
+
+    if (quantity > maxAllowed) {
+      swal.fire({
+		    title: 'Quantity Limit Exceeded',
+            text: `You cannot order more than ${maxAllowed} of this product (only ${maxAllowed} available).`,
+            icon: 'error',
+            confirmButtonText: 'Okay'
+	  })
+      event.target.value = maxAllowed; 
+      quantity = maxAllowed; 
+    }
+
+		
+		try {
+		  const response = await fetch('/updatecart', {
+			method: 'POST',
+			headers: {
+			  'Content-Type': 'application/json'
+			},
+			body: JSON.stringify({ productId: productId, quantity: quantity })
+		  });
+  
+		  const data = await response.json();
+
+		  const newTotalPrice = data.updatedPrice;
+		  const productCart = event.target.closest('.product-cart');
+
+		  productCart.querySelector('.pricetot').innerText = '₹' + newTotalPrice.toFixed(2);
+
+		  updateCartTotal();
+		} catch (error) {
+		  console.error('Error updating cart:', error);
+		}
+	  });
+	});
+
+	function updateCartTotal() {
+	  let total = 0;
+
+	  document.querySelectorAll('.product-cart').forEach(function(product) {
+		const quantity = parseInt(product.querySelector('.input-number').value);
+		const price = parseFloat(product.querySelector('.price').innerText.replace('₹', ''));
+		const totalPrice = price * quantity;
+
+		total += totalPrice;
+	  });
+	  
+	  document.querySelector('#grandtotal').innerText = '₹' + total.toFixed(2);
+	}
+  </script>
+  
 
 	</body>
 </html>

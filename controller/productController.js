@@ -153,57 +153,52 @@ const loadUpdateProduct=async(req,res)=>{
 
 
 
-const updateProduct=async(req,res)=>{
-    const {name,description,price,category,image,returnpolicy,stock,offerprice,warranty,cashOnDelivery}=req.body
-    const productId=req.params.id
-    const imagePaths = [];
-        for (const key in req.files) {
-            req.files[key].forEach((file) => {
-                imagePaths.push(path.relative(path.join(__dirname, "..", "public"), file.path))
-            });
+const updateProduct = async (req, res) => {
+    const { name, description, price, category, returnpolicy, stock, offerprice, warranty } = req.body;
+    const productId = req.params.id;
+
+    try {
+        const product = await productSchema.findById(productId);
+        if (!product) {
+            return res.status(404).json({ success: false, message: 'Product not found' });
         }
-        console.log(imagePaths)
-      if (!req.files || req.files.length === 0) {
-        return res.status(400).json({ val: false, msg: "No files were uploaded" });
-      }
-    
-        try {
-            const categoryObj = await categorySchema.findOne({ name: category });
-            if (!categoryObj) {
-                return res.status(400).json({ success: false, message: 'Invalid category name' });
+
+        const imagePaths = [];
+        if (req.files) {
+            for (const key in req.files) {
+                req.files[key].forEach((file) => {
+                    imagePaths.push(path.relative(path.join(__dirname, "..", "public"), file.path));
+                });
             }
+        }
 
-            const isCashOnDelivery = cashOnDelivery ? cashOnDelivery === "true" : false;
+        if (imagePaths.length > 0) {
+            product.images = imagePaths;
+        }
 
-            const product=await productSchema.findById(productId)
-            console.log(product);
-            
-            if(!product){
-                return res.status(404).json({ success: false, message: 'Product not found' });
-            }
-            product.name=name
-            product.description=description
-            product.images= imagePaths
-            product.price=price
-            product.category=categoryObj._id
-            product.offerPrice=offerprice
-            product.stock=stock
-            product.warranty=warranty
-            product.returnPolicy=returnpolicy
-            product.cashOnDelivery=isCashOnDelivery
-            product.updatedAt=Date.now()
-    
-            await product.save()
-            res.status(200).json({ success: true, message: 'Successfully updated product' });
-    
-        } catch (error) {
-            console.error('Error updating category:', error);
-            res.status(500).json({ success: false, message: 'Error updating product'});
-        } 
-}
+        const categoryObj = await categorySchema.findOne({ name: category });
+        if (!categoryObj) {
+            return res.status(400).json({ success: false, message: 'Invalid category name' });
+        }
 
+        product.name = name;
+        product.description = description;
+        product.price = price;
+        product.category = categoryObj._id;
+        product.offerPrice = offerprice;
+        product.stock = stock;
+        product.warranty = warranty;
+        product.returnPolicy = returnpolicy;
+        product.updatedAt = Date.now();
 
+        await product.save();
 
+        res.status(200).json({ success: true, message: 'Product updated successfully', product });
+    } catch (error) {
+        console.error('Error updating product:', error);
+        res.status(500).json({ success: false, message: 'Error updating product' });
+    }
+};
 
 module.exports={
     loadProductmanage,

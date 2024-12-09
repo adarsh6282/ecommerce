@@ -8,9 +8,28 @@ const walletSchema=new mongoose.Schema({
     },
     balance:{
         type: Number,
-        required:true
+        required:true,
+        default:0
     },
-    createdAt:{type: Date,default:Date.now()},
+    transactions: [{ 
+        amount: {
+            type: Number,
+            required: true
+        },
+        type: {
+            type: String,
+            enum: ['Credit', 'Debit'],
+            required: true
+        },
+        description: {
+            type: String,
+            required: true
+        },
+        createdAt: {
+            type: Date,
+            default: Date.now
+        }
+    }],
     updatedAt:{type: Date,default:Date.now()},
 })
 

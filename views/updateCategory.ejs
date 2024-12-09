@@ -11,20 +11,18 @@
       <%- include("./layouts/aheader") %>
       
       <div class="container">
-        <h2 class="pt-5">Update Category</h2>
+        <h2 class="pt-5 mt-5">Update Category</h2>
 <form id="updatecategory">
   <div class="form-group">
 
     <input type="hidden" id="categoryId" name="categoryId" value="<%= category.id %>">
 
     <label for="name" class="pt-3">Category Name</label>
-    <input type="text" id="categoryName" name="categoryName" class="form-control mb-3" value="<%= category.name %>" required>
+    <input type="text" id="categoryName" name="categoryName" class="form-control mb-3" value="<%= category.name %>">
 
     <label for="description" class="pt-3">Category Description</label>
-    <input type="text" id="categoryDescription" name="categoryDescription" class="form-control mb-3" value="<%= category.description %>" required>
+    <input type="text" id="categoryDescription" name="categoryDescription" class="form-control mb-3" value="<%= category.description %>">
 
-    <label for="image" class="pt-3">Category Image</label>
-    <input type="text" id="categoryImage" name="categoryimage" class="form-control mb-3" value="<%= category.image %>" required>
   </div>
 
   <button type="submit" class="btn btn-primary mt-3">Save Changes</button>
@@ -42,7 +40,6 @@ updateform.addEventListener("submit",async(e)=>{
     
     let categoryname=document.getElementById("categoryName").value
     let categorydescription=document.getElementById("categoryDescription").value
-    let categoryimage=document.getElementById("categoryImage").value
     let categoryid=document.querySelector("input[name='categoryId']").value
     
     try {
@@ -54,7 +51,6 @@ updateform.addEventListener("submit",async(e)=>{
         body:JSON.stringify({
             categoryname,
             categorydescription,
-            categoryimage,
             categoryid
         })
     })

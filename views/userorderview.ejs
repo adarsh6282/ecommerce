@@ -102,8 +102,8 @@
                                         <li class="cart"><a href="/logout">Logout</a></li>
                                     <% } %>
 									
-									<li class="cart"><a href="/cart"><i class="icon-shopping-cart"></i> Cart</a></li>
-									<li class="cart"><a href="#">Wishlist</a></li>
+									<li class="cart"><a href="/cart"><i class="icon-shopping-cart"></i> Cart <span id="cart-count" class="badge badge-danger"><%= cartCount %></span></a></li>
+								    <li class="cart"><a href="/wishlist">Wishlist</a><span id="wishlist-count" class="badge badge-danger"><%= wishlistCount %></span></li>
 								</ul>
 							</div>
 						</div>
@@ -153,21 +153,32 @@
                                         <th>Price</th>
                                         <th>Quantity</th>
                                         <th>Total</th>
+                                        <th>Status</th>
+                                        <th>Action</th>
                                     </tr>
                                 </thead>
                                 <tbody>
                                   <% order.orderItems.forEach((item) => { %>
                                     <tr>
+                                        <input type="hidden" id="orderid" value="<%= order._id %>">
                                         <td>
-                                            <img src="/<%= item.productId.images[0] %>" alt="" style="width: 50px; height: 50px; object-fit: cover;">
+                                        <img src="/<%= item.productId.images[0] %>" alt="" style="width: 50px; height: 50px; object-fit: cover;">
                                         </td>
                                         <td><%= item.productId.name %></td>
-                                        <td>₹<%= item.productId.price.toFixed(2) %></td>
+                                        <td>₹<%= item.productId.offerPrice.toFixed(2) %></td>
                                         <td><%= item.quantity %></td>
-                                        <td>₹<%= (item.productId.price * item.quantity).toFixed(2) %></td>
+                                        <td>₹<%= (item.productId.offerPrice * item.quantity).toFixed(2) %></td>
+                                        <td><%= item.itemStatus %></td>
+                                        <% if(item.itemStatus ==="Delivered"){ %>
+                                        <td> <button class="btn btn-primary btn-sm recoverbtn" data-product-id="<%= item.productId._id %>"> Return</button></td>
+                                        <% }else if(item.itemStatus === "Pending" && order.status === "Pending" && item.itemStatus !== "Cancelled"){ %>
+                                        <td> <button class="btn btn-danger btn-sm cancelbtn" data-product-id="<%= item.productId._id %>"> Cancel</button></td>
+                                        <% }else{ %>
+                                        <td> <button class="btn disabled" disabled>No Action</button></td>
+                                        <% } %>
                                     </tr>
                                 </tbody>
-                                <% }); %>
+                                <% }) %>
                             </table>
                         </div>
                     </div>
@@ -190,3 +201,101 @@
                     </div>
                 </div>
             </div>
+        </body>
+        <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+        <script>
+
+const cancelButtons = document.querySelectorAll('.cancelbtn');
+cancelButtons.forEach(button => {
+    button.addEventListener('click', (event) => {
+        const orderId = document.getElementById("orderid").value;
+        const productId = event.target.getAttribute('data-product-id');
+        
+        Swal.fire({
+            title: 'Are you sure?',
+            text: 'Do you really want to cancel this item?',
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonText: 'Yes, cancel it!',
+            cancelButtonText: 'No, keep it',
+        }).then(async (result) => {
+            if (result.isConfirmed) {
+                try {
+                    const response = await fetch(`/cancelitem/${orderId}/${productId}`, {
+                        method: 'POST',
+                    });
+
+                    const result = await response.json();
+
+                    if (result.success) {
+                        // Remove the row of the canceled item
+                        event.target.closest('tr').remove();
+
+                        Swal.fire({
+                            text: result.message,
+                            icon: "success",
+                        });
+                    } else {
+                        Swal.fire({
+                            text: result.message,
+                            icon: "error",
+                        });
+                    }
+                } catch (error) {
+                    console.error("Error canceling the item:", error);
+                    Swal.fire({
+                        text: "An error occurred. Please try again.",
+                        icon: "error",
+                    });
+                }
+            }
+        });
+    });
+});
+     </script>
+     <script>
+
+const returnButtons = document.querySelectorAll('.recoverbtn');
+returnButtons.forEach(button => {
+    button.addEventListener('click', async (event) => {
+        const orderId = document.getElementById('orderid').value;
+        const productId = event.target.getAttribute('data-product-id');
+        console.log(orderId,productId)
+        const { value: reason } = await Swal.fire({
+            title: 'Reason for Return',
+            input: 'textarea',
+            inputPlaceholder: 'Enter your reason here...',
+            showCancelButton: true,
+            confirmButtonText: 'Submit',
+            cancelButtonText: 'Cancel',
+        });
+
+        if (!reason) {
+            return;
+        }
+
+        try {
+            const response = await fetch('/requestitemreturn', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ orderId, productId, reason }),
+            });
+
+            const result = await response.json();
+
+            if (result.success) {
+                Swal.fire('Success', result.message, 'success');
+            } else {
+                Swal.fire('Error', result.message, 'error');
+            }
+        } catch (error) {
+            console.error('Error requesting return:', error);
+            Swal.fire('Error', 'An error occurred. Please try again later.', 'error');
+        }
+    });
+});
+
+     </script>
+    </html>

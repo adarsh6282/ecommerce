@@ -205,22 +205,7 @@
   <div class="dashboard" style="position: relative; left: 80px; bottom: 600px;">
     <h1>Admin Dashboard</h1>
 
-    <!-- Filters -->
     <div class="filters-container">
-      <!-- Date Range Filter -->
-      <div class="filter-box">
-        <h3 style="color: white";>🔍 Filter by Date Range </h3>
-        <div class="filter-item">
-          <label for="startDate" style="color: white;">📅 Start Date:</label>
-          <input type="date" id="startDate" class="styled-input">
-        </div>
-        <div class="filter-item">
-          <label for="endDate" style="color: white";>📅 End Date:</label>
-          <input type="date" id="endDate" class="styled-input">
-        </div>
-        <button class="apply-btn gradient-btn" onclick="applyDateFilter()">Apply Date Filter</button>
-      </div>
-    
       <!-- Period Filter -->
       <div class="filter-box">
         <h3 style="color: white";>⏳ Filter by Period</h3>
@@ -269,44 +254,17 @@
 
     <!-- Download Section -->
     <div class="download-section">
-      <button class="download-btn" onclick="downloadPDF()">Download Report as PDF</button>
+     <a href="/admin/salesreport">Sales Report</a>
     </div>
   </div>
 
   <!-- External JS -->
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.4.0/jspdf.umd.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.9.3/html2pdf.bundle.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.23/jspdf.plugin.autotable.min.js"></script>
 
   <script>
-    // Generate PDF
-    function downloadPDF() {
-    const { jsPDF } = window.jspdf;
-    const doc = new jsPDF();
-
-    // Add title
-    doc.text("Sales Report", 10, 10);
-
-    // Define table headers and rows
-    const headers = [["Items", "Value"]];
-    const data = [
-        ["Total Sales", "<%= totalSales %>"],
-        ["Total Orders", "<%= totalOrders %>"],
-        // Add more rows as needed
-    ];
-
-    // Generate the table
-    doc.autoTable({
-        head: headers,
-        body: data,
-        startY: 20, // Table start position (y-coordinate)
-    });
-
-    // Save the PDF
-    doc.save("sales-report.pdf");
-}
-
-
+     
     document.addEventListener('DOMContentLoaded', function() {
     const periodSelect = document.getElementById('filterOptions');
     if (!periodSelect.value || periodSelect.value === "") {
@@ -315,26 +273,6 @@
 
     applyPeriodFilter();
 });
-
-    async function applyDateFilter() {
-    const startDate = document.getElementById("startDate").value;
-    const endDate = document.getElementById("endDate").value;
-
-    let url = '/admin/dashboard/data?';
-    
-    if (startDate && endDate) {
-      url += `startDate=${startDate}&endDate=${endDate}`;
-    }
-
-    try {
-      const response = await fetch(url);
-      const data = await response.json();
-
-      updateGraph(data.productsSold);
-    } catch (error) {
-      console.error("Error fetching data:", error);
-    }
-  }
 
   async function applyPeriodFilter() {
     const period = document.getElementById("filterOptions").value;

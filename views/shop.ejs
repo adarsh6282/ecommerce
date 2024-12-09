@@ -150,7 +150,7 @@
 		<div class="container">
 			<div class="bread-crumb flex-w p-l-25 p-r-15 p-t-30 p-lr-0-lg mt-2">
 				<a href="/" class="stext-109 cl8 hov-cl1 trans-04">
-					Home /
+					Home
 					<i class="fa fa-angle-right m-l-9 m-r-10" aria-hidden="true"></i>
 				</a>
 
@@ -181,7 +181,7 @@
 					onkeypress="if(event.key === 'Enter') { 
 						const searchValue = this.value.trim(); 
 						if (searchValue) { 
-							window.location.href = '/shop?search=' + searchValue; 
+							window.location.href = `/shop?<%= sortBy %>&category=<%= selectedCategory %>&priceRange=<%= priceRange %>&search=${searchValue}`;
 						} else { 
 							window.location.href = '/shop'; 
 						} 
@@ -324,11 +324,11 @@
 								</a>
 								<div class="desc">
 									<h2><a href="#"><%= element.name %></a></h2>
-									<span class="price"><%= element.offerPrice%></span>
+									<span class="price"><%= element.price%></span>
 								</div>
 							</div>
 						</div>
-					<%})%>
+					<%})%>   
 				</div>
 			</div>
 		</div>

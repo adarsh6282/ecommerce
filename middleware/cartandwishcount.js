@@ -4,7 +4,7 @@ const wishlistSchema=require("../models/wishlistSchema")
 
 const cartCount=async (req, res, next) => {
     try {
-                const {email} = req.session.userData
+            const {email} = req.session.userData
             const user=await userSchema.findOne({email})
             const userId = user.id;
 
@@ -23,8 +23,8 @@ const cartCount=async (req, res, next) => {
 
 const wishCount=async (req, res, next) => {
     try {
-                const {email} = req.session.userData
-                console.log(email)
+            const {email} = req.session.userData
+            console.log(email)
             const user=await userSchema.findOne({email})
             const userId = user.id;
 
