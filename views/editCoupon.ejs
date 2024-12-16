@@ -19,19 +19,19 @@
     <input type="text" id="code" name="code" class="form-control mb-3" value="<%= coupon.code %>">
 
     <label for="discount" class="pt-3">Coupon Discount</label>
-    <input type="text" id="discount" name="discount" class="form-control mb-3" value="<%= coupon.discount %>">
+    <input type="number" id="discount" name="discount" class="form-control mb-3" value="<%= coupon.discount %>">
     
     <label for="expire" class="pt-3">Expiration Date</label>
-    <input type="date" id="expire" name="expire" class="form-control mb-3" value="<%= coupon.expirationDate %>">
+    <input type="date" id="expire" name="expire" class="form-control mb-3" value="<%= formattedDate %>">
     
     <label for="minpurchase" class="pt-3">Minimum Purchase</label>
-    <input type="text" id="minpurchase" name="minpurchase" class="form-control mb-3" value="<%= coupon.minPurchase %>">
+    <input type="number" id="minpurchase" name="minpurchase" class="form-control mb-3" value="<%= coupon.minPurchase %>">
     
     <label for="maxdiscount" class="pt-3">Maximum Discount</label>
-    <input type="text" id="maxdiscount" name="maxdiscount" class="form-control mb-3" value="<%= coupon.maxDiscount %>">
+    <input type="number" id="maxdiscount" name="maxdiscount" class="form-control mb-3" value="<%= coupon.maxDiscount %>">
    
     <label for="maxcount" class="pt-3">Max Count</label>
-    <input type="tel" id="maxcount" name="maxcount" class="form-control mb-3" value="<%= coupon.maxCount %>">
+    <input type="number" id="maxcount" name="maxcount" class="form-control mb-3" value="<%= coupon.maxCount %>">
 
   
   <button class="btn btn-primary mt-3 editBtn">Edit Coupon</button>
@@ -53,6 +53,64 @@
       let maxcount=document.getElementById("maxcount").value
 
       console.log(code, discount,expire,minpurchase,maxdiscount,maxcount)
+
+      if (!code.trim() || !discount.trim() || !expire.trim() || !minpurchase.trim() || !maxdiscount.trim() || !maxcount.trim()) {
+      swal.fire({
+        text: "All fields are required!",
+        icon: "error"
+      });
+      return;
+    }
+
+      if(discount<0){
+        swal.fire({
+          text:"Discount should be positive",
+          icon:"error"
+        })
+        return
+      }
+
+      if(discount>100){
+        swal.fire({
+          text:"Discount should not be greater than 100",
+          icon:"error"
+        })
+        return
+      }
+      
+      if(minpurchase<0){
+        swal.fire({
+          text:"Mininum Purchase should be positive",
+          icon:"error"
+        })
+        return
+      }
+
+      if(maxdiscount<0){
+        swal.fire({
+          text:"Maximum Discount should be positive",
+          icon:"error"
+        })
+        return
+      }
+
+      if(maxcount<0){
+        swal.fire({
+          text:"Max count should be positive",
+          icon:"error"
+        })
+        return
+      }
+      
+  const today = new Date().toISOString().split('T')[0];
+
+  if (expire < today) {
+    swal.fire({
+      text: "Expiration date cannot be in the past!",
+      icon: "error"
+    });
+    return;
+  }
 
       try{
       

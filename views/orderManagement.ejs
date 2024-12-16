@@ -40,7 +40,7 @@
                           </td>
                           <td> <%= new Date(order.createdAt).toLocaleDateString() %> </td>
                           <td> ₹<%= order.totalAmount%> </td>
-                          <td> <%=order.quantity %> </td>
+                          <td> <%= order.quantity %> </td>
                           <td> <%= order.status%> </td>
                           <td> <%= order.paymentStatus%> </td>
                           <td> <%= order.paymentMethod%> </td>

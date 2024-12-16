@@ -34,32 +34,45 @@ const loadProductmanage = async (req, res) => {
     }
 };
 
-
-
 const loadAddProduct=async(req,res)=>{
     try {
         const category=await categorySchema.find({isDeleted: false})
-       return res.render('addProduct',{categories:category})
+       return res.render('addProduct',{categories:category,message:null})
         } catch (error) {
         console.error(error)
     }
 }
 
-
-
 const addProduct=async(req,res)=>{
     try {
-        const {name,description,price,category,returnpolicy,stock,offerprice,warranty,cashOnDelivery,tags,sizes}=req.body
+        let {name,description,price,category,returnpolicy,stockQuantities,offerprice,warranty,cashOnDelivery,tags,sizes}=req.body
+        if(Array.isArray(sizes)){
+            console.log('ITS ARRAY')
+        }else{
+            sizes = [...sizes]
+        }
+        const existingProduct=await  productSchema.findOne({name:name.trim(),isDeleted:false})
+
+        if(existingProduct){
+            res.render("updateProduct",{message:"Product with same name already exist"})
+        }
         const imagePaths = [];
         for (const key in req.files) {
             req.files[key].forEach((file) => {
                 imagePaths.push(path.relative(path.join(__dirname, "..", "public"), file.path))
             });
         }
-      if (!req.files || req.files.length === 0) {
-        return res.status(400).json({ val: false, msg: "No files were uploaded" });
-      }
+
+        const variants = sizes.map((size, index) => ({
+            size: size,
+            stock: parseInt(stockQuantities[index] || 0, 10)
+        }));
+
+        if (!req.files || req.files.length === 0) {
+            return res.status(400).json({ val: false, msg: "No files were uploaded" });
+        }
       
+      const totalStock = stockQuantities.reduce((total, stock) => total + parseInt(stock || 0, 10), 0);
 
         const product=new productSchema({
            name: name,
@@ -68,9 +81,9 @@ const addProduct=async(req,res)=>{
            category: category,
            images: imagePaths,
            offerPrice: offerprice,
-           sizes: sizes.split(","),
+           variants: variants,
            tags: tags.split(","),
-           stock: stock,
+           totalStock: totalStock,
            warranty: warranty,
            returnpolicy: returnpolicy,
            cashOnDelivery: cashOnDelivery,
@@ -86,8 +99,6 @@ const addProduct=async(req,res)=>{
     }
 }
 
-
-
 const loadProductDelete=async(req, res) =>{
     try {
     const product=await productSchema.find({isDeleted: true})
@@ -99,8 +110,6 @@ const loadProductDelete=async(req, res) =>{
     console.error(error)
     res.redirect('/admin/productmanagement')
 }}
-
-
 
 const deleteProduct=async(req,res)=>{
     const {productId}=req.body
@@ -117,8 +126,6 @@ catch{
      return res.status(500).json({ success: false, message: 'Error deleting porduct'});
 }}
 
-
-
 const recoverProduct=async(req,res)=>{
     const {productId}=req.body
     
@@ -132,9 +139,6 @@ const recoverProduct=async(req,res)=>{
     console.error('Error recovering product:', error);
     return res.status(500).json({ success: false, message: 'Error recovering product'});
 }}
-
-
-
 
 const loadUpdateProduct=async(req,res)=>{
     const productId=req.params.id
@@ -151,10 +155,8 @@ const loadUpdateProduct=async(req,res)=>{
     }
 }
 
-
-
 const updateProduct = async (req, res) => {
-    const { name, description, price, category, returnpolicy, stock, offerprice, warranty } = req.body;
+    const { name, description, price, category, returnpolicy, stock, offerprice, warranty} = req.body;
     const productId = req.params.id;
 
     try {

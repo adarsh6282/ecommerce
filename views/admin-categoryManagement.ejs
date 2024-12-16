@@ -150,9 +150,9 @@
                     <thead>
                       <tr>
                         <th> Name </th>
-                        <th> Product Count </th>
                         <th> CreatedAt </th>
                         <th> UpdatedAt </th>
+                        <th> Offer </th>
                         <th> Update </th>
                         <th> Delete </th>
                       </tr>
@@ -164,7 +164,6 @@
                             data-description="<%= category.description %>" data-productcount="<%= category.productCount %>"
                             data-image="<%= category.image %>">
                             <td> <%= category.name %> </td>
-                            <td> <%= category.productCount %> </td> 
                           <td>
                             <% 
                               const createdDate = new Date(category.createdAt);

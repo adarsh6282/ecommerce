@@ -2,10 +2,11 @@ const mongoose = require('mongoose')
 const categorySchema= require('../models/categoryModel');
 const productSchema = require('../models/productModel');
 const path= require('path');
+const { name } = require('ejs');
 
 
-const loadAddCategory=(req,res)=>{
-    res.render('addCategory')
+const loadAddCategory=async(req,res)=>{
+        res.render('addCategory', { errorMessage: "" });
 }
 
 
@@ -55,6 +56,12 @@ const addCategory=async(req, res)=>{
     
     try {
         const {name,description}=req.body
+
+            const existingCategory = await categorySchema.findOne({ name:name.trim(), isDeleted: false });
+
+        if(existingCategory){
+            return res.render('addCategory', { errorMessage: "Category with the same name already exists."})
+        }
         
         const category=new categorySchema({
             name,

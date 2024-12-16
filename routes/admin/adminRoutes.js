@@ -40,7 +40,9 @@ router.put("/productmanagement/update/:id",upload.fields([
   { name: "productImage2", maxCount: 1 },
   { name: "productImage3", maxCount: 1 },
   { name: "productImage4", maxCount: 1 }
-]),productController.updateProduct)
+]),productController.updateProduct);
+
+router.put("/updatesizestocks/:id", adminController.stockManagement);
 
 // Admin Authentication
 router.get("/dashboard",isAuthenticated,adminController.loadDashboard)

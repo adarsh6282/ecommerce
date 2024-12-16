@@ -24,6 +24,7 @@
     <input type="text" id="categoryDescription" name="categoryDescription" class="form-control mb-3" value="<%= category.description %>">
 
   </div>
+  <p id="msg" style="color: red;"></p>
 
   <button type="submit" class="btn btn-primary mt-3">Save Changes</button>
   <a href="/admin/categorymanagement" class="btn btn-secondary mt-3">Cancel</a>
@@ -37,6 +38,23 @@
 const updateform=document.getElementById("updatecategory")
 updateform.addEventListener("submit",async(e)=>{
     e.preventDefault()
+
+    let name = document.getElementById("categoryName").value;
+    let description = document.getElementById("categoryDescription").value;
+    console.log(name,description)
+    let msg=document.getElementById("msg")
+    let namereg=/^[a-zA-Z\s]+$/
+
+    if(name.trim() === "" || description.trim() === ""){
+      msg.innerHTML ="Please enter a name and description"
+      return ;
+    }else if(!namereg.test(name)){
+      msg.innerHTML="Invalid name format. Only alphabets and spaces are allowed."
+      return ;
+    }
+
+    msg.innerHTML=""
+    
     
     let categoryname=document.getElementById("categoryName").value
     let categorydescription=document.getElementById("categoryDescription").value
@@ -77,39 +95,6 @@ updateform.addEventListener("submit",async(e)=>{
         })
 }
 });
-</script>
-<script>
-
-document.getElementById("form").addEventListener("submit", (e)=>{
-    if(!addCategoryValidate){
-      e.preventDefault()
-    }
-  })
-
-  function addCategoryValidate(){
-    let name = document.getElementById("name").value;
-    let description = document.getElementById("description").value;
-    let msg=document.getElementById("msg")
-    let namereg=/^[a-zA-Z\s]+$/
-    let desreg=/^(\b\w+\b[\s]*){10,}$/
-
-    if(name.trim() === "" || description.trim() === ""){
-      msg.innerHTML ="Please enter a name and description"
-      return false;
-    }else if(namereg.test(name)){
-      msg.innerHTML="Invalid name format. Only alphabets and spaces are allowed."
-      return false;
-    }
-    else if(!desreg.test(description)){
-      msg.innerHTML="Invalid description format. Description should contain at least 10 words."
-      return false;
-    }else{
-      msg.innerHTML=""
-      return true;
-    }
-  }
-</script>
-
 </script>
 </body>
 </html>

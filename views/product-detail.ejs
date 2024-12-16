@@ -152,7 +152,7 @@
 							</div>
 							  <div class="carousel-item">
 								<img src="/<%=product.images[1] %>" class="d-block w-100" alt="..." style="height:500px; width: 730px;">
-							  </div>
+							  </div> 
 							  <div class="carousel-item">
 								<img src="/<%=product.images[2] %>" class="d-block w-100" alt="..." style="height:500px; width: 730px;">
 							  </div>
@@ -190,9 +190,9 @@
 							<div class="size-wrap">
 								<div class="block-26 mb-2">
 									<h4>Size</h4>
-									<% product.sizes.forEach((size) =>{ %>
+									<% product.variants.forEach((data) =>{ %>
 									<ul>
-									<li><a href="#" data-size="<%= size %>" class="size-option"><%=size%></a></li>
+									<li><a href="#" data-size="<%=data.size %>" class="size-option"><%=data.size%></a></li>
 									</ul>
 									<% }) %>
 				            </div>
@@ -203,7 +203,7 @@
 								<i class="fas fa-minus"></i>
                         	</button>
                     		</span>
-                     	<input type="text" id="quantity" name="quantity" class="form-control input-number" value="1" min="1" max="10">
+                     	<input type="number" id="quantity" name="quantity" class="form-control input-number" value="1" min="1" max="10" disabled>
                      	<span class="input-group-btn ml-1">
                         	<button type="button" class="quantity-right-plus btn" data-type="plus" data-field=""  onclick="incrementQuantity()">
 								<i class="fas fa-plus"></i>
@@ -212,8 +212,8 @@
                   	</div>
 
 					<div>
-						<% if(product.stock>0){ %>
-						<p style="color:green; font-size: 20px;">In Stock : <%= product.stock %></p>
+						<% if(product.totalStock>0){ %>
+						<p style="color:green; font-size: 20px;">In Stock : <%= product.totalStock %></p>
 						<% }else{%>
 							<p style="color:red;">Out of Stock</p>
 						<% } %>

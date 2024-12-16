@@ -4,7 +4,91 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
     <title>Admin Panel</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.css" rel="stylesheet">
     <link rel="stylesheet" href="/css/admin.css">
+    <style>
+    .size-container {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 15px;
+      margin: 10px 0;
+    }
+  
+    .size-item {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 10px;
+      background-color: #2A3038;
+      padding: 10px;
+      border-radius: 5px;
+      box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+    }
+  
+    .size-checkbox {
+      transform: scale(1.2);
+      cursor: pointer;
+    }
+  
+    .size-label {
+      font-size: 14px;
+      font-weight: bold;
+      cursor: pointer;
+      color: white;
+    }
+  
+    .stock-input {
+      display: none;
+      padding: 5px;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+      font-size: 14px;
+      width: 150px;
+    }
+  
+    .stock-input:focus {
+      border-color: #007bff;
+      outline: none;
+      box-shadow: 0 0 5px rgba(0, 123, 255, 0.5);
+    }
+
+    .modal {
+      display: none;
+      position: fixed;
+      z-index: 1;
+      left: 0;
+      top: 0;
+      width: 100%;
+      height: 100%;
+      overflow: auto;
+      background-color: rgb(0,0,0);
+      background-color: rgba(0,0,0,0.4);
+      padding-top: 60px;
+    }
+
+    .modal-content {
+      background-color: #191c24;
+      margin: 5% auto;
+      padding: 20px;
+      border: 1px solid #888;
+      width: 50%;
+    }
+
+    .close {
+      color: #aaa;
+      float: right;
+      font-size: 28px;
+      font-weight: bold;
+    }
+
+    .close:hover,
+    .close:focus {
+      color: black;
+      text-decoration: none;
+      cursor: pointer;
+    }
+
+  </style>
   </head>
   <body>
     <div class="container-scroller">
@@ -79,15 +163,9 @@
       
               <label for="image" class="pt-3">Offerprice</label>
               <input type="number" id="offerprice" name="offerprice" class="form-control mb-3"  value="<%= product.offerPrice %>">
-      
-              <label for="image" class="pt-3">Stock</label>
-              <input type="number" id="stock" name="stock" class="form-control mb-3"  value="<%= product.stock %>">
 
               <label for="image" class="pt-3">Tags(should be seperated by commas)</label>
               <input type="text" id="tags" name="tags" class="form-control mb-3"  value="<%= product.tags %>">
-      
-              <label for="image" class="pt-3">Sizes(should be seperated by commas)</label>
-              <input type="text" id="sizes" name="sizes" class="form-control mb-3"  value="<%= product.sizes %>">
       
               <label for="image" class="pt-3">Warranty</label>
               <input type="text" id="warranty" name="warranty" class="form-control mb-3"  value="<%= product.warranty %>">
@@ -102,11 +180,41 @@
             <button type="submit" class="btn btn-primary mt-3 updatebtn" data-id="<%=product._id%>">Save Changes</button>
             <a href="/admin/productmanagement" class="btn btn-secondary mt-3">Cancel</a>
           </form>
+          <button class="btn btn-primary" id="addStockBtn" >Add Stock</button>
+
+          <div id="sizesModal" class="modal">
+                <div class="modal-content">
+                  <span class="close">&times;</span>
+                  <h2>Update Available Sizes</h2>
+                  <label for="sizes">Available Sizes:</label>
+                  <div class="size-container">
+                    <% for (let size = 6; size <= 12; size++) { %>
+                      <div class="size-item">
+                        <input type="checkbox" class="size-checkbox" name="sizes" value="<%= size %>" id="size_<%= size %>"
+                          <% 
+                            let variant = product.variants.find(v => v.size === size);
+                            let checked = variant && variant.stock > 0 ? 'checked' : '';
+                            let stockValue = variant ? variant.stock : '';
+                          %>
+                          <%= checked %> onchange="toggleStockInput(this, '<%= size %>')" />
+                        <label class="size-label" for="size_<%= size %>">Size <%= size %></label>
+                        <input type="number" class="stock-input" name="stockQuantities" id="stock_<%= size %>" 
+                          placeholder="Stock for size <%= size %>" style="<%= (checked ? 'display: block;' : 'display: none;') %>"
+                          value="<%= stockValue %>" min="1" />
+                      </div>
+                    <% } %>
+                  </div>
+                  <button type="button" id="saveSizesBtn">Save Changes</button>
+                </div>
+              </div>
           </div>
           </body>
 
           <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-          <script>
+          <script src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.js"></script>
+            
+            <script>
+
             document.getElementById("updateproduct").addEventListener("submit", async (e) => {
               e.preventDefault();
               const isValid = updateProductValidate();
@@ -120,11 +228,9 @@
               formData.append("category", document.getElementById("category").value.trim());
               formData.append("price", document.getElementById("price").value.trim());
               formData.append("offerprice", document.getElementById("offerprice").value.trim());
-              formData.append("stock", document.getElementById("stock").value.trim());
               formData.append("warranty", document.getElementById("warranty").value.trim());
               formData.append("returnpolicy", document.getElementById("returnpolicy").value.trim());
               formData.append("tags", document.getElementById("tags").value.trim());
-              formData.append("sizes", document.getElementById("sizes").value.trim());
 
               croppedImages.forEach((image, index) => {
                 formData.append(`productImage${index + 1}`, image);
@@ -164,9 +270,7 @@
               const description = document.getElementById("description").value.trim();
               const price = document.getElementById("price").value.trim();
               const offerprice = document.getElementById("offerprice").value.trim();
-              const stock = document.getElementById("stock").value.trim();
               const tags = document.getElementById("tags").value.trim();
-              const sizes = document.getElementById("sizes").value.trim();
               const warranty = document.getElementById("warranty").value.trim();
               const returnpolicy = document.getElementById("returnpolicy").value.trim();
 
@@ -203,28 +307,12 @@
                 msg.innerHTML = "Offer price cannot be negative";
                 return false;
               }
-              if (offerprice > price) {
-                msg.innerHTML = "Offer price cannot be greater than original price";
-                return false;
-              }
-              if (stock === "") {
-                msg.innerHTML = "Stock is required";
-                return false;
-              }
-              if (stock < 0) {
-                msg.innerHTML = "Stock cannot be negative";
-                return false;
-              }
               if (tags === "") {
                 msg.innerHTML = "Tags are required";
                 return false;
               }
               if (!tagreg.test(tags)) {
                 msg.innerHTML = "Tags should be comma-separated";
-                return false;
-              }
-              if (sizes === "") {
-                msg.innerHTML = "Sizes are required";
                 return false;
               }
               if (warranty === "") {
@@ -242,10 +330,23 @@
 
             const cropperInstances = [];
             const croppedImages = [];
+            const allowedExtensions = ["jpg", "jpeg", "png"];
 
             function previewAndCrop(event, index) {
               const file = event.target.files[0];
+
               if (!file) return;
+
+              const fileName = file.name.toLowerCase();
+              const fileExtension = fileName.split(".").pop();
+              if (!allowedExtensions.includes(fileExtension)) {
+                swal.fire({
+                  text:"Invalid file type! Please upload a JPG, JPEG, or PNG image.",
+                  icon:"error"
+                })
+                event.target.value = ""
+                return;
+              }
 
               const cropPreview = document.getElementById(`cropPreview${index}`);
               const cropPreviewSection = document.getElementById(`cropPreviewSection${index}`);
@@ -272,15 +373,126 @@
               if (!cropper) return;
 
               cropper.getCroppedCanvas().toBlob((blob) => {
-                croppedImages[index] = blob;
+                if (blob) {
+                  croppedImages[index] = blob;
 
-                const cropPreviewSection = document.getElementById(`cropPreviewSection${index}`);
-                cropPreviewSection.style.display = "none";
+                  const cropPreviewSection = document.getElementById(`cropPreviewSection${index}`);
+                  cropPreviewSection.style.display = "none";
 
-                console.log(`Cropped image ${index + 1} stored.`);
+                  console.log(`Cropped image ${index + 1} stored.`, blob);
+                } else {
+                  console.error("Failed to create cropped image blob.");
+                }
               });
             }
 
+            function toggleStockInput(checkbox, size) {
+            const stockInput = document.getElementById(`stock_${size}`);
+            if (checkbox.checked) {
+                stockInput.style.display = "block";
+            } else {
+                stockInput.style.display = "none";
+                stockInput.value = "";
+              }
+            }
+
+            document.querySelectorAll('.size-checkbox').forEach(checkbox => {
+            const size = checkbox.value;
+            if (checkbox.checked) {
+                document.getElementById(`stock_${size}`).style.display = "block";
+            } else {
+                document.getElementById(`stock_${size}`).style.display = "none";
+            }
+        });
+
+
+        const modal = document.getElementById("sizesModal");
+        const addStockBtn = document.getElementById("addStockBtn");
+        const closeModal = document.getElementsByClassName("close")[0];
+
+        addStockBtn.onclick = function() {
+          modal.style.display = "block";
+        }
+
+        closeModal.onclick = function() {
+          modal.style.display = "none";
+        }
+
+        window.onclick = function(event) {
+          if (event.target == modal) {
+            modal.style.display = "none";
+          }
+        }
+
+        document.getElementById("saveSizesBtn").addEventListener("click",async (e)=> {
+          let sizes = [];
+          let stockQuantities = [];
+          let valid=true
+
+          const id=document.getElementById("productId").value
+
+          document.querySelectorAll(".size-checkbox").forEach(checkbox => {
+            const size = checkbox.value;
+            const stockInput = document.getElementById(`stock_${size}`).value;
+            if (checkbox.checked) {
+            if (!stockInput) {
+              swal.fire({
+                text: `Enter stock for size ${size}`,
+                icon: "error"
+              });
+              valid = false;
+            }
+
+            if (stockInput <= 0) {
+              swal.fire({
+                text: "Stock should be a positive number",
+                icon: "error"
+              });
+              valid = false;
+            }
+
+            if (valid) {
+              sizes.push(size);
+              stockQuantities.push(stockInput);
+            }
+            }
+        });
+
+            if (!valid) {
+              return false;
+            }
+
+            const data={
+              sizes:sizes,
+              stockQuantities:stockQuantities
+            }
+
+            try {
+              const response=await fetch(`/admin/updatesizestocks/${id}`,{
+                method:"PUT",
+                headers:{"Content-Type":"application/json"},
+                body:JSON.stringify(data)
+              }) 
+              const result=await response.json()
+              if(result.success)
+              {
+                swal.fire({
+                  text:result.message,
+                  icon:"success"
+                })
+                setTimeout(() => {
+                  window.location.href=`/admin/productmanagement/update/${id}`
+                }, 1500);
+              }else{
+                swal.fire({
+                  text:result.message,
+                  icon:"error"
+                })
+              }
+            } catch (error) {
+              console.log(error)
+            }
+          });
         </script>
 
           </html>

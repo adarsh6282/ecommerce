@@ -23,7 +23,7 @@ const loadDashboard = async (req, res) => {
 
     const productsSold = await orderSchema.aggregate([
       { $unwind: "$orderItems" },
-      { $group: { _id: "$orderItems.productId", quantity: { $sum: "$orderItems.quantity" } } },
+      { $group: { _id: "$orderItems.productId", quantity: { $sum: "$orderI  ty" } } },
       { $lookup: { from: "products", localField: "_id", foreignField: "_id", as: "productDetails" } },
       { $unwind: "$productDetails" },
       { $project: { productName: "$productDetails.name", quantity: 1 } }
@@ -430,7 +430,7 @@ const loadUserView = async (req, res) => {
         if(!order){
             return res.status(404).json({success:false,message:"Order not found"})
         }
-        res.render("orderView",{order})
+       return res.render("orderView",{order})
     }
 
 
@@ -512,10 +512,11 @@ const loadUserView = async (req, res) => {
     const loadEditCoupon=async(req,res)=>{
        const {id}=req.params
        const coupon=await couponSchema.findById(id)
+       const formattedDate = new Date(coupon.expirationDate).toISOString().split('T')[0];
        if(!coupon){
            return res.status(404).json({success:false,message:"Coupon not found"})
        }
-       return res.render('editCoupon',{coupon})
+       return res.render('editCoupon',{coupon,formattedDate})
     }
 
     const editCoupon=async(req,res)=>{
@@ -689,12 +690,9 @@ const proceedReturn = async (req, res) => {
 const processItemReturn = async (req, res) => {
   try {
     const { id } = req.params;
-    console.log(id + "sjhdncsdnc");
     const { action, items } = req.body;
-    console.log(action, items);
 
     const order = await orderSchema.findById(id).lean();
-    console.log(order.orderItems);
 
     if (!order) {
       return res.status(404).json({ success: false, message: "Order not found" });
@@ -823,6 +821,40 @@ const processItemReturn = async (req, res) => {
   }
 };
 
+const stockManagement = async (req, res) => {
+  const { id } = req.params;
+  let { sizes, stockQuantities } = req.body;
+
+  try {
+    const product = await productSchema.findById(id);
+
+    if (!product) {
+      return res.status(404).json({success:false, message: "Product not found" });
+    }
+
+    sizes.forEach((size, index) => {
+      let stock = stockQuantities[index];
+      stock=parseInt(stock)
+      const variantIndex = product.variants.findIndex((variant) => variant.size == size);
+      
+      if (variantIndex !== -1) {
+        product.variants[variantIndex].stock += stock;
+      } else {
+        product.variants.push({ size, stock });
+      }
+
+    });
+    
+    product.totalStock = product.variants.reduce((total, variant) => total + variant.stock, 0);
+    await product.save();
+
+    res.status(200).json({success:true, message: "Product stock updated successfully", product });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({success:false, message: "Server error" });
+  }
+};
+
 module.exports={
     loadAdminLogin,
     loadUsermanage,
@@ -845,5 +877,6 @@ module.exports={
     editCoupon,
     deleteCoupon,
     proceedReturn,
-    processItemReturn
+    processItemReturn,
+    stockManagement
 }

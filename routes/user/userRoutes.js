@@ -44,6 +44,7 @@ router.post("/placeorder",userController.placeOrder)
 router.post("/razorpayorder",userController.razorPayOrder)
 router.post("/verifypayment",userController.verifyPayment)
 router.post("/applycoupon",userController.applyCoupon)
+router.post("/removecoupon",userController.removeCoupon)
 router.get('/auth/google',passport.authenticate('google',{scope: ['profile','email']}));
 router.get('/auth/google/callback',passport.authenticate('google',{failureRedirect:'/register'}), async (req, res) => {
     try {
@@ -69,6 +70,7 @@ router.post('/requestitemreturn',userController.requestItemReturn);
 router.get("/wishlist",userController.loadWishlist)
 router.post("/wishlist/add",userController.addToWishlist)
 router.get("/wallet",userController.loadWallet)
+router.get("/download/:id",userController.downloadReceipt)
 router.get("/logout",userController.logout)
 
 module.exports=router                                                                                                                                                                                                                                                                                                                                                               

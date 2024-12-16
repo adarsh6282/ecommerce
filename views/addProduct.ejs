@@ -7,6 +7,54 @@
     <link rel="stylesheet" href="/css/admin.css">
     <link href="https://unpkg.com/cropperjs@1.5.12/dist/cropper.min.css" rel="stylesheet"/>
   </head>
+  <style>
+  .size-container {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 15px;
+    margin: 10px 0;
+  }
+
+  .size-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 10px;
+    background-color: #2A3038;
+    padding: 10px;
+    border-radius: 5px;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+  }
+
+  .size-checkbox {
+    transform: scale(1.2);
+    cursor: pointer;
+  }
+
+  .size-label {
+    font-size: 14px;
+    font-weight: bold;
+    cursor: pointer;
+    color: white;
+  }
+
+  .stock-input {
+    display: none;
+    padding: 5px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    font-size: 14px;
+    width: 150px;
+  }
+
+  .stock-input:focus {
+    border-color: #007bff;
+    outline: none;
+    box-shadow: 0 0 5px rgba(0, 123, 255, 0.5);
+  }
+</style>
+
+  
   <body>
     <div class="container-scroller">
       <%- include("./layouts/aheader") %>
@@ -76,27 +124,26 @@
         <label for="image" class="pt-3">Offerprice</label>
         <input type="number" id="offerprice" name="offerprice" class="form-control mb-3" >
 
-        <label for="image" class="pt-3">Stock</label>
-        <input type="number" id="stock" name="stock" class="form-control mb-3" >
-
         <label for="image" class="pt-3">Tags(should be seperated by commas)</label>
         <input type="text" id="tags" name="tags" class="form-control mb-3" >
 
-        <label for="image" class="pt-3">Sizes(should be seperated by commas)</label>
-        <input type="text" id="sizes" name="sizes" class="form-control mb-3" >
+        <label for="sizes">Available Sizes:</label>
+        <div class="size-container">
+          <% for (let size = 6; size <= 12; size++) { %>
+            <div class="size-item">
+              <input type="checkbox" class="size-checkbox" name="sizes" value="<%= size %>" id="size_<%= size %>" onchange="toggleStockInput(this, '<%= size %>')" />
+              <label class="size-label" for="size_<%= size %>">Size <%= size %></label>
+              <input type="number" class="stock-input" name="stockQuantities" id="stock_<%= size %>" placeholder="Stock for size <%= size %>" style="display: none;" min="1" />
+            </div>
+          <% } %>
+        </div>
 
         <label for="image" class="pt-3">Warranty</label>
         <input type="text" id="warranty" name="warranty" class="form-control mb-3" >
-
-
+        
         <label for="image" class="pt-3">Return Policy</label>
         <input type="text" id="returnpolicy" name="returnpolicy" class="form-control mb-3" >
 
-        <label for="cashOnDelivery" class="pt-3">Cash On Delivery</label>
-            <select id="cashOnDelivery" name="cashOnDelivery" class="form-control mb-3">
-              <option value="yes">Yes</option>
-              <option value="no">No</option>
-            </select>
       </div>
 
       <p id="msg" style="color:red"></p>
@@ -107,157 +154,150 @@
     </div>
     <script src="https://unpkg.com/cropperjs@1.5.12/dist/cropper.min.js"></script>
 
-  <script>
+
+    <script>
     const cropperInstances = [];
     const croppedImages = [];
-
-    function previewAndCrop(event, index) {
-  const file = event.target.files[0];
-  if (!file) return;
-
-  const cropPreview = document.getElementById(`cropPreview${index}`);
-  const cropPreviewSection = document.getElementById(`cropPreviewSection${index}`);
-
-  cropPreview.src = URL.createObjectURL(file);
-  cropPreviewSection.style.display = "block";
-  if (cropperInstances[index]) {
-    cropperInstances[index].destroy();
-  }
-  cropperInstances[index] = new Cropper(cropPreview, {
-    aspectRatio: 1,
-    viewMode: 1,
-    autoCropArea: 1,
-    scalable: true,
-    zoomable: true,
-    movable: true,
-  });
-
-}
-
-function startCropping(index) {
-  const cropper = cropperInstances[index];
-  if (!cropper) return;
-
-  cropper.getCroppedCanvas().toBlob((blob) => {
-      croppedImages[index] = blob; 
-      const cropPreviewSection = document.getElementById(`cropPreviewSection${index}`);
-      cropPreviewSection.style.display = "none";
-      console.log("Cropped image stored for upload or further use.");
-  });
-}
-</script>
-
-<script>
-    document.getElementById("form").addEventListener("submit", (e) => {
-    if (!addProductValidate()) {
-        e.preventDefault();
-    }
-});
-
-  function addProductValidate(){
     
-    const msg=document.getElementById("msg")
-    const name=document.getElementById("name").value
-    const description=document.getElementById("description").value
-    const price=document.getElementById("price").value
-    const offerprice=document.getElementById("offerprice").value
-    const stock=document.getElementById("stock").value
-    const tags=document.getElementById("tags").value
-    const sizes=document.getElementById("sizes").value
-    const warranty=document.getElementById("warranty").value
-    const returnpolicy=document.getElementById("returnpolicy").value
-    const cashOnDelivery=document.getElementById("cashOnDelivery").value
-    const namereg=/^[a-zA-Z\s]+$/
-    const desreg = /^(\b\w+\b[\s,]*){10,}$/;
-    const tagreg=/^(\w+)(,\s*\w+)*$/
-    console.log(name,description,price,offerprice,stock,tags,sizes)
+    document.getElementById("form").addEventListener("submit", (e) => {
+        if (!addProductValidate()) {
+            e.preventDefault();
+        }
+    });
+    
+    function previewAndCrop(event, index) {
+        const file = event.target.files[0];
+        if (!file) return;
+    
+        const cropPreview = document.getElementById(`cropPreview${index}`);
+        const cropPreviewSection = document.getElementById(`cropPreviewSection${index}`);
+    
+        cropPreview.src = URL.createObjectURL(file);
+        cropPreviewSection.style.display = "block";
+    
+        if (cropperInstances[index]) {
+            cropperInstances[index].destroy();
+        }
+    
+        cropperInstances[index] = new Cropper(cropPreview, {
+            aspectRatio: 1,
+            viewMode: 1,
+            autoCropArea: 1,
+            scalable: true,
+            zoomable: true,
+            movable: true,
+        });
+    }
+    
+    function startCropping(index) {
+        const cropper = cropperInstances[index];
+        if (!cropper) return;
+    
+        cropper.getCroppedCanvas().toBlob((blob) => {
+            croppedImages[index] = blob;
+            const cropPreviewSection = document.getElementById(`cropPreviewSection${index}`);
+            cropPreviewSection.style.display = "none";
+            console.log("Cropped image stored for upload or further use.");
+        });
+    }
+    
+    function addProductValidate() {
+        const msg = document.getElementById("msg");
+        const name = document.getElementById("name").value.trim();
+        const description = document.getElementById("description").value.trim();
+        const price = document.getElementById("price").value.trim();
+        const offerprice = document.getElementById("offerprice").value.trim();
+        const tags = document.getElementById("tags").value.trim();
+        const warranty = document.getElementById("warranty").value.trim();
+        const returnpolicy = document.getElementById("returnpolicy").value.trim();
 
-    if(name.trim()==""){
-      msg.innerHTML ="Enter a name"
-      return false
-    }
-    if(!namereg.test(name)){
-      msg.innerHTML = "Please enter a name in correct format"
-      return false
-    }
-    if(description.trim()==""){
-      msg.innerHTML="Description is required"
-      return false
-    }
-    if(!desreg.test(description))
-    {
-      msg.innerHTML="Description need to be atleast 10 words"
-      return false
-    }
-    if(price.trim()==""){
-      msg.innerHTML="Price is required"
-      return false
-    }
-    if(price<0){
-      msg.innerHTML="Price cant be negative"
-      return false
-    }
-    if(offerprice<0){
-      msg.innerHTML="Price cant be negative"
-      return false
-    }
-    if(isNaN(price)){
-      msg.innerHTML="Price should be a number"
-      return false
-    }
-    if(offerprice.trim()==""){
-      msg.innerHTML="Offer price is required"
-      return false
-    }
-    if(offerprice>price){
-      msg.innerHTML="Offer price Cant be greater than Original Price"
-      return false
-    }
-    if(isNaN(offerprice)){
-      msg.innerHTML="Offer price should be a number"
-      return false
-    }
-    if(stock.trim()==""){
-      msg.innerHTML="Stock is required"
-      return false
-    }
-    if(stock<0){
-      msg.innerHTML="Stock cant be negative"
-      return false
-    }
-    if(isNaN(stock)){
-      msg.innerHTML="Stock should be a number"
-      return false
-    }
-    if(tags.trim()==""){
-      msg.innerHTML="Tags are required"
-      return false
-    }
-    if(!tagreg.test(tags)){
-      msg.innerHTML="Tags should be comma separated"
-      return false
-    }
-    if(sizes.trim()==""){
-      msg.innerHTML="Sizes are required"
-      return false
-    }
-    if(sizes<0){
-      msg.innerHTML="Sizes cant be negative"
-      return false
-    }
-    if(warranty.trim()==""){
-      msg.innerHTML="Warranty is required"
-      return false
-    }
-    if(returnpolicy.trim()==""){
-      msg.innerHTML="Return policy is required"
-      return false
-    }
-    return true
-    }
-  
+        const sizeInputs = document.querySelectorAll('.size-checkbox:checked');
+        const stockInputs = document.querySelectorAll('.stock-input');
+        const sizes = Array.from(sizeInputs).map(input => input.value);
+        const stockQuantities = Array.from(stockInputs).map(input => input.value.trim());
+    
+        const namereg = /^[a-zA-Z\s]+$/;
+        const desreg = /^\b\w+(\s+\w+){9,}\b$/;
+        const tagreg = /^(\w+)(,\s*\w+)*$/;
+    
+        if (name === "") {
+            msg.innerHTML = "Enter a name";
+            return false;
+        }
+        if (!namereg.test(name)) {
+            msg.innerHTML = "Please enter a name in correct format";
+            return false;
+        }
+        if (description === "") {
+            msg.innerHTML = "Description is required";
+            return false;
+        }
+        if (!desreg.test(description)) {
+            msg.innerHTML = "Description needs to be at least 10 words";
+            return false;
+        }
+        if (price === "") {
+            msg.innerHTML = "Price is required";
+            return false;
+        }
+        if (isNaN(price) || price < 0) {
+            msg.innerHTML = "Price should be a positive number";
+            return false;
+        }
+        if (offerprice === "") {
+            msg.innerHTML = "Offer price is required";
+            return false;
+        }
+        if (isNaN(offerprice) || offerprice < 0) {
+            msg.innerHTML = "Offer price should be a positive number";
+            return false;
+        }
+        if (sizes.length === 0) {
+            msg.innerHTML="At least one size must be selected"
+            return false
+        }
+        if (tags === "") {
+          msg.innerHTML = "Tags are required";
+          return false;
+        }
+        if (!tagreg.test(tags)) {
+          msg.innerHTML = "Tags should be comma-separated";
+          return false;
+        }
+        if (sizes === "") {
+          msg.innerHTML = "Sizes are required";
+          return false;
+        }
+        if (warranty === "") {
+          msg.innerHTML = "Warranty is required";
+          return false;
+        }
+        if (returnpolicy === "") {
+          msg.innerHTML = "Return policy is required";
+          return false;
+        }
+        for (let i = 0; i < sizes.length; i++) {
+        const size = sizes[i];
+        const stockQuantity = stockQuantities[i];
 
-</script>
+        if (!stockQuantity || isNaN(stockQuantity) || stockQuantity <= 0) {
+            msg.innerHTML = `Stock for Size ${size} should be a positive number`;
+            return false;
+        }
+        }
+        return true;
+    }
+    
+    function toggleStockInput(checkbox, size) {
+        const stockInput = document.getElementById(`stock_${size}`);
+        if (checkbox.checked) {
+            stockInput.style.display = "block";
+        } else {
+            stockInput.style.display = "none";
+            stockInput.value = "";
+        }
+    }
+  </script>
 </body>
 </html>
     

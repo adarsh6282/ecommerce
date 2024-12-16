@@ -172,11 +172,11 @@
 									<% }) %>
                                     <tr>
                                         <td>Shipping</td>
-                                        <td class="text-end">Free</td>
+                                        <td class="text-end"><%= shippingCharge %></td>
                                     </tr>
                                     <tr>
                                         <td><strong>Total</strong></td>
-                                        <td class="text-end"><strong id="totalAmount"><%= total %></strong></td>
+                                        <td class="text-end"><strong id="totalAmount"><%= grandTotal %></strong></td>
                                     </tr>
                                 </tbody>
                             </table>
@@ -184,7 +184,7 @@
 						
 						<div>
 							<label for="couponCode">Enter Coupon Code:</label>
-							<input type="text" id="couponCode" placeholder="Enter coupon code" style="border-radius: 8px;">
+							<input type="text" id="couponCode" placeholder="Enter coupon code" style="border-radius: 8px;"><span><button type="button" id="removeCouponBtn" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button></span>
 							<button type="button" id="applyCouponBtn" class="btn btn-primary">Apply Coupon</button>
 							<p id="couponMessage" style="color: green;"></p>
 						  </div>
@@ -201,10 +201,6 @@
 									<input class="form-check-input" type="radio" name="paymentmethod" id="cod" value="COD" checked>
 									<label class="form-check-label">Cash on Delivery</label>
 								</div>
-								<!-- <div class="form-check">
-									<input class="form-check-input" type="radio" name="paymentmethod" id="wallet" value="wallet">
-									<label class="form-check-label">Wallet</label>
-								</div> -->
 							</div>
 							<button type="submit" class="btn btn-primary w-100 mt-4">Place Order</button>
 						</div>
@@ -364,7 +360,7 @@ Copyright &copy;<script>document.write(new Date().getFullYear());</script> All r
 							icon:"success",
 						})
 						setTimeout(() => {
-						window.location.href = "/ordercomplete";
+						window.location.href = `/ordercomplete`;
 					}, 1000);
 					}else{
 						Swal.fire({
@@ -473,59 +469,105 @@ Copyright &copy;<script>document.write(new Date().getFullYear());</script> All r
 <script>
 
 document.getElementById("applyCouponBtn").addEventListener("click", async () => {
-    const couponCode = document.getElementById("couponCode").value.trim();
-    const totalAmount =parseFloat( document.getElementById("totalAmount").textContent)
-	const message=document.getElementById("couponMessage")
-	console.log(couponCode, totalAmount)
+  const couponCode = document.getElementById("couponCode").value.trim();
+  const totalAmount = parseFloat(document.getElementById("totalAmount").textContent);
+  const message = document.getElementById("couponMessage");
+  
+  if (!couponCode) {
+    Swal.fire({
+      text: "Please enter a coupon code",
+      icon: "error",
+    });
+    return;
+  }
 
-    if (!couponCode) {
-      Swal.fire({
-		text: "Please enter a coupon code",
-        icon: "error",
-      })
-      return;
-    }
- 
-    try {
-      const response = await fetch("/applycoupon", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ couponCode, totalAmount }),
-      });
+  try {
+    const response = await fetch("/applycoupon", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ couponCode, totalAmount }),
+    });
 
-      const data = await response.json();
+    const data = await response.json();
 
-      if (data.success) {
-		const discount=parseFloat(data.discount)
-        document.getElementById("couponMessage").textContent = `You saved ${discount} rupees`
-        const totalAmountElement = document.getElementById("totalAmount");
-            totalAmountElement.textContent = data.finalAmount.toFixed(2);
+    if (data.success) {
+      const discount = parseFloat(data.discount);
+      message.textContent = `You saved ${discount} ruppees`;
+      const totalAmountElement = document.getElementById("totalAmount");
 
-            if (totalAmountElement.tagName === "INPUT") {
-                totalAmountElement.value = data.finalAmount.toFixed(2);
-            }
-        Swal.fire({
-			text: "Coupon applied successfully",
-            icon: "success",
-		})
-		document.getElementById("applyCouponBtn").disabled=true
-		document.getElementById("couponCode").disabled=true
-      } else {
-        Swal.fire({
-			text: data.message,
-            icon: "error",
-		})
+      totalAmountElement.textContent = data.finalAmount.toFixed(2);
+
+      if (totalAmountElement.tagName === "INPUT") {
+        totalAmountElement.value = data.finalAmount.toFixed(2);
       }
-    } catch (error) {
-      console.error("Error applying coupon:", error);
+
+      document.getElementById("applyCouponBtn").disabled = true;
+      document.getElementById("couponCode").disabled = true;
+
+      document.getElementById("removeCouponBtn").style.display = 'inline-block'; 
+
       Swal.fire({
-		text: "Failed to apply coupon. Please try again later.",
+        text: "Coupon applied successfully",
+        icon: "success",
+      });
+    } else {
+      Swal.fire({
+        text: data.message,
         icon: "error",
-	  })
+      });
     }
-  });
+  } catch (error) {
+    console.error("Error applying coupon:", error);
+    Swal.fire({
+      text: "Failed to apply coupon. Please try again later.",
+      icon: "error",
+    });
+  }
+});
 
+document.getElementById("removeCouponBtn").addEventListener("click", async () => {
+  try {
+    const response = await fetch("/removecoupon", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+    });
 
+    const data = await response.json();
+
+    if (data.success) {
+		document.getElementById("couponCode").value=""
+      document.getElementById("couponMessage").textContent = "";
+      const totalAmountElement = document.getElementById("totalAmount");
+
+      totalAmountElement.textContent = data.originalTotal.toFixed(2);
+
+      if (totalAmountElement.tagName === "INPUT") {
+        totalAmountElement.value = data.originalTotal.toFixed(2);
+      }
+
+      document.getElementById("applyCouponBtn").disabled = false;
+      document.getElementById("couponCode").disabled = false;
+
+      document.getElementById("removeCouponBtn").style.display = 'none';
+
+      Swal.fire({
+        text: "Coupon removed successfully",
+        icon: "success",
+      });
+    } else {
+      Swal.fire({
+        text: data.message,
+        icon: "error",
+      });
+    }
+  } catch (error) {
+    console.error("Error removing coupon:", error);
+    Swal.fire({
+      text: "Failed to remove coupon. Please try again later.",
+      icon: "error",
+    });
+  }
+});
 </script>
 	<!-- Main -->
 	<script src="js/main.js"></script>

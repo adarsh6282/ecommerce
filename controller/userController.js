@@ -15,6 +15,9 @@ const walletSchema=require("../models/walletModel")
 const couponSchema=require("../models/couponModel")
 const razorpay=require("../utils/razorpay")
 const crypto=require("crypto")
+const path=require("path")
+const ejs=require("ejs")
+const pdf=require("html-pdf")
 
 const loadRegister = (req, res) => {
     res.set('Cache-Control', 'no-store');
@@ -171,7 +174,6 @@ const forgotSuccess=async (req, res) => {
     }
 }
 
-
 const requestOtp = async (req, res) => {
     try {
         const { username, email, password, Phone, confirmpassword } = req.body
@@ -205,7 +207,6 @@ const requestOtp = async (req, res) => {
         console.error(error)
     }
 }
-
 
 const registerUser=async(req,res)=>{
     try {
@@ -307,8 +308,11 @@ const loadShop=async(req,res)=>{
             return res.redirect('/login');
         }
     const categories = await categorySchema.find({ isDeleted: false });
+
     const { category, priceRange, sortBy, search } = req.query;
+
     let filter = { isDeleted: false };
+    
     if (category && category !== 'All Categories') {
         const selectedCategory = await categorySchema.findOne({ name: category });
         if (selectedCategory) filter.category = selectedCategory._id;
@@ -351,7 +355,7 @@ const loadShop=async(req,res)=>{
       }catch(error){
         console.error(error);
       }
-    }
+}
 
 const loadAddress=async(req,res)=>{
     const {email}=req.session.userData
@@ -409,7 +413,6 @@ const addAddress=async(req,res)=>{
 }catch(error){
     console.log(error)
 }}
-
 
 const loadEditAddress = async(req,res)=>{
     if (!req.session.userData || !req.session.userData.email) {
@@ -574,18 +577,15 @@ const loadCart = async (req, res) => {
     }
 };
 
-
 const addToCart = async (req, res) => {
+    const user = await userSchema.findOne({ email: req.session.userData.email });
+    const userId = user._id;
+    const { productId, quantity, size } = req.body;
     try {
-        const user = await userSchema.findOne({ email: req.session.userData.email });
 
         if (!user) {
             return res.status(400).json({ success: false, message: 'User not logged in' });
         }
-
-        const userId = user._id;
-        const { productId, quantity, size } = req.body;
-
 
         if (!size) {
             return res.status(400).json({ success: false, message: 'Size is required' });
@@ -596,21 +596,23 @@ const addToCart = async (req, res) => {
             return res.status(400).json({ success: false, message: 'You can only add a maximum of 10 items' });
         }
 
-
         const product = await productSchema.findById(productId);
         if (!product) {
             return res.status(404).json({ success: false, message: 'Product not found' });
         }
 
-        if (product.stock === 0) {
+        if (product.totalStock === 0) {
             return res.status(400).json({ success: false, message: 'Product is out of stock' });
         }
 
-        if (quantity > product.stock) {
-            return res.status(400).json({
-                success: false,
-                message: `Only ${product.stock} items are available in stock`
-            });
+        const variant = product.variants.find(v => v.size == size);
+
+        if(variant.stock===0){
+            return res.status(400).json({success:false,message:"Product is out of stock"})
+        }
+
+        if (quantity > variant.stock) {
+            return res.status(400).json({success: false,message: `Only ${variant.stock} items are available in stock`});
         }
 
         let cart = await cartSchema.findOne({ userId });
@@ -622,7 +624,6 @@ const addToCart = async (req, res) => {
         const existingProductIndex = cart.items.findIndex(
             item => item.productId.toString() === productId && item.size == size
         );
-        console.log(existingProductIndex);
 
         if (existingProductIndex >= 0) {
             const existingProduct = cart.items[existingProductIndex];
@@ -637,10 +638,10 @@ const addToCart = async (req, res) => {
             }
 
             cart.items[existingProductIndex].quantity += quantity;
-            if (cart.items[existingProductIndex].quantity > product.stock) {
+            if (cart.items[existingProductIndex].quantity > variant.stock) {
                 return res.status(400).json({
                     success: false,
-                    message: `Only ${product.stock} items are available in stock`
+                    message: `Only ${variant.stock} items are available in stock`
                 });
             }
         } else {
@@ -679,7 +680,6 @@ const updateCart=async (req, res) => {
   }
 }
 
-
 const wishlistToCart = async (req, res) => {
     try {
         const user = await userSchema.findOne({ email: req.session.userData.email });
@@ -712,14 +712,19 @@ const wishlistToCart = async (req, res) => {
             return res.status(404).json({ success: false, message: 'Product not found' });
         }
 
-        if (product.stock === 0) {
+        const variant = product.variants.find((variant) => variant.size === size);
+        if (!variant) {
+            return res.status(404).json({ success: false, message: 'Variant not found for selected size' });
+        }
+
+        if (variant.stock === 0) {
             return res.status(400).json({ success: false, message: 'Product is out of stock' });
         }
 
-        if (quantity > product.stock) {
+        if (quantity > variant.stock) {
             return res.status(400).json({
                 success: false,
-                message: `Only ${product.stock} items are available in stock`,
+                message: `Only ${variant.stock} items are available in stock`,
             });
         }
 
@@ -786,12 +791,20 @@ const loadCheckout=async (req, res) => {
             return acc + item.productId.offerPrice * item.quantity;
         }, 0);
 
+        let shippingCharge = 0;
+        if (total < 500) {
+            shippingCharge = 100;
+        } else if (total < 1000) {
+            shippingCharge = 50;
+        }
+
+        let grandTotal=total+shippingCharge
         
-        res.render("checkout",{address:address,items:cart.items,total,user:user,quantity:quantity})
+        res.render("checkout",{address:address,items:cart.items,grandTotal,user:user,quantity:quantity,shippingCharge})
 }catch(error){
     console.log(error)
-}}
-
+}
+}
 
 const placeOrder = async (req, res) => {
     try {
@@ -805,6 +818,13 @@ const placeOrder = async (req, res) => {
         const address = await addressSchema.findById(addressId);
         if (!address) {
             return res.status(404).json({success:false, message: 'Address not found' });
+        }
+
+        if (paymentMethod === 'COD' && totalAmount < 1000) {
+            return res.status(400).json({
+                success: false,
+                message: 'Cash on Delivery is not available for orders below ₹1000'
+            });
         }
 
         if (paymentMethod !== 'COD') {
@@ -847,16 +867,29 @@ const placeOrder = async (req, res) => {
         }
 
 
-        for(let i=0;i<items.length;i++){
+        for (let i = 0; i < items.length; i++) {
             const product = await productSchema.findById(items[i].productId);
-            if(!product){
-                return res.status(404).json({success:false, message: 'Product not found'})
+        
+            if (!product) {
+                return res.status(404).json({ success: false, message: 'Product not found' });
             }
-            if(product.stock<items[i].quantity){
-                return res.status(400).json({success:false, message: 'Not enough stock for this product'})
+    
+            const variant = product.variants.find(v => v.size == items[i].size);
+        
+            if (!variant) {
+                return res.status(404).json({ success: false, message: `Variant of size ${items[i].size} not found` });
             }
-            product.stock-=items[i].quantity
-            await product.save()
+        
+            if (variant.stock < items[i].quantity) {
+                return res.status(400).json({
+                    success: false,
+                    message: `Not enough stock for product ID ${items[i].productId} (size: ${items[i].size})`
+                });
+            }
+
+            variant.stock -= items[i].quantity;
+            product.totalStock -= items[i].quantity;
+            await product.save();
         }
         
         const newOrder = new orderSchema({
@@ -933,13 +966,27 @@ const razorPayOrder = async (req, res) => {
 
         for (let i = 0; i < items.length; i++) {
             const product = await productSchema.findById(items[i].productId);
+        
             if (!product) {
                 return res.status(404).json({ success: false, message: 'Product not found' });
             }
-            if (product.stock < items[i].quantity) {
-                return res.status(400).json({ success: false, message: 'Not enough stock for this product' });
+    
+            const variant = product.variants.find(v => v.size == items[i].size);
+            console.log(variant)
+        
+            if (!variant) {
+                return res.status(404).json({ success: false, message: `Variant of size ${items[i].size} not found` });
             }
-            product.stock -= items[i].quantity;
+        
+            if (variant.stock < items[i].quantity) {
+                return res.status(400).json({
+                    success: false,
+                    message: `Not enough stock for product ID ${items[i].productId} (size: ${items[i].size})`
+                });
+            }
+
+            variant.stock -= items[i].quantity;
+            product.totalStock -= items[i].quantity;
             await product.save();
         }
 
@@ -983,7 +1030,6 @@ const razorPayOrder = async (req, res) => {
     }
 };
 
-
 const verifyPayment = async (req, res) => {
     try {
         const { razorpay_payment_id, razorpay_order_id, razorpay_signature } = req.body;
@@ -992,19 +1038,13 @@ const verifyPayment = async (req, res) => {
         const generatedSignature = crypto.createHmac("sha256", process.env.RAZORPAY_SECRET).update(`${razorpay_order_id}|${razorpay_payment_id}`).digest("hex");
 
         if (generatedSignature !== razorpay_signature) {
-            return res.status(400).json({
-                success: false,
-                message: "Payment verification failed.",
-            });
+            return res.status(400).json({success: false,message: "Payment verification failed."});
         }
 
         const order = await orderSchema.findOne({ razorpayOrderId: razorpay_order_id });
 
         if (!order) {
-            return res.status(404).json({
-                success: false,
-                message: "Order not found.",
-            });
+            return res.status(404).json({ success: false,message: "Order not found."});
         }
 
         order.paymentStatus = "Completed";
@@ -1013,22 +1053,38 @@ const verifyPayment = async (req, res) => {
 
         await cartSchema.deleteOne({ userId: order.userId });
 
-        res.status(200).json({
-            success: true,
-            message: "Payment verified and order updated successfully.",
-        });
+        res.status(200).json({success: true,message: "Payment verified and order updated successfully."});
     } catch (error) {
         console.error(error);
-        res.status(500).json({
-            success: false,
-            message: "Failed to verify Razorpay payment.",
-        });
+        res.status(500).json({success: false,message: "Failed to verify Razorpay payment.",});
     }
 };
 
-
 const loadOrderComplete = async (req,res)=>{
-    res.render("order-complete")
+    try{
+        const {email}=req.session.userData
+        const user=await userSchema.findOne({email})
+        const userId=user.id
+
+        if(!user){
+           return res.status(404).send("User not found")
+        }
+
+        const order=await orderSchema.findOne({userId}).sort({createdAt:-1}).populate("orderItems.productId")
+
+        const total = order.orderItems.reduce((acc, item) => {
+            return acc + item.productId.offerPrice * item.quantity;
+        }, 0);
+
+        if(!order)
+        {
+           return res.status(404).send("No orders found")
+        }
+
+       return res.render("order-complete",{order:order,total:total})  
+    }catch(error){
+        console.error(error)
+    }
 }
 
 const loadOrder = async (req, res) => {
@@ -1065,8 +1121,6 @@ const loadOrder = async (req, res) => {
     }
 };
 
-
-
 const loadOrderView = async (req, res) => {
     try {
         if (!req.session.userData || !req.session.userData.email) {
@@ -1083,7 +1137,6 @@ const loadOrderView = async (req, res) => {
         res.status(500).json({ success: false, message: 'Error retrieving order' });
     }
 }
-
 
 const cancelOrder = async (req, res) => {
     try {
@@ -1108,7 +1161,8 @@ const cancelOrder = async (req, res) => {
 
             const product = await productSchema.findById(item.productId);
             if (product) {
-                product.stock += item.quantity;
+                const variant = product.variants.find(v => v.size == item.size);
+                variant.stock += item.quantity;
                 await product.save();
             }
         }
@@ -1176,9 +1230,16 @@ const cancelOrderItem = async (req, res) => {
 
         item.itemStatus = "Cancelled";
 
+        const product=await productSchema.findById(productId)
+
+        if(product){
+            const variant=product.variants.find(v=>v.size==item.size)
+            variant.stock+=item.quantity
+            product.totalStock+=item.quantity
+        }
+
         if (order.paymentMethod === "Razorpay" && order.paymentStatus === "Completed") {
             let refundAmount = item.productId.offerPrice * item.quantity;
-            order.totalAmount -= refundAmount
            refundAmount= parseFloat(refundAmount)
 
             let wallet = await walletSchema.findOne({ userId: order.userId });
@@ -1223,7 +1284,6 @@ const cancelOrderItem = async (req, res) => {
     }
 };
 
-
 const requestReturn = async (req, res) => {
     try {
         const {orderId, reason } = req.body;
@@ -1260,22 +1320,18 @@ const requestReturn = async (req, res) => {
 
 const requestItemReturn = async (req, res) => {
     try {
-        // Extracting data from the request body
         const { orderId, productId, reason } = req.body;
 
-        // Finding the order
         const order = await orderSchema.findById(orderId);
         if (!order) {
             return res.status(404).json({ success: false, message: "Order not found" });
         }
 
-        // Finding the item in the order
         const item = order.orderItems.find(item => item.productId.toString() === productId);
         if (!item) {
             return res.status(404).json({ success: false, message: "Item not found in the order" });
         }
 
-        // Check if the item has already been returned or not requested
         if (item.itemStatus === "Returned") {
             return res.status(400).json({ success: false, message: "This item has already been returned" });
         }
@@ -1284,14 +1340,11 @@ const requestItemReturn = async (req, res) => {
             return res.status(400).json({ success: false, message: "Return request already made for this item" });
         }
 
-        // Updating the item status to 'Requested' and adding the reason for return
         item.itemStatus = "Requested";
         item.refundReason = reason;
 
-        // Save the updated order
         await order.save();
 
-        // Return success response
         return res.status(200).json({
             success: true,
             message: "Return request submitted successfully.",
@@ -1305,7 +1358,6 @@ const requestItemReturn = async (req, res) => {
         });
     }
 };
-
 
 const applyCoupon = async (req, res) => {
     try {
@@ -1336,6 +1388,13 @@ const applyCoupon = async (req, res) => {
       let finalAmount = totalAmount - discountAmount;
 
       finalAmount = parseFloat(finalAmount)
+
+      req.session.coupon = {
+        couponCode: coupon.code,
+        discount: discountAmount,
+        finalAmount:total ,
+      };
+      console.log(req.session.coupon)
   
       return res.status(200).json({
         success: true,
@@ -1347,10 +1406,29 @@ const applyCoupon = async (req, res) => {
       console.error('Error applying coupon:', error);
       res.status(500).json({ success: false, message: 'Internal server error' });
     }
-  };
+};
+
+  const removeCoupon=async(req,res)=>{
+    try {
+        if (!req.session.coupon) {
+          return res.status(400).json({ success: false, message: 'No coupon applied' });
+        }
+        const{finalAmount}=req.session.coupon
+        const originalTotal = finalAmount || 0;
+
+        delete req.session.coupon;
+    
+        return res.status(200).json({
+          success: true,
+          message: 'Coupon removed successfully',
+          originalTotal,
+        });
+      } catch (error) {
+        console.error('Error removing coupon:', error);
+        res.status(500).json({ success: false, message: 'Internal server error' });
+      }
+}
   
-
-
 const removeFromCart= async (req, res) => {
     try{
     const {itemId}=req.body
@@ -1392,10 +1470,15 @@ const loadWishlist=async(req, res) => {
         const user=await userSchema.findOne({email:req.session.userData.email})
         const userId=user._id
         
-        const wishlist = await wishlistSchema.findOne({ userId }).populate('products.productId');
+        let wishlist = await wishlistSchema.findOne({ userId ,isDeleted:false}).populate('products.productId');
         
         if (!wishlist) {
-            return res.status(404).json({ success: false, message: 'Wishlist not found' });
+            wishlist = new wishlistSchema({
+                userId: userId,
+                products: [],
+            });
+
+            await wishlist.save();
         }
 
         res.render('wishlist', { wishlistItems: wishlist.products });
@@ -1437,8 +1520,6 @@ const addToWishlist = async (req, res) => {
         res.status(500).json({ success: false, message: 'Server error' });
     }
 };
-
-
 
 const removeFromWishlist= async (req, res) => {
     try{
@@ -1490,14 +1571,74 @@ const loadWallet=async(req,res) => {
         })
         await wallet.save();
     }
+
+    const page = parseInt(req.query.page) || 1;
+        const limit = 5;
+        const skip = (page - 1) * limit;
+
+        const totalTransactions = wallet.transactions.length;
+        const totalPages = Math.ceil(totalTransactions / limit);
+        const transactions = wallet.transactions.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt)).slice(skip, skip + limit);
     
-    res.render('wallet',{wallet})
+        res.render('wallet', {
+            wallet,
+            transactions,
+            currentPage: page,
+            totalPages,
+            totalTransactions
+        });
 }catch(error)
 {
     console.error(error);
 }
 }
 
+const downloadReceipt = async (req, res) => {
+    try {
+        const orderId = req.params.id;
+
+        const order = await orderSchema.findById(orderId).populate('userId', 'name email').populate('orderItems.productId', 'name offerPrice')
+
+        if (!order) {
+            return res.status(404).send('Order not found');
+        }
+
+        const filePath = path.join(__dirname, '../views/invoice.ejs');
+
+        let totalAmount = 0;
+            order.orderItems.forEach(item => {
+            totalAmount += item.productId.offerPrice * item.quantity;
+        });
+
+        ejs.renderFile(filePath, { order,totalAmount}, (err, html) => {
+            if (err) {
+                console.error('Error rendering template:', err);
+                return res.status(500).send('Internal Server Error');
+            }
+
+            const options = {
+                format: 'A4',
+                orientation: 'portrait',
+                border: '10mm',
+            };
+
+            pdf.create(html, options).toStream((err, stream) => {
+                if (err) {
+                    console.error('Error generating PDF:', err);
+                    return res.status(500).send('Internal Server Error');
+                }
+
+                res.setHeader('Content-Type', 'application/pdf');
+                res.setHeader('Content-Disposition', `attachment; filename=order-${orderId}.pdf`);
+
+                stream.pipe(res);
+            });
+        });
+    } catch (error) {
+        console.error('Error generating PDF:', error);
+        res.status(500).send('Internal Server Error');
+    }
+};
 
 const logout = (req, res) => {
     req.session.destroy(() => {
@@ -1557,5 +1698,7 @@ module.exports = {
     requestItemReturn,
     loadWallet,
     applyCoupon,
+    removeCoupon,
+    downloadReceipt,
     logout
 }

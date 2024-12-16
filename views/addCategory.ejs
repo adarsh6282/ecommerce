@@ -22,18 +22,10 @@
     <label for="description" class="pt-3">Category Description</label>
     <input type="text" id="description" name="description" class="form-control mb-3" >
 
-    <!-- <div class="form-group">
-      <label for="categoryImage">Image</label>
-      <input type="file" class="form-control" id="categoryImage" name="categoryImage" accept="image/*" onchange="previewAndCrop(event, 0)"/>
-      <div class="cropPreviewSection" id="cropPreviewSection0" style="display: none">
-        <img id="cropPreview0" style="max-width: 100%" />
-        <button type="button" onclick="startCropping(0)">
-          Crop Image 1
-        </button>
-      </div> -->
   </div>
 
   <p id="msg" style="color:red"></p>
+  <p style="color:red"><%= errorMessage %></p>
   
   <button type="submit" class="btn btn-primary mt-3">Add Category</button>
   <a href="/admin/categorymanagement" class="btn btn-secondary mt-3">Cancel</a>
@@ -72,46 +64,5 @@
     }
   }
 </script>
-<!-- <script>
-const cropperInstances = [];
-const croppedImages = [];
-let currentImageIndex = null;
-
-function previewAndCrop(event, index) {
-  const file = event.target.files[0];
-  if (!file) return;
-
-  const cropPreview = document.getElementById(`cropPreview${index}`);
-  const cropPreviewSection = document.getElementById(`cropPreviewSection${index}`);
-
-  cropPreview.src = URL.createObjectURL(file);
-  cropPreviewSection.style.display = "block";
-  if (cropperInstances[index]) {
-    cropperInstances[index].destroy();
-  }
-  cropperInstances[index] = new Cropper(cropPreview, {
-    aspectRatio: 1,
-    viewMode: 1,
-    autoCropArea: 1,
-    scalable: true,
-    zoomable: true,
-    movable: true,
-  });
-
-  currentImageIndex = index;
-}
-
-function startCropping(index) {
-  const cropper = cropperInstances[index];
-  if (!cropper) return;
-
-  cropper.getCroppedCanvas().toBlob((blob) => {
-      croppedImages[index] = blob;
-      const cropPreviewSection = document.getElementById(`cropPreviewSection${index}`);
-      cropPreviewSection.style.display = "none";
-      console.log("Cropped image stored for upload or further use.");
-  });
-}
-</script> -->
 </body>
 </html>

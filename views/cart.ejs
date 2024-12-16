@@ -164,7 +164,7 @@
 							</div>
 							<div class="one-eight text-center">
 								<div class="display-tc">
-									<input type="number" id="quantity" name="quantity" class="form-control input-number text-center" value="<%= item.quantity %>" data-max="<%= item.productId.stock %>" min="1" max="100">
+									<input type="number" id="quantity" name="quantity" class="form-control input-number text-center" value="<%= item.quantity %>" data-max="<%= item.productId.variants.stock %>" min="1" max="100">
 								</div>
 							</div>
 							<div class="one-eight text-center">
@@ -354,8 +354,8 @@ Copyright &copy;<script>document.write(new Date().getFullYear());</script> All r
 		const productCart = event.target.closest(".product-cart");
 		const productId = event.target.closest('.product-cart').querySelector('.closed').getAttribute('data-id');
 		const maxAllowed = parseInt(productCart.querySelector(".input-number").getAttribute("data-max"));
-		console.log(maxAllowed);
-    	const maxQuantity = 10; 
+		console.log(maxAllowed)
+		const maxQuantity=10
 
 		if (quantity > maxQuantity) {
       swal.fire({
