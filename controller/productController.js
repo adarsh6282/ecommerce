@@ -11,10 +11,7 @@ const loadProductmanage = async (req, res) => {
         const limit = 4; 
         const skip = (page - 1) * limit;
 
-        const products = await productSchema.find({ isDeleted: false })
-            .skip(skip)
-            .limit(limit)
-            .populate({ path: 'category', select: 'name' });
+        const products = await productSchema.find({ isDeleted: false }).skip(skip).limit(limit).populate({ path: 'category', select: 'name' });
 
         const totalProducts = await productSchema.countDocuments({ isDeleted: false });
         const totalPages = Math.ceil(totalProducts / limit);
@@ -165,18 +162,18 @@ const updateProduct = async (req, res) => {
             return res.status(404).json({ success: false, message: 'Product not found' });
         }
 
-        const imagePaths = [];
         if (req.files) {
-            for (const key in req.files) {
-                req.files[key].forEach((file) => {
-                    imagePaths.push(path.relative(path.join(__dirname, "..", "public"), file.path));
-                });
-            }
-        }
+            for (const fieldName in req.files) {
+              const index = parseInt(fieldName.replace('productImage', ''), 10) - 1;
 
-        if (imagePaths.length > 0) {
-            product.images = imagePaths;
-        }
+              if (index >= 0 && index < product.images.length) {
+                const file = req.files[fieldName][0];
+                const imagePath = path.relative(path.join(__dirname, '..', 'public'), file.path);
+
+                product.images[index] = imagePath;
+              }
+            }
+          }
 
         const categoryObj = await categorySchema.findOne({ name: category });
         if (!categoryObj) {

@@ -22,7 +22,7 @@
     <input type="number" id="discount" name="discount" class="form-control mb-3" value="<%= coupon.discount %>">
     
     <label for="expire" class="pt-3">Expiration Date</label>
-    <input type="date" id="expire" name="expire" class="form-control mb-3" value="<%= formattedDate %>">
+    <input type="date" id="expire" name="expire" class="form-control mb-3" value="<%= formattedDate %>" min="<%= new Date().toISOString().split('T')[0] %>">
     
     <label for="minpurchase" class="pt-3">Minimum Purchase</label>
     <input type="number" id="minpurchase" name="minpurchase" class="form-control mb-3" value="<%= coupon.minPurchase %>">
@@ -70,9 +70,9 @@
         return
       }
 
-      if(discount>100){
+      if(discount>70){
         swal.fire({
-          text:"Discount should not be greater than 100",
+          text:"Discount should not be greater than 70",
           icon:"error"
         })
         return

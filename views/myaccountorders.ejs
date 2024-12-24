@@ -108,6 +108,9 @@
                 <a href="/myaccountorder" class="dashboard-link">ORDERS</a>
                 <a href="/address" class="dashboard-link">ADDRESS</a>
                 <a href="/updateprofile/<%= user.id %>" class="dashboard-link">UPDATE PROFILE</a>
+                <% if(user&&user.isGoogleLogin==false) {%>
+				<a href="/updatepassword/<%= user.id %>" class="dashboard-link">UPDATE PASSWORD</a>
+				<% } %>
                 <a href="/wallet" class="dashboard-link">WALLET</a>
                 <a href="/logout" id="logout-button">LOGOUT</a>
             </div>
@@ -128,12 +131,15 @@
                     </tr>
                 </thead>
                 <tbody>
-					<% orders.forEach(order => { %>
+					<% orders.forEach((order,index) => { %>
                     <tr>
-                        <td>#<%= order._id %></td>
+                        <td>#111<%= index %></td>
                         <td><%= order.createdAt.toLocaleDateString() %></td>
                         <td><%= order.status %></td>
-                        <td><%= order.paymentStatus %></td>
+                        <td><%= order.paymentStatus %>
+						<% if(order.paymentMethod=="Razorpay"&&order.paymentStatus=="Pending"){ %>
+						<button style="background-color: transparent; border: none;" class="retrybtn" id="retrybutton" data-id="<%= order._id %>"><i class="bi bi-arrow-clockwise"></i></button>
+						<% } %></td>
                         <td><%= order.totalAmount %></td>
                         <td><a href="userorderview/<%= order._id %>" class="action-btn">View</a></td>
                         <td>
@@ -171,6 +177,7 @@
 			</nav>
         </main>
 		<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+		<script src="https://checkout.razorpay.com/v1/checkout.js"></script>
         <%- include("./layouts/footer") %>
 
 		<script>
@@ -178,7 +185,6 @@
 document.querySelectorAll('.cancelorderbtn').forEach(button => {
         button.addEventListener('click', async () => {
             const orderId = button.getAttribute('data-id');
-			console.log(orderId);
 
 			try {
                     const response = await fetch(`/cancelorder/${orderId}`, {
@@ -268,6 +274,103 @@ document.querySelectorAll('.cancelorderbtn').forEach(button => {
                 }
             });
         });
+		</script>
+
+		<script>
+
+			document.querySelectorAll(".retrybtn").forEach(button => {
+				button.addEventListener("click",async(e)=>{
+
+					e.preventDefault()
+
+					let button=document.getElementById("retrybutton")
+					button=e.currentTarget
+					let orderId=button.getAttribute("data-id")
+
+					try {
+						const response=await fetch(`/retrypayment/${orderId}`,{
+							method:"PUT",
+							headers:{"Content-Type":"application/json"},
+						})
+						const orderResult = await response.json();
+
+						if (!orderResult.success) {
+							return Swal.fire({
+								text: orderResult.message,
+								icon: "error",
+							});
+						}
+
+						const options = {
+							key: orderResult.razorpayKey,
+							amount: orderResult.amount,
+							currency: orderResult.currency,
+							name: "TAKRUM",
+							description: "Order Payment",
+							order_id: orderResult.razorpayOrderId,
+							handler: async function (response) {
+								const { razorpay_payment_id, razorpay_order_id, razorpay_signature } = response;
+								const verifyResponse = await fetch("/verifypayment", {
+									method: "POST",
+									headers: {
+										"Content-Type": "application/json",
+									},
+									body: JSON.stringify({
+										razorpay_payment_id: razorpay_payment_id,
+										razorpay_order_id: razorpay_order_id,
+										razorpay_signature: razorpay_signature,
+										paymentMethod: "Razorpay",
+									}),
+								});
+
+								const verifyResult = await verifyResponse.json();
+
+								if (verifyResult.success) {
+									Swal.fire({
+										text: verifyResult.message,
+										icon: "success",
+									});
+									setTimeout(() => {
+										window.location.href = "/ordercomplete";
+									}, 1000);
+								} else {
+									Swal.fire({
+										text: verifyResult.message || "Payment verification failed.",
+										icon: "error",
+									});
+								}
+							},
+							theme: {
+								color: "#3399cc",
+							},
+						};
+
+						const rzp = new Razorpay(options);
+						rzp.on("payment.failed",function (response){
+							Swal.fire({
+							icon: "info",
+							title: "Payment Incomplete",
+							text:
+								"The payment could not be completed. The order has been placed but payment was not successful. Please try again.",
+							}).then((result) => {
+							if (result.isConfirmed || result.dismiss === Swal.DismissReason.close) {
+								window.location.href = "/myaccountorder";
+							}
+							});
+						});
+
+						rzp.close()
+						rzp.open();
+
+					} catch (error) {
+						console.error(error);
+						Swal.fire({
+							text: "Failed to complete payment. Please try again later.",
+							icon: "error",
+						});
+					}
+				})
+				})
 		</script>
 		
     </body>

@@ -121,10 +121,16 @@
         <p>Order ID: <%= order.id %></p>
       </div>
       <div class="invoice-details">
-        <p>Date: <%= new Date() %></p>
+        <p>Date: <%= new Date().toISOString().split("T")[0] %></p>
         <p>Invoice #: INV-56789</p>
       </div>
     </div>
+
+    <div class="info">
+      <div><strong>Customer Name:</strong> <%= order.userId.username %></div>
+      <div><strong>Email:</strong> <%= order.userId.email %></div>
+      <div><strong>Phone:</strong> <%= order.userId.Phone %></div>
+  </div>
 
     <table class="order-details">
       <thead>
@@ -136,14 +142,14 @@
         </tr>
       </thead>
       <tbody>
-        <tr>
-        <% order.orderItems.forEach(element => {%>
-          <td><%= element.productId.name %></td>
-          <td><%= element.quantity %></td>
-          <td><%= element.productId.offerPrice %></td>
-          <td><%= element.quantity * element.productId.offerPrice %></td>
-          <%  }); %>
-        </tr>
+        <% order.orderItems.forEach(element => { %>
+          <tr>
+            <td><%= element.productId.name %></td>
+            <td><%= element.quantity %></td>
+            <td><%= element.productId.offerPrice %></td>
+            <td><%= element.quantity * element.productId.offerPrice %></td>
+          </tr>
+        <% }); %>
       </tbody>
     </table>
 
@@ -151,6 +157,16 @@
       <div class="total-label">Grand Total:</div>
       <div class="total-value"><%= totalAmount %></div>
     </div>
+
+
+    <div class="info">
+      <br><br>
+      <div><strong>Payment Method:</strong> <%= order.paymentMethod %></div>
+      <div><strong>Payment Status:</strong> <%= order.paymentStatus %></div>
+      <% if(order.isCouponApplied){ %>
+      <div><strong>Coupon Discount:</strong> <%= order.couponDiscount %></div>
+      <% } %>
+  </div>
 
     <div class="footer">
       <h2>Thank you for shopping with us!</h2>

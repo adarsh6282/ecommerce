@@ -13,9 +13,15 @@ const orderSchema= new mongoose.Schema({
         type: Number,  
         required:true
     },
-    couponId: {
-        type: mongoose.Schema.Types.ObjectId,
-        ref: "Coupons"
+    couponName:{
+        type:String
+    },
+    isCouponApplied:{
+        type:Boolean,
+        default:false
+    },
+    couponDiscount:{
+        type:Number
     },
     orderItems:[
         {
@@ -26,6 +32,9 @@ const orderSchema= new mongoose.Schema({
             quantity:{
                 type: Number,
                 required: true
+            },
+            size:{
+                type:Number
             },
             price:{
                 type: Number,
@@ -45,6 +54,10 @@ const orderSchema= new mongoose.Schema({
             },
             refundReason: {
                 type: String
+            },
+            paymentStatus:{
+                type:String,
+                enum:["Pending","Completed","Failed"]
             }
         }
     ],

@@ -13,8 +13,8 @@
     }
 
     body {
-      background-color: #f8f9fa;
-      color: #333;
+      background-color: white;
+      color: black;
       line-height: 1.6;
       display: flex;
       flex-direction: column;
@@ -73,13 +73,14 @@
       border-collapse: collapse;
       margin: 20px 0;
       box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-      background-color: #fff;
+      background-color: #191c24;
     }
 
     table th, table td {
       border: 1px solid #ddd;
       padding: 10px;
       text-align: center;
+      background-color: white;
     }
 
     table th {
@@ -88,11 +89,7 @@
     }
 
     table tr:nth-child(even) {
-      background-color: #f2f2f2;
-    }
-
-    table tr:hover {
-      background-color: #e9ecef;
+      background-color: #ccd0db;
     }
 
     .download-buttons {
@@ -131,9 +128,9 @@
 
   <form method="GET" action="/admin/salesreport">
     <label for="startDate">Start Date:</label>
-    <input type="date" id="startDate" name="startDate" value="<%= startDate || '' %>">
+    <input type="date" id="startDate" name="startDate" value="<%= startDate || '' %>" max="<%= new Date().toISOString().split('T')[0] %>">
     <label for="endDate">End Date:</label>
-    <input type="date" id="endDate" name="endDate" value="<%= endDate || '' %>">
+    <input type="date" id="endDate" name="endDate" value="<%= endDate || '' %>" max="<%= new Date().toISOString().split('T')[0] %>">
     <button type="submit">Filter</button>
   </form>
 
@@ -144,7 +141,9 @@
     <thead>
       <tr>
         <th>Order ID</th>
+        <th>Username</th>
         <th>Order Date</th>
+        <th>Payment Status</th>
         <th>Amount</th>
       </tr>
     </thead>
@@ -152,8 +151,11 @@
       <% orders.forEach(order => { %>
         <tr>
           <td><%= order.id %></td>
+          <td><%= order.userId.username %></td>
           <td><%= new Date(order.createdAt).toLocaleDateString() %></td>
+          <td><%= order.paymentStatus %></td>
           <td><%= order.totalAmount %></td>
+
         </tr>
       <% }) %>
     </tbody>

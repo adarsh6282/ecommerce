@@ -279,6 +279,9 @@
             <a href="/myaccountorder" class="dashboard-link">ORDERS</a>
             <a href="/address" class="dashboard-link">ADDRESS</a>
             <a href="/updateprofile/<%= user.id %>" class="dashboard-link">UPDATE PROFILE</a>
+            <% if(!user.isGoogleLogin) {%>
+            <a href="/updatepassword/<%= user.id %>" class="dashboard-link">UPDATE PASSWORD</a>
+            <% } %>
             <a href="/wallet" class="dashboard-link">WALLET</a>
             <a href="/logout" id="logout-button">LOGOUT</a>
         </div>

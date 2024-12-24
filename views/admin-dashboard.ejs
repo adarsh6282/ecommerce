@@ -248,9 +248,13 @@
 
     <!-- Chart Section -->
     <div class="chart-container">
-      <h2>Sales Overview</h2>
+      <h2>Top Products </h2>
       <canvas id="salesChart" width="600" height="300"></canvas>
     </div>
+    <div class="chart-container">
+      <h2>Top Category</h2>
+      <canvas id="categoriesChart" width="600" height="300"></canvas>
+  </div>
 
     <!-- Download Section -->
     <div class="download-section">
@@ -267,9 +271,6 @@
      
     document.addEventListener('DOMContentLoaded', function() {
     const periodSelect = document.getElementById('filterOptions');
-    if (!periodSelect.value || periodSelect.value === "") {
-        periodSelect.value = 'yearly';
-    }
 
     applyPeriodFilter();
 });
@@ -287,37 +288,45 @@
       const response = await fetch(url);
       const data = await response.json();
       
-      updateGraph(data.productsSold);
+      updateGraph(data.productsSold, 'salesChart', 'Products Sold', 'Products');
+      updateGraph(data.categoriesSold, 'categoriesChart', 'Categories Sold', 'Categories');
+
     } catch (error) {
       console.error("Error fetching data:", error);
     }
   }
 
-function updateGraph(productsSoldData) {
+function updateGraph(dataArray, canvasId, label, dataType) {
+    const labels = dataArray.map(item => dataType === 'Products' ? item.productName : item.categoryName);
+    const data = dataArray.map(item => item.quantity);
 
-    const labels = productsSoldData.map(item => item.productName);
-    const data = productsSoldData.map(item => item.quantity); 
-
-    const ctx = document.getElementById('salesChart').getContext('2d');
+    const ctx = document.getElementById(canvasId).getContext('2d');
 
     if (ctx === null) {
-        console.error("Canvas element not found.");
+        console.error(`Canvas element with ID '${canvasId}' not found.`);
         return;
     }
 
-    if (window.salesChart && window.salesChart.destroy && typeof window.salesChart.destroy === 'function') {
-        window.salesChart.destroy();
+    if (window[canvasId] && window[canvasId].destroy && typeof window[canvasId].destroy === 'function') {
+        window[canvasId].destroy();
     }
 
-    window.salesChart = new Chart(ctx, {
+    window[canvasId] = new Chart(ctx, {
         type: 'bar',
         data: {
             labels: labels,
             datasets: [{
-                label: 'Products Sold',
+                label: label,
                 data: data,
-                backgroundColor: 'rgba(75, 192, 192, 0.6)', 
-                borderColor: 'rgba(75, 192, 192, 1)',
+                backgroundColor: [
+                'rgba(75, 192, 192, 0.6)',
+                'rgba(255, 99, 132, 0.6)',
+                'rgba(255, 159, 64, 0.6)',
+                'rgba(153, 102, 255, 0.6)',
+                'rgba(54, 162, 235, 0.6)',
+                'rgba(255, 205, 86, 0.6)',
+                'rgba(201, 203, 207, 0.6)'
+            ], 
                 borderWidth: 1
             }]
         },
@@ -350,8 +359,6 @@ function updateGraph(productsSoldData) {
         }
     });
 }
-
-
   </script>
 </body>
 </html>

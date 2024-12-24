@@ -6,7 +6,10 @@ const couponSchema=require("../models/couponModel")
 const productSchema=require("../models/productModel")
 const walletSchema=require("../models/walletModel")
 const ejs=require("ejs")
+const pdf = require('html-pdf');
+const ExcelJS = require('exceljs');
 const moment = require('moment');
+
 
 const loadAdminLogin=(req,res)=>{
     res.render("admin-login")
@@ -29,12 +32,23 @@ const loadDashboard = async (req, res) => {
       { $project: { productName: "$productDetails.name", quantity: 1 } }
     ]);
 
-    return res.render("admin-dashboard", {
+    const categoriesSold = await orderSchema.aggregate([
+      { $unwind: "$orderItems" },
+      { $lookup: {from: "products",localField: "orderItems.productId",foreignField: "_id",as: "productDetails"}},
+      { $unwind: "$productDetails" },
+      { $lookup: {from: "categories",localField: "productDetails.category",foreignField: "_id",as: "categoryDetails"}},
+      { $unwind: "$categoryDetails" },
+      { $group: { _id: "$categoryDetails._id",categoryName: { $first: "$categoryDetails.name" }, quantity: { $sum: "$orderItems.quantity" } }},
+      { $project: {categoryName: 1,quantity: 1}}
+    ]);
+    
+      return res.render("admin-dashboard", {
       totalSales: totalSales[0]?.totalSales || 0,
       totalOrders,
       totalUsers,
       totalProducts,
       productsSold,
+      categoriesSold
     });
   } catch (error) {
     console.error("Error loading dashboard:", error);
@@ -101,7 +115,7 @@ const loadDashboardData = async (req, res) => {
           totalProductsSold: { $sum: "$orderItems.quantity" } 
         } 
       },
-      { $lookup: { from: "products", localField: "_id", foreignField: "_id", as: "productDetails" } },
+      { $lookup: { from: "products", localField: "_id", foreignField: "_id", as: "productDetails" } }, 
       { $unwind: "$productDetails" },
       { $project: { 
           productName: "$productDetails.name", 
@@ -110,6 +124,19 @@ const loadDashboardData = async (req, res) => {
       },
       { $sort: { "productName": 1 } }
     ]);
+
+    const categoriesSold = await orderSchema.aggregate([
+      {$match:{...matchCondition}},
+      { $unwind: "$orderItems" },
+      { $lookup: {from: "products",localField: "orderItems.productId",foreignField: "_id",as: "productDetails"}},
+      { $unwind: "$productDetails" },
+      { $lookup: {from: "categories",localField: "productDetails.category", foreignField: "_id",as: "categoryDetails"}},
+      { $unwind: "$categoryDetails" },
+      { $group: { _id: "$categoryDetails._id",categoryName: { $first: "$categoryDetails.name" },quantity: { $sum: "$orderItems.quantity" }}},
+      { $project: {categoryName: 1,quantity: 1}}
+    ]);
+    
+    
 
     const totalSales = await orderSchema.aggregate([
       { $match: matchCondition },
@@ -125,6 +152,7 @@ const loadDashboardData = async (req, res) => {
       totalUsers,
       totalProducts,
       productsSold,
+      categoriesSold
     });
   } catch (error) {
     console.error("Error fetching data:", error);
@@ -149,9 +177,9 @@ const loadSalesReport = async (req, res) => {
       end.setHours(23, 59, 59, 999);
 
       orders = await orderSchema.find(
-        { createdAt: { $gte: start, $lte: end } },
-        'orderId createdAt totalAmount'
-      );
+      { createdAt: { $gte: start, $lte: end } },
+        'orderId createdAt totalAmount paymentStatus couponDiscount'
+      ).populate('userId', 'username')
 
       const salesData = await orderSchema.aggregate([
         { $match: { createdAt: { $gte: start, $lte: end } } },
@@ -159,7 +187,11 @@ const loadSalesReport = async (req, res) => {
       ]);
       totalSales = salesData[0]?.totalSales || 0;
 
-      totalDiscounts = 0;
+      const discountData = await orderSchema.aggregate([
+        { $match: { createdAt: { $gte: start, $lte: end }, isCouponApplied: true } },
+        { $group: { _id: null, totalDiscounts: { $sum: "$couponDiscount" } } },
+      ]);
+      totalDiscounts = discountData[0]?.totalDiscounts || 0;
     }
 
     res.render('salesreport', {
@@ -174,8 +206,6 @@ const loadSalesReport = async (req, res) => {
     res.status(500).send("Failed to load sales report");
   }
 };
-
-
 
 const salesReport=async(req, res) => {
   if(!req.session.admin){
@@ -193,12 +223,17 @@ const salesReport=async(req, res) => {
       matchCondition.createdAt = { $gte: start, $lte: end };
     }
 
-    const orders = await orderSchema.find(matchCondition, 'orderId createdAt totalAmount');
+    const orders = await orderSchema.find(matchCondition, 'orderId createdAt totalAmount paymentStatus couponDiscount').populate("userId","username")
     const totalSales = await orderSchema.aggregate([
       { $match: matchCondition },
       { $group: { _id: null, totalSales: { $sum: "$totalAmount" } } },
     ]);
-    const totalDiscounts = 0;
+
+    const discountData = await orderSchema.aggregate([
+      { $match: { createdAt: { $gte: start, $lte: end }, isCouponApplied: true } },
+      { $group: { _id: null, totalDiscounts: { $sum: "$couponDiscount" } } },
+    ]);
+    totalDiscounts = discountData[0]?.totalDiscounts || 0;
 
     res.render('salesreport', {
       orders,
@@ -212,7 +247,6 @@ const salesReport=async(req, res) => {
     res.status(500).send("Failed to load sales report");
   }
 }
-
 
 const downloadPdf=async(req,res)=>{
   if(!req.session.admin){
@@ -236,7 +270,14 @@ const downloadPdf=async(req,res)=>{
       { $group: { _id: null, totalSales: { $sum: "$totalAmount" } } },
     ]);
 
-    const totalDiscounts = 0;
+    let totalDiscounts = 0;
+
+    const discountData = await orderSchema.aggregate([
+      { $match: { createdAt: { matchCondition }, isCouponApplied: true } },
+      { $group: { _id: null, totalDiscounts: { $sum: "$couponDiscount" } } },
+    ]);
+
+    totalDiscounts = discountData[0]?.totalDiscounts || 0;
 
     const html = await ejs.renderFile('views/salesreport.ejs', {
       orders,
@@ -246,7 +287,6 @@ const downloadPdf=async(req,res)=>{
       endDate,
     });
 
-    const pdf = require('html-pdf');
     pdf.create(html).toStream((err, stream) => {
       if (err) return res.status(500).send("PDF generation failed");
       res.set({
@@ -274,21 +314,24 @@ const downloadExcel=async(req,res) => {
       matchCondition.createdAt = { $gte: start, $lte: end };
     }
 
-    const orders = await orderSchema.find(matchCondition, 'orderId createdAt totalAmount');
+    const orders = await orderSchema.find(matchCondition, 'orderId createdAt totalAmount paymentStatus').populate("userId", "username");
 
-    const ExcelJS = require('exceljs');
     const workbook = new ExcelJS.Workbook();
     const worksheet = workbook.addWorksheet('Sales Report');
     worksheet.columns = [
-      { header: 'Order ID', key: 'orderId', width: 15 },
+      { header: 'Order ID', key: 'orderId', width: 25 },
+      { header: 'Username', key: 'username', width: 15 },
       { header: 'Order Date', key: 'createdAt', width: 20 },
+      { header: 'Payment Status', key:'paymentStatus', width: 15 },
       { header: 'Amount', key: 'totalAmount', width: 15 },
     ];
 
     orders.forEach(order => {
       worksheet.addRow({
         orderId: order.id,
+        username:order.userId.username,
         createdAt: order.createdAt.toLocaleDateString(),
+        paymentStatus:order.paymentStatus,
         totalAmount: order.totalAmount,
       });
     });
@@ -304,7 +347,6 @@ const downloadExcel=async(req,res) => {
   }
 }
   
-
 const loadUsermanage = async (req, res) => {
     try {
         const page = parseInt(req.query.page) || 1;
@@ -330,7 +372,6 @@ const loadUsermanage = async (req, res) => {
         res.status(500).send("Internal Server Error");
     }
 };
-
 
 const loginAdmin=async(req,res)=>{
     const {email,password}=req.body
@@ -390,25 +431,25 @@ const loadUserView = async (req, res) => {
         console.error('Error fetching user information:', error.message);
         res.status(500).json({ message: 'Error fetching user information' });
       }
-    };
+};
 
-    const loadOrderManagement = async (req, res) => {
+const loadOrderManagement = async (req, res) => {
         try {
-            const page = parseInt(req.query.page) || 1;
-            const limit = 4;
-            const skip = (page - 1) * limit;
+            const page = parseInt(req.query.page) || 1
+            const limit = 4
+            const skip = (page - 1) * limit
 
-            const orders = await orderSchema.find().sort({createdAt:-1}).skip(skip).limit(limit).populate("userId");
+            const orders = await orderSchema.find().sort({createdAt:-1}).skip(skip).limit(limit).populate("userId")
 
-            const totalOrders = await orderSchema.countDocuments();
-            const totalPages = Math.ceil(totalOrders / limit);
+            const totalOrders = await orderSchema.countDocuments()
+            const totalPages = Math.ceil(totalOrders / limit)
     
             orders.forEach(order => {
-                order.quantity = order.orderItems.length;
-            });
+                order.quantity = order.orderItems.length
+            })
     
             if (!orders || orders.length === 0) {
-                return res.render("orderManagement", { message: "No orders found", orders, quantity: [], currentPage: page, totalPages });
+                return res.render("orderManagement", { message: "No orders found", orders, quantity: [], currentPage: page, totalPages })
             }
 
             res.render("orderManagement", {
@@ -418,23 +459,21 @@ const loadUserView = async (req, res) => {
                 totalPages
             });
         } catch (error) {
-            console.error("Error loading orders:", error);
-            res.status(500).send("Internal Server Error");
+            console.error("Error loading orders:", error)
+            res.status(500).send("Internal Server Error")
         }
-    };
+};
        
-
-    const loadOrderView= async (req, res) => {
+const loadOrderView= async (req, res) => {
         const id=req.params.id
         const order=await orderSchema.findById(id).populate("userId").populate({path:"orderItems.productId"}).populate("addressId")
         if(!order){
             return res.status(404).json({success:false,message:"Order not found"})
         }
        return res.render("orderView",{order})
-    }
+}
 
-
-    const updateStatus = async (req, res) => {
+const updateStatus = async (req, res) => {
       const orderId = req.params.id;
       const { status } = req.body;
   
@@ -444,13 +483,22 @@ const loadUserView = async (req, res) => {
           if (!order) {
               return res.status(404).json({ success: false, message: 'Order not found' });
           }
-  
+          
+          if(order.paymentMethod=="Razorpay"&&order.status=="Pending"&&order.paymentStatus!="Completed"){
+           return res.status(400).json({success:false,message:"Status cannot be changed until the payment is completed"})
+          }
+          
           if (order.paymentMethod === "COD" && status === "Delivered") {
               order.status = status;
+              order.orderItems.forEach(item=>{
+                item.paymentStatus="Completed"
+              })
               order.paymentStatus = "Completed";
           } else {
               order.status = status;
           }
+
+
           if(order.status === "Delivered") {
             order.orderItems.forEach(item => {
               item.itemStatus = "Delivered";
@@ -468,10 +516,9 @@ const loadUserView = async (req, res) => {
           console.error('Error updating status:', error);
           res.status(500).json({ success: false, message: 'Internal Server Error' });
       }
-  };
-  
+};
 
-  const loadCoupon = async (req, res) => {
+const loadCoupon = async (req, res) => {
     try {
       const page = parseInt(req.query.page) || 1;
       const limit = parseInt(req.query.limit) || 5;
@@ -498,18 +545,17 @@ const loadUserView = async (req, res) => {
       console.error("Error while loading coupons:", error);
       return res.status(500).render("couponManagement", { message: "An error occurred." });
     }
-  };
+};
   
-
-    const loadAddCoupon=async(req,res)=>{
+const loadAddCoupon=async(req,res)=>{
         try {
             return res.render('addCoupon')
         } catch (error) {
             console.error(error)
         }
-    }
+}
 
-    const loadEditCoupon=async(req,res)=>{
+const loadEditCoupon=async(req,res)=>{
        const {id}=req.params
        const coupon=await couponSchema.findById(id)
        const formattedDate = new Date(coupon.expirationDate).toISOString().split('T')[0];
@@ -517,9 +563,9 @@ const loadUserView = async (req, res) => {
            return res.status(404).json({success:false,message:"Coupon not found"})
        }
        return res.render('editCoupon',{coupon,formattedDate})
-    }
+}
 
-    const editCoupon=async(req,res)=>{
+const editCoupon=async(req,res)=>{
       const {id}=req.params
       const {code,discount,minpurchase,maxdiscount,expire,maxcount}=req.body
 
@@ -542,9 +588,9 @@ const loadUserView = async (req, res) => {
     {
       console.error(error)
     }
-    }
+}
 
-    const addCoupon=async(req,res)=>{
+const addCoupon=async(req,res)=>{
         try{
             const{code,discount,minpurchase,maxdiscount,expire,maxcount}=req.body
             const existingCoupon = await couponSchema.findOne({ code });
@@ -573,10 +619,8 @@ const loadUserView = async (req, res) => {
     }
 };
 
-
 const deleteCoupon = async (req, res) => {
     try {
-        console.log("deleting coupon");
         const couponId = req.params.id;
         console.log(couponId);
         
@@ -592,7 +636,6 @@ const deleteCoupon = async (req, res) => {
         res.status(500).json({ success: false, message: "Error deleting coupon" });
     }
 };
-
 
 const proceedReturn = async (req, res) => {
   console.log("proceeding")
@@ -758,6 +801,8 @@ const processItemReturn = async (req, res) => {
       }
     }
 
+    order.totalAmount-=totalRefundAmount
+
     const allItemsProcessed = order.orderItems.every(
       item => item.refundStatus === "Approved" || item.refundStatus === "Rejected"
     );
@@ -838,7 +883,7 @@ const stockManagement = async (req, res) => {
       const variantIndex = product.variants.findIndex((variant) => variant.size == size);
       
       if (variantIndex !== -1) {
-        product.variants[variantIndex].stock += stock;
+        product.variants[variantIndex].stock = stock;
       } else {
         product.variants.push({ size, stock });
       }
@@ -854,6 +899,11 @@ const stockManagement = async (req, res) => {
     res.status(500).json({success:false, message: "Server error" });
   }
 };
+
+const logout=(req,res)=>{
+  req.session.admin=null
+  res.redirect("/admin/login")
+}
 
 module.exports={
     loadAdminLogin,
@@ -878,5 +928,6 @@ module.exports={
     deleteCoupon,
     proceedReturn,
     processItemReturn,
-    stockManagement
+    stockManagement,
+    logout
 }

@@ -299,7 +299,7 @@
                 <li class="p-b-6">
                     <a href="/shop?priceRange=50000-100000&category=<%= selectedCategory %>&sortBy=<%= sortBy %>&search=<%= search %>"
                         class="filter-link stext-106 trans-04 <% if(priceRange === '50000-100000') { %>filter-link-active<% } %>">
-                        ₹50,000 - ₹1,00000
+                        ₹50,000 - ₹1,00,000
                     </a>
                 </li>
             </ul>
@@ -393,29 +393,29 @@
 
 
 	<script>
-		document.addEventListener('DOMContentLoaded', function() {
-  const items = document.querySelectorAll('[data-carousel="item"]');
-  const nextButton = document.querySelector('[data-carousel="next"]');
-  const prevButton = document.querySelector('[data-carousel="prev"]');
-  let currentIndex = 0;
+  document.addEventListener('DOMContentLoaded', function() {
+    const items = document.querySelectorAll('[data-carousel="item"]');
+    const nextButton = document.querySelector('[data-carousel="next"]');
+    const prevButton = document.querySelector('[data-carousel="prev"]');
+    let currentIndex = 0;
 
-  function showItem(index) {
-    items.forEach((item, i) => {
-      item.classList.toggle('active', i === index);
+    function showItem(index) {
+        items.forEach((item, i) => {
+        item.classList.toggle('active', i === index);
+        });
+    }
+
+    nextButton.addEventListener('click', () => {
+        currentIndex = (currentIndex + 1) % items.length;
+        showItem(currentIndex);
     });
-  }
 
-  nextButton.addEventListener('click', () => {
-    currentIndex = (currentIndex + 1) % items.length;
+    prevButton.addEventListener('click', () => {
+        currentIndex = (currentIndex - 1 + items.length) % items.length;
+        showItem(currentIndex);
+    });
+
     showItem(currentIndex);
-  });
-
-  prevButton.addEventListener('click', () => {
-    currentIndex = (currentIndex - 1 + items.length) % items.length;
-    showItem(currentIndex);
-  });
-
-  showItem(currentIndex);
 });
 
 	</script>

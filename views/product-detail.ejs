@@ -54,6 +54,10 @@
     transform: scale(2);
     cursor: zoom-out;
   }
+	.size-option.active {
+        background-color: #0f1015;
+        color: #fff;
+    }
 	</style>
 
 	</head>
@@ -303,6 +307,21 @@
 	<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" crossorigin="anonymous"></script>
 	<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
+
+	<script>
+		document.addEventListener("DOMContentLoaded", () => {
+			const sizeOptions = document.querySelectorAll(".size-option");
+	
+			sizeOptions.forEach(option => {
+				option.addEventListener("click", (e) => {
+					e.preventDefault();
+					sizeOptions.forEach(opt => opt.classList.remove("active"));
+					option.classList.add("active");
+				});
+			});
+		});
+	</script>
+
 	<script>
 
 			let selectedSize = null;
@@ -381,7 +400,7 @@
 			button.style.color="red"
 		
 			try {
-		const response = await fetch('/wishlist/add', {
+		   const response = await fetch('/wishlist/add', {
 			method: 'POST',
 			headers: {
 				'Content-Type': 'application/json',

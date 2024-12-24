@@ -9,8 +9,6 @@ const loadAddCategory=async(req,res)=>{
         res.render('addCategory', { errorMessage: "" });
 }
 
-
-
 const loadCategoryManagement = async (req, res) => {
     try {
         const page = parseInt(req.query.page) || 1;
@@ -49,18 +47,18 @@ const loadCategoryManagement = async (req, res) => {
     }
 };
 
-
-
-
 const addCategory=async(req, res)=>{
     
     try {
         const {name,description}=req.body
 
-            const existingCategory = await categorySchema.findOne({ name:name.trim(), isDeleted: false });
+        const existingCategory = await categorySchema.findOne({
+            name: { $regex: new RegExp(`^${name.trim()}$`, 'i') },
+            isDeleted: false
+        });
 
-        if(existingCategory){
-            return res.render('addCategory', { errorMessage: "Category with the same name already exists."})
+        if (existingCategory) {
+            return res.render('addCategory', { errorMessage: "Category with the same name already exists." });
         }
         
         const category=new categorySchema({
@@ -78,7 +76,6 @@ const addCategory=async(req, res)=>{
     }
 }
 
-
 const applyOffer = async (req, res) => {
     const { currentCategoryId } = req.params;
     const { offerPercentage } = req.body;
@@ -95,23 +92,49 @@ const applyOffer = async (req, res) => {
       }
 
       for (const product of products) {
+
+        product.withoutOfferApplied = product.offerPrice
+
         const originalPrice = product.offerPrice;
-        const discount = (originalPrice * offerPercentage) / 100;
+        const discount = parseInt((originalPrice * offerPercentage) / 100)
         const newPrice = originalPrice - discount;
 
         product.offerPrice = newPrice.toFixed(2);
         product.offerPercentage = offerPercentage;
         await product.save();
       }
-  
-      res.json({ success: true, message: 'Offer applied successfully!' });
+      await categorySchema.findByIdAndUpdate(currentCategoryId, { isOfferApplied: true })
+     return res.json({ success: true, message: 'Offer applied successfully!' });
     } catch (error) {
       console.error("Error applying offer:", error);
-      res.status(500).json({ success: false, message: 'An error occurred while applying the offer.' });
+     return res.status(500).json({ success: false, message: 'An error occurred while applying the offer.' });
+    }
+};
+
+const removeOffer = async (req, res) => {
+    const { catId } = req.params;
+  
+    try {
+      const products = await productSchema.find({ category: catId });
+  
+      if (products.length === 0) {
+        return res.status(404).json({ success: false, message: 'No products found in this category.' });
+      }
+  
+      for (const product of products) {
+        product.offerPrice = product.withoutOfferApplied;
+        product.offerPercentage = 0;
+        await product.save();
+      }
+
+      await categorySchema.findByIdAndUpdate(catId, { isOfferApplied: false });
+  
+      res.json({ success: true, message: 'Offer removed successfully!' });
+    } catch (error) {
+      console.error("Error removing offer:", error);
+      res.status(500).json({ success: false, message: 'An error occurred while removing the offer.' });
     }
   };
-
-
 
 const loadUpdateCategory=async(req,res)=>{
     const categoryid=req.params.id
@@ -121,8 +144,6 @@ const loadUpdateCategory=async(req,res)=>{
     }
     res.render('updateCategory',{category:category})
 }
-
-
 
 const updateCategory=async(req,res)=>{
     const {categoryname,categorydescription}=req.body
@@ -146,8 +167,6 @@ const updateCategory=async(req,res)=>{
     }
 }
 
-
-
 const loadDeleteCategory=async(req, res) =>{
     try {
     const category=await categorySchema.find({isDeleted: true})
@@ -160,11 +179,8 @@ const loadDeleteCategory=async(req, res) =>{
     res.redirect('/admin/categorymanagement')
 }}
 
-
-
 const deleteCategory=async(req,res)=>{
     const {categoryId}=req.body
-    console.log(categoryId);
     
     try {
         const category=await categorySchema.findByIdAndUpdate(categoryId, {isDeleted: true}, {new: true})
@@ -177,8 +193,6 @@ catch{
     console.error('Error deleting category:', error);
      return res.status(500).json({ success: false, message: 'Error deleting category'});
 }}
-
-
 
 const recoverCategory=async(req,res)=>{
     const {categoryId}=req.body    
@@ -198,6 +212,7 @@ module.exports = {
     loadCategoryManagement,
     addCategory,
     applyOffer,
+    removeOffer,
     loadAddCategory,
     loadUpdateCategory,
     updateCategory,

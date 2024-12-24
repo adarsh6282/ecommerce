@@ -133,8 +133,9 @@
                 <a href="/myaccount" class="dashboard-link">PROFILE</a>
                 <a href="/myaccountorder" class="dashboard-link">ORDERS</a>
                 <a href="/address" class="dashboard-link">ADDRESS</a>
-                <a href="/updateprofile" class="dashboard-link">UPDATE PROFILE</a>
-                <a href="#" class="dashboard-link">WALLET</a>
+                <a href="/updateprofile/<%= user.id %>" class="dashboard-link">UPDATE PROFILE</a>
+                <a href="/updatepassword/<%= user.id %>" class="dashboard-link">UPDATE PASSWORD</a>
+                <a href="/wallet" class="dashboard-link">WALLET</a>
                 <a href="/logout" id="logout-button">LOGOUT</a>
             </div>
         </nav>
@@ -154,6 +155,7 @@
                                         <th>Quantity</th>
                                         <th>Total</th>
                                         <th>Status</th>
+                                        <th>Payment Status</th>
                                         <th>Action</th>
                                     </tr>
                                 </thead>
@@ -169,6 +171,7 @@
                                         <td><%= item.quantity %></td>
                                         <td>₹<%= (item.productId.offerPrice * item.quantity).toFixed(2) %></td>
                                         <td><%= item.itemStatus %></td>
+                                        <td><%= item.paymentStatus %></td>
                                         <% if(item.itemStatus ==="Delivered"){ %>
                                         <td> <button class="btn btn-primary btn-sm recoverbtn" data-product-id="<%= item.productId._id %>"> Return</button></td>
                                         <% }else if(item.itemStatus === "Pending" && order.status === "Pending" && item.itemStatus !== "Cancelled"){ %>

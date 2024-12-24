@@ -74,6 +74,7 @@
                                         <th>Product Name</th>
                                         <th>Price</th>
                                         <th>Quantity</th>
+                                        <th>Payment Status</th>
                                         <th>Total</th>
                                     </tr>
                                 </thead>
@@ -86,6 +87,7 @@
                                         <td><%= item.productId.name %></td>
                                         <td>₹<%= item.productId.offerPrice.toFixed(2) %></td>
                                         <td><%= item.quantity %></td>
+                                        <td><%= item.paymentStatus %></td>
                                         <td>₹<%= (item.productId.offerPrice * item.quantity).toFixed(2) %></td>
                                     </tr>
                                 </tbody>
@@ -105,7 +107,7 @@
                   <% order.orderItems.forEach(item => { %>
                     <% if (item.itemStatus === "Requested") { %>
                       <div class="reason-container">
-                        <h5 style="color: white;">Return Request Reason for <%= item.productId.name %></h5> <!-- Display product name or any other information you want -->
+                        <h5 style="color: white;">Return Request Reason for <%= item.productId.name %></h5>
                         <p style="color: white;"><%= item.refundReason %></p>
                         <button class="btn btn-success approve" data-product-id="<%= item.productId._id %>">Approve</button>
                         <button class="btn btn-danger reject" data-product-id="<%= item.productId._id %>">Reject</button>
@@ -155,10 +157,7 @@
         const selectedstatus = dropdownButton.textContent.trim();
         const orderId = document.getElementById("orderId").value;
     
-        console.log("Order ID:", orderId);
-        console.log("Selected Status:", selectedstatus);
-    
-        if (selectedstatus === "Processing") {
+        if (selectedstatus === "Pending") {
             Swal.fire({
                 text: "Please select a valid status",
                 icon: "question",
@@ -183,14 +182,14 @@
                 Swal.fire({
                     text: result.message,
                     icon: "success",
-                });
+                });                
     
-                if (selectedstatus === "Cancelled"||selectedstatus ==="Delivered"||selectedstatus ==="Requested"||selectedstatus ==="Returned") {
+                if (selectedstatus === "Cancelled") {
                     updatestatus.disabled = true;
                 } else {
                     updatestatus.disabled = false;
                 }
-    
+
                 const statusCell = document.querySelector(`#orderRow-${orderId} .status-cell`);
                 if (statusCell) {
                     statusCell.textContent = selectedstatus;

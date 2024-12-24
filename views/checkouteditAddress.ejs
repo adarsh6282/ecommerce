@@ -330,23 +330,49 @@
         </div>
     </main>
 
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
     <script>
 
         const editaddress=document.getElementById("checkouteditaddress")
         editaddress.addEventListener("submit",async(e)=>{
             e.preventDefault()
             
-            let housename=document.getElementById("housename").value
-            let city=document.getElementById("city").value
-            let district=document.getElementById("district").value
-            let state=document.getElementById("state").value
-            let country=document.getElementById("country").value
-            let pincode=document.getElementById("pincode").value
+            const housename = document.getElementById("housename").value;
+            const city = document.getElementById("city").value;
+            const district = document.getElementById("district").value;
+            const state = document.getElementById("state").value;
+            const country = document.getElementById("country").value;
+            const pincode = document.getElementById("pincode").value;
             let addressId=document.getElementById("addressId").value
+            const fullreg=/^[A-Za-z\s]+$/
+            const pinreg=/^\d{6}$/
+
+            if(housename.trim()==""||city.trim==""||district.trim==""||state.trim()==""||pincode.trim()==""){
+                Swal.fire({
+                    icon: 'error',
+                    text: 'Please fill all the fields!'
+                })
+                return
+            }
+            if (!fullreg.test(housename) ||!fullreg.test(city) ||!fullreg.test(district) ||!fullreg.test(state) ||!fullreg.test(country)) {
+                Swal.fire({
+                    icon: 'error',
+                    text: 'These fields should only contain alphabets!',
+                });
+                return;
+             } 
+            if(!pinreg.test(pincode)){
+                    Swal.fire({
+                        icon: 'error',
+                        text: 'Pin Code should be a six-digit number!'
+                    })
+                        return
+                }
 
             try{
 
-            const respose=await fetch(`/checkaddress/edit/${addressId}`,{
+            const response=await fetch(`/checkaddress/edit/${addressId}`,{
                 method:"PUT",
                 headers:{
                     "Content-Type":"application/json"
@@ -361,74 +387,30 @@
                     addressId
                  })
                 })
-                const result=await respose.json()
+                const result=await response.json()
                 if(result.success){
-                    swal({
+                    swal.fire({
                         text:result.message,
                         icon:"success"
                     })
+                    setTimeout(() => {
+                        window.location.href="/checkout"
+                    }, 1500);
                 }else{
-                    swal({
+                    swal.fire({
                         text:result.message || "Failed to edit address",
                         icon:"error"
                     })
                 }
             }catch(error){
                 console.error(error)
-                Swal({
+                Swal.fire({
                     text:"Failed to edit address",
                     icon:"error"
                 })
             }
 
             })
-
-    </script>
-        <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-
-
-    <script>
-
-document.getElementById("checkouteditaddress").addEventListener("submit",async(e)=>{
-            e.preventDefault();
-            const housename = document.getElementById("housename").value;
-            const city = document.getElementById("city").value;
-            const district = document.getElementById("district").value;
-            const state = document.getElementById("state").value;
-            const country = document.getElementById("country").value;
-            const pincode = document.getElementById("pincode").value;
-            const fullreg=/^[A-Za-z\s]+$/
-            const pinreg=/^\d{6}$/
-
-            if(housename.trim()==""||city.trim==""||district.trim==""||state.trim()==""||pincode.trim()==""){
-                Swal.fire({
-                    icon: 'error',
-                    text: 'Please fill all the fields!'
-                })
-                return
-            }
-            if (
-                !fullreg.test(housename) ||
-                !fullreg.test(city) ||
-                !fullreg.test(district) ||
-                !fullreg.test(state) ||
-                !fullreg.test(country)
-            ) {
-                Swal.fire({
-                    icon: 'error',
-                    text: 'These fields should only contain alphabets!',
-                });
-                return;
-             } 
-            if(!pinreg.test(pincode)){
-                    Swal.fire({
-                        icon: 'error',
-                        text: 'Pin Code should be a six-digit number!'
-                    })
-                        return
-                }
-            })
-
 
     </script>
     </body>

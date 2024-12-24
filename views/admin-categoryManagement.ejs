@@ -185,7 +185,11 @@
                             <%= updatedFormattedDate%>
                           </td>
                           <td>
+                            <% if(!category.isOfferApplied){ %>
                             <button class="badge badge-outline-success btn-offer" onclick="showOfferModal('<%= category._id %>')">Apply Offer</button>
+                            <% }else{ %>
+                            <button class="badge badge-outline-danger btn-offer-remove" data-id="<%= category._id %>">Remove</button>
+                            <% } %>
                           </td>
                           <td>
                             <a href="/admin/categorymanagement/update/<%= category._id %>" class="badge badge-outline-primary btn-update">
@@ -280,16 +284,16 @@ async function applyOffer() {
     })
     return;
   }
-  if(offerPercentage<0){
+  if(offerPercentage<=0){
     Swal.fire({
       text:"Offer Percentage must be positive",
       icon:"error"
     })
     return;
   }
-  if(offerPercentage>100){
+  if(offerPercentage>70){
     Swal.fire({
-      text:"Offer Percentage must not exceed 100",
+      text:"Offer Percentage must not exceed 70",
       icon:"error"
     })
     return;
@@ -307,20 +311,70 @@ async function applyOffer() {
     const data = await response.json();
 
     if (data.success) {
-      alert("Offer applied successfully!");
-      location.reload();
+      Swal.fire({
+        text:"Offer applied Successfully",
+        icon:"success"
+      })
+      setTimeout(() => {
+        location.reload();
+      }, 1500);
     } else {
-      alert("Failed to apply offer.");
+      Swal.fire({
+        text:"Failed to apply offer",
+        icon:"error"
+      })
     }
   } catch (error) {
     console.error("Error applying offer:", error);
-    alert("An error occurred while applying the offer.");
+    Swal.fire({
+      text:"An error occured while applying the offer"
+    })
   }
 }
 
 function closeModal() {
     document.getElementById("offerModal").style.display = "none";
   }
+</script>
+
+<script>
+
+  document.querySelectorAll(".btn-offer-remove").forEach((button=>{
+    button.addEventListener("click",async (e)=>{
+        const catId=button.getAttribute("data-id")
+        
+        try {
+          const response = await fetch(`/admin/categorymanagement/remove-offer/${catId}`, {
+            method: 'PUT',
+            headers:{
+              "Content-Type":"application/json"
+            }
+          });
+
+          const result = await response.json();
+
+          if (result.success) {
+            Swal.fire({
+              text:result.message,
+              icon:"success"
+            })
+            setTimeout(() => {
+              location.reload();
+            }, 1500);
+          } else {
+            Swal.fire({
+              text:result.message,
+              icon:"error"
+            });
+          }
+        } catch (error) {
+          console.error('Error:', error);
+          alert('An error occurred while removing the offer.');
+        }
+    })
+  }))
+
+
 </script>
 
 </html>

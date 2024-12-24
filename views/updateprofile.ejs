@@ -280,6 +280,9 @@
             <a href="/myaccountorder" class="dashboard-link">ORDERS</a>
             <a href="/address" class="dashboard-link">ADDRESS</a>
             <a href="/updateprofile/<%= user.id %>" class="dashboard-link">UPDATE PROFILE</a>
+            <% if(!user.isGoogleLogin) {%>
+            <a href="/updatepassword/<%= user.id %>" class="dashboard-link">UPDATE PASSWORD</a>
+            <% } %>
             <a href="/wallet" class="dashboard-link">WALLET</a>
             <a href="/logout" id="logout-button">LOGOUT</a>
         </div>
@@ -306,10 +309,6 @@
                     <input type="tel" id="phone" name="phone" placeholder="Enter your phone number" value="<%= user.Phone %>" maxlength="10">
                 </div>
 
-                <div class="form-group">
-                    <label for="password">Password</label>
-                    <input type="tel" id="password" name="password" placeholder="Enter your Password">
-                </div>
                 <p id="msg" style="color:red"></p>
 
                 <button type="submit" class="submit-btn">Update Profile</button>
@@ -325,9 +324,8 @@
             e.preventDefault()
             let username=document.getElementById("username").value
             let Phone=document.getElementById("phone").value
-            let password=document.getElementById("password").value
             let id=document.getElementById("profileId").value
-            let passreg= /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{6,}$/
+            // let passreg= /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{6,}$/
             const phonePattern = /^\d{10}$/;
 
             let msg=document.getElementById("msg")
@@ -335,10 +333,6 @@
             if(username.trim()==""||password==""||phone=="")
             {
                 msg.innerHTML="These fields are required"
-                return 
-            }
-            else if (!passreg.test(password)) {
-                msg.innerHTML = "Password format is not supported"
                 return 
             }
             else if(!phonePattern.test(Phone)){
@@ -356,8 +350,7 @@
                     },
                     body: JSON.stringify({
                         username,
-                        Phone,
-                        password
+                        Phone
                     })
                 })
                 const data=await response.json()

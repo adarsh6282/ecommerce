@@ -49,9 +49,7 @@ const loaduserBan=async(req,res)=>{
 }
 
 const loadEditProfile=async(req,res)=>{
-    if (!req.session.userData || !req.session.userData.email) {
-        return res.redirect('/login');
-    }
+     
     const profileId=req.params.id
     const user=await userSchema.findById(profileId)
     res.render("updateprofile",{user:user})
@@ -59,8 +57,7 @@ const loadEditProfile=async(req,res)=>{
 
 const editProfile=async(req,res)=>{
     try {
-        const saltround=10
-        const { username,Phone,password} = req.body
+        const { username,Phone} = req.body
         
         const userId = req.params.id
         const user=await userSchema.findById(userId)
@@ -70,9 +67,6 @@ const editProfile=async(req,res)=>{
         }
         user.username=username
         user.Phone=Phone
- 
-        const hashedPassword = await bcrypt.hash(password, saltround)
-        user.password = hashedPassword
   
         await user.save()
         return res.status(200).json({success:true,message:"Profile Updated successfully"})
@@ -81,6 +75,50 @@ const editProfile=async(req,res)=>{
         res.status(500).json({success:false,message:"Error updating profile"})
     }
 
+}
+
+const loadUpdatePassword=async(req,res)=>{
+    const {id}=req.params
+
+    const user=await userSchema.findById(id)
+
+    res.render("updatePassword",{user:user})
+}
+
+const updatePassword=async(req,res)=>{
+    const saltround=10
+    const {id}=req.params
+    try {
+        let {currentPassword,newPassword,confirmPassword}=req.body
+
+        const userId=await userSchema.findById(id)
+
+        if(!userId){
+           return res.status(400).json({success:false,message:"User not found"})
+        }   
+
+        const isMatch=await bcrypt.compare(currentPassword,userId.password)
+
+        if(!isMatch){
+           return res.status(400).json({success:false,message:"Currentpassword do not match the password in the database"})
+        }
+
+        if(newPassword!==confirmPassword){
+           return res.status(400).json({success:false,message:"Password do not match"})
+        }
+
+        const hashedPassword=await bcrypt.hash(newPassword,saltround)
+
+        userId.password=hashedPassword
+        
+        await userId.save() 
+
+       return res.status(200).json({success:true,message:"Password changed successfully"})
+
+    } catch (error) {
+        console.log(error)
+        res.status(500).json({success:false,message:"An error occured while changing the password"})
+    }
 }
 
 const loadMyAccount = async (req, res) => {
@@ -103,7 +141,7 @@ const loadMyAccount = async (req, res) => {
 };
 
 const loadForgotPassword = async (req, res) => {
-    res.render("forgotpassword")
+    res.render("forgotpassword",{message:null})
 }
 
 const forgotPassword= async (req, res) => {
@@ -412,7 +450,8 @@ const addAddress=async(req,res)=>{
 
 }catch(error){
     console.log(error)
-}}
+}
+}
 
 const loadEditAddress = async(req,res)=>{
     if (!req.session.userData || !req.session.userData.email) {
@@ -558,6 +597,9 @@ const loadCart = async (req, res) => {
         const userId=user._id
         const cart = await cartSchema.findOne({ userId }).populate('items.productId');
 
+        let cartError=req.session.errorMessage||null
+        req.session.errorMessage=null
+
         if (!cart || cart.items.length === 0) {
             return res.render('cart', { items: [], total: 0 });
         }
@@ -570,7 +612,7 @@ const loadCart = async (req, res) => {
             return acc + item.productId.offerPrice * item.quantity;
         }, 0);
 
-        res.render('cart', { items: cart.items, total });
+        res.render('cart', { items: cart.items, total,cartError });
     } catch (err) {
         console.error(err);
         res.status(500).send('Server error');
@@ -739,18 +781,7 @@ const wishlistToCart = async (req, res) => {
         );
 
         if (existingProductIndex >= 0) {
-            cart.items[existingProductIndex].quantity += quantity;
-
-            if (cart.items[existingProductIndex].quantity > 10) {
-                return res.status(400).json({ success: false, message: 'You can only add a maximum of 10 items' });
-            }
-
-            if (cart.items[existingProductIndex].quantity > product.stock) {
-                return res.status(400).json({
-                    success: false,
-                    message: `Only ${product.stock} items are available in stock`,
-                });
-            }
+           return res.status(400).json({success:false,message:"Product with same size already exist in cart"})
         } else {
             cart.items.push({ productId, quantity, size });
         }
@@ -782,20 +813,30 @@ const loadCheckout=async (req, res) => {
         if(!cart) {
             return res.redirect("/cart")
         }
+
+           for (const item of cart.items) {
+            const product = item.productId
+
+            const variant = product.variants.find(v => v.size == item.size)
+            if (!variant || item.quantity > variant.stock) {
+                req.session.errorMessage = `The quantity of ${product.name} in size ${item.size} exceeds available stock. Please adjust your cart. Only ${variant.stock} is left.`
+                return res.redirect("/cart")
+            }
+        }
         const quantity=cart.items.reduce((acc, item) =>{
             return acc+item.quantity
         },0)
-        const address = await addressSchema.find({ userId: new mongoose.Types.ObjectId(userId) });
+        const address = await addressSchema.find({ userId: new mongoose.Types.ObjectId(userId) })
 
         const total = cart.items.reduce((acc, item) => {
-            return acc + item.productId.offerPrice * item.quantity;
-        }, 0);
+            return acc + item.productId.offerPrice * item.quantity
+        }, 0)
 
-        let shippingCharge = 0;
+        let shippingCharge = 0
         if (total < 500) {
-            shippingCharge = 100;
+            shippingCharge = 100
         } else if (total < 1000) {
-            shippingCharge = 50;
+            shippingCharge = 50
         }
 
         let grandTotal=total+shippingCharge
@@ -831,6 +872,10 @@ const placeOrder = async (req, res) => {
             return res.status(400).json({success:false, message: 'Only COD payment method is allowed' });
         }
 
+        let couponName=null
+        let couponDiscount=0
+        let isCouponApplied=false
+
         let finalAmount = totalAmount;
 
         if (couponCode) {
@@ -859,13 +904,14 @@ const placeOrder = async (req, res) => {
             }
 
             finalAmount -= discountAmount;
-
+            couponDiscount = discountAmount;
+            couponName = couponCode;
+            isCouponApplied = true;
             if (finalAmount < 0) finalAmount = 0;
 
             coupon.usedCount += 1;
             await coupon.save();
         }
-
 
         for (let i = 0; i < items.length; i++) {
             const product = await productSchema.findById(items[i].productId);
@@ -889,6 +935,8 @@ const placeOrder = async (req, res) => {
 
             variant.stock -= items[i].quantity;
             product.totalStock -= items[i].quantity;
+
+            items[i].paymentStatus="Pending"
             await product.save();
         }
         
@@ -898,6 +946,9 @@ const placeOrder = async (req, res) => {
             totalAmount,
             orderItems: items,
             paymentMethod: paymentMethod,
+            couponName:couponName,
+            isCouponApplied:isCouponApplied,
+            couponDiscount:couponDiscount,
             paymentStatus:"Pending",
             status:"Pending"
         });
@@ -926,6 +977,10 @@ const razorPayOrder = async (req, res) => {
         if (!address) {
             return res.status(404).json({ success: false, message: 'Address not found' });
         }
+
+        let couponName=null
+        let couponDiscount=0
+        let isCouponApplied=false
 
         let total=parseFloat(totalAmount)
         let finalAmount = total;
@@ -957,6 +1012,9 @@ const razorPayOrder = async (req, res) => {
             }
 
             finalAmount = total
+            couponName=couponCode
+            couponDiscount=discountAmount
+            isCouponApplied=true
 
             if (finalAmount < 0) finalAmount = 0;
 
@@ -988,6 +1046,8 @@ const razorPayOrder = async (req, res) => {
             variant.stock -= items[i].quantity;
             product.totalStock -= items[i].quantity;
             await product.save();
+
+            items[i].paymentStatus = "Pending"
         }
 
         const amountInPaise = finalAmount * 100;
@@ -1008,6 +1068,9 @@ const razorPayOrder = async (req, res) => {
             paymentMethod,
             razorpayOrderId: order.id,
             paymentStatus: "Pending",
+            couponName:couponName,
+            couponDiscount:couponDiscount,
+            isCouponApplied:isCouponApplied,
             status: "Pending",
         });
 
@@ -1030,6 +1093,32 @@ const razorPayOrder = async (req, res) => {
     }
 };
 
+const retryPayment=async(req,res)=>{
+    const {orderId}=req.params
+
+    try {
+        const order=await orderSchema.findById(orderId)
+        if(!order){
+            res.status(400).json({success:false,message:"No orders found"})
+        }
+
+        if(!order.razorpayOrderId){
+            res.status(404).json({success:false,message:"No orders found with the razorpay order ID"})
+        }
+        res.status(200).json({
+            success: true,
+            razorpayKey: process.env.RAZORPAY_KEY,
+            amount: order.totalAmount * 100,
+            currency: "INR",
+            razorpayOrderId: order.razorpayOrderId,
+            message: "Retry payment details fetched successfully",
+        })
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({success: false,message: "Failed to fetch retry payment details"})
+    }
+}
+
 const verifyPayment = async (req, res) => {
     try {
         const { razorpay_payment_id, razorpay_order_id, razorpay_signature } = req.body;
@@ -1048,6 +1137,9 @@ const verifyPayment = async (req, res) => {
         }
 
         order.paymentStatus = "Completed";
+        order.orderItems.forEach((item=>{
+            item.paymentStatus="Completed"
+        }))
         order.status = "Pending";
         await order.save();
 
@@ -1158,16 +1250,20 @@ const cancelOrder = async (req, res) => {
 
         for (const item of order.orderItems) {
             item.itemStatus = "Cancelled";
-
             const product = await productSchema.findById(item.productId);
             if (product) {
-                const variant = product.variants.find(v => v.size == item.size);
-                variant.stock += item.quantity;
-                await product.save();
+                const variantIndex = product.variants.findIndex(
+                    (variant) => variant.size === item.size
+                );
+
+                if (variantIndex !== -1) {
+                    product.variants[variantIndex].stock += item.quantity;
+                    product.totalStock = product.variants.reduce((acc, variant) => acc + variant.stock, 0);
+
+                    await product.save();
+                }
             }
         }
-
-
         if (order.paymentMethod === "Razorpay" && order.paymentStatus === "Completed") {
             const wallet = await walletSchema.findOne({ userId: order.userId });
 
@@ -1220,6 +1316,7 @@ const cancelOrderItem = async (req, res) => {
         }
 
         const item = order.orderItems[itemIndex];
+        console.log(item)
 
         if (order.status === "Delivered") {
             return res.status(400).json({
@@ -1230,12 +1327,20 @@ const cancelOrderItem = async (req, res) => {
 
         item.itemStatus = "Cancelled";
 
-        const product=await productSchema.findById(productId)
+        const product = await productSchema.findById(productId);
+        if (product) {
+            const variant = product.variants.find((v) => v.size == item.size);
 
-        if(product){
-            const variant=product.variants.find(v=>v.size==item.size)
-            variant.stock+=item.quantity
-            product.totalStock+=item.quantity
+            if (variant) {
+                variant.stock += item.quantity;
+                product.totalStock = product.variants.reduce((acc, v) => acc + v.stock, 0);
+                await product.save();
+            } else {
+                return res.status(400).json({
+                    success: false,
+                    message: `Variant with size ${item.size} not found for product ${product.name}.`,
+                });
+            }
         }
 
         if (order.paymentMethod === "Razorpay" && order.paymentStatus === "Completed") {
@@ -1265,9 +1370,12 @@ const cancelOrderItem = async (req, res) => {
             }
         }
 
+        const itemAmount = item.productId.offerPrice * item.quantity
         const allItemsCancelled = order.orderItems.every(item => item.itemStatus === "Cancelled");
         if (allItemsCancelled) {
             order.status = "Cancelled";
+        }else{
+            order.totalAmount-=itemAmount
         }
 
         await order.save();
@@ -1394,7 +1502,6 @@ const applyCoupon = async (req, res) => {
         discount: discountAmount,
         finalAmount:total ,
       };
-      console.log(req.session.coupon)
   
       return res.status(200).json({
         success: true,
@@ -1470,16 +1577,12 @@ const loadWishlist=async(req, res) => {
         const user=await userSchema.findOne({email:req.session.userData.email})
         const userId=user._id
         
-        let wishlist = await wishlistSchema.findOne({ userId ,isDeleted:false}).populate('products.productId');
+        let wishlist = await wishlistSchema.findOne({ userId }).populate('products.productId');
         
         if (!wishlist) {
-            wishlist = new wishlistSchema({
-                userId: userId,
-                products: [],
-            });
-
-            await wishlist.save();
+           return  res.render('wishlist', { wishlistItems: [] });
         }
+        console.log(wishlist.products)
 
         res.render('wishlist', { wishlistItems: wishlist.products });
     } catch (error) {
@@ -1491,32 +1594,41 @@ const loadWishlist=async(req, res) => {
 const addToWishlist = async (req, res) => {
     try {
         const { productId, size } = req.body;
-        const user = await userSchema.findOne({ email: req.session.userData.email });
-        const userId = user.id;
-
+        if (!productId) {
+            return res.status(400).json({ success: false, message: 'Product ID is required' });
+        }
+  
         const numericalSize = Number(size);
 
-        let wishlist = await wishlistSchema.findOne({ userId });
+        const user = await userSchema.findOne({ email: req.session.userData.email });
+        if (!user) {
+            return res.status(400).json({ success: false, message: 'User not found or not logged in' });
+        }
 
+        const userId = user._id;
+
+        let wishlist = await wishlistSchema.findOne({ userId });
         if (!wishlist) {
-            wishlist = new wishlistSchema({ userId, products: [{ productId, size:numericalSize }] });
+            wishlist = new wishlistSchema({ userId, products: [{ productId, size: numericalSize }] });
         } else {
-            const productExists = wishlist.products.some(
-                (product) =>
-                    product.productId.toString() === productId.toString() &&
-                    product.size === numericalSize
-            );
+
+            const productExists = wishlist.products.some((product) =>product.productId.toString() === productId.toString() &&product.size === numericalSize);
 
             if (productExists) {
-                return res.status(400).json({ success: false, message: 'Product with the same size already in wishlist' });
+                return res.status(400).json({
+                    success: false,
+                    message: 'Product with the same size already in wishlist',
+                });
             }
-            wishlist.products.push({ productId, size });
-        }
-        await wishlist.save();
 
+            wishlist.products.push({ productId, size: numericalSize });
+        }
+
+        await wishlist.save();
+        console.log(wishlist)
         res.json({ success: true, message: 'Product added to wishlist' });
     } catch (error) {
-        console.error(error);
+        console.error('Error adding to wishlist:', error);
         res.status(500).json({ success: false, message: 'Server error' });
     }
 };
@@ -1597,7 +1709,7 @@ const downloadReceipt = async (req, res) => {
     try {
         const orderId = req.params.id;
 
-        const order = await orderSchema.findById(orderId).populate('userId', 'name email').populate('orderItems.productId', 'name offerPrice')
+        const order = await orderSchema.findById(orderId).populate('userId', 'username email Phone').populate('orderItems.productId', 'name offerPrice')
 
         if (!order) {
             return res.status(404).send('Order not found');
@@ -1667,6 +1779,8 @@ module.exports = {
     loadMyAccount,
     loadEditProfile,
     editProfile,
+    loadUpdatePassword,
+    updatePassword,
     loadAddress,
     loadAddAddress,
     addAddress,
@@ -1693,6 +1807,7 @@ module.exports = {
     addToWishlist,
     removeFromWishlist,
     razorPayOrder,
+    retryPayment,
     verifyPayment,
     requestReturn,
     requestItemReturn,
