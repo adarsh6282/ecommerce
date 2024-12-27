@@ -112,7 +112,7 @@
 									<div class="owl-carousel2">
 										<div class="item">
 											<div class="col">
-												<h3><a href="#">25% off (Almost) Everything! Use Code: Summer Sale</a></h3>
+												<h3><a href="#">20% off Almost Everything! Use Code: SAMPLE20</a></h3>
 											</div>
 										</div>
 									</div>
@@ -181,14 +181,6 @@
 								<span>&#8377;<del><%= product.price %></del></span>   <span>&#8377;<%= product.offerPrice %></span> <span class="discount">
 									<%= Math.round(((product.price - product.offerPrice) / product.price) * 100) %>% Off
 								  </span>
-								<span class="rate">
-									<i class="bi bi-star-fill" style="color: gold;"></i>
-									<i class="bi bi-star-fill" style="color: gold;"></i>
-									<i class="bi bi-star-fill" style="color: gold;"></i>
-									<i class="bi bi-star-fill" style="color: gold;"></i>
-									<i class="bi bi-star-half" style="color: gold;"></i>
-									(74 Rating)
-								</span>
 							</p>
 							<br>
 							<div class="size-wrap">
@@ -241,10 +233,7 @@
 								  <ul class="nav nav-pills mb-3" id="pills-tab" role="tablist">
 								    <li class="nav-item">
 								      <a class="nav-link active" id="pills-description-tab" data-toggle="pill" href="#pills-description" role="tab" aria-controls="pills-description" aria-expanded="true">Description</a>
-								    </li>
-								    <li class="nav-item">
-								      <a class="nav-link" id="pills-description-tab" data-toggle="pill" href="#pills-description" role="tab" aria-controls="pills-description" aria-expanded="true">Review</a>
-								    </li>
+								    </li>  
 								  </ul>
 
 									<div class="tab-content" id="pills-tabContent">
@@ -392,12 +381,10 @@
             icon: "error",
         });
         return;
-    }
-		
+    }		
 			let button=document.getElementById("addToWishlistButton")
 			button=e.currentTarget
 			let productId = button.getAttribute('data-product-id')
-			button.style.color="red"
 		
 			try {
 		   const response = await fetch('/wishlist/add', {
@@ -414,6 +401,8 @@
 				text: result.message,
 				icon:'success',
 			})
+			button.style.color="red"
+			button.disabled=true
 		} else {
 			Swal.fire({
 				text: result.message,

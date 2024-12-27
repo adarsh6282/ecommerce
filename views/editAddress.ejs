@@ -262,7 +262,7 @@
 									<div class="owl-carousel2">
 										<div class="item">
 											<div class="col">
-												<h3><a href="#">25% off (Almost) Everything! Use Code: Summer Sale</a></h3>
+												<h3><a href="#">20% off Almost Everything! Use Code: SAMPLE20</a></h3>
 											</div>
 										</div>
 									</div>
@@ -346,58 +346,6 @@
             let country=document.getElementById("country").value
             let pincode=document.getElementById("pincode").value
             let addressId=document.getElementById("addressId").value
-
-            try{
-
-            const respose=await fetch(`/address/edit/${addressId}`,{
-                method:"PUT",
-                headers:{
-                    "Content-Type":"application/json"
-                },
-                body:JSON.stringify({
-                    housename,
-                    city,
-                    district,
-                    state,
-                    country,
-                    pincode,
-                    addressId
-                 })
-                })
-                const result=await respose.json()
-                if(result.success){
-                    swal.fire({
-                        text:result.message,
-                        icon:"success"
-                    })
-                }else{
-                    swal.fire({
-                        text:result.message || "Failed to edit address",
-                        icon:"error"
-                    })
-                }
-            }catch(error){
-                console.error(error)
-                Swal.fire({
-                    text:"Failed to edit address",
-                    icon:"error"
-                })
-            }
-
-            })
-
-    </script>
-
-    <script>
-
-document.getElementById("editaddress").addEventListener("submit",async(e)=>{
-            e.preventDefault();
-            const housename = document.getElementById("housename").value;
-            const city = document.getElementById("city").value;
-            const district = document.getElementById("district").value;
-            const state = document.getElementById("state").value;
-            const country = document.getElementById("country").value;
-            const pincode = document.getElementById("pincode").value;
             const fullreg=/^[A-Za-z\s]+$/;
             const pinreg=/^\d{6}$/;
 
@@ -428,6 +376,46 @@ document.getElementById("editaddress").addEventListener("submit",async(e)=>{
                     })
                         return
                 }
+
+            try{
+
+            const respose=await fetch(`/address/edit/${addressId}`,{
+                method:"PUT",
+                headers:{
+                    "Content-Type":"application/json"
+                },
+                body:JSON.stringify({
+                    housename,
+                    city,
+                    district,
+                    state,
+                    country,
+                    pincode,
+                    addressId
+                 })
+                })
+                const result=await respose.json()
+                if(result.success){
+                    swal.fire({
+                        text:result.message,
+                        icon:"success"
+                    }).then((result)=>{
+                        window.location.href="/address"
+                    })
+                }else{
+                    swal.fire({
+                        text:result.message || "Failed to edit address",
+                        icon:"error"
+                    })
+                }
+            }catch(error){
+                console.error(error)
+                Swal.fire({
+                    text:"Failed to edit address",
+                    icon:"error"
+                })
+            }
+
             })
 
     </script>

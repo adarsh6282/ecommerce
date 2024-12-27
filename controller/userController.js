@@ -18,6 +18,7 @@ const crypto=require("crypto")
 const path=require("path")
 const ejs=require("ejs")
 const pdf=require("html-pdf")
+const pdfDocument=require("pdfkit")
 
 const loadRegister = (req, res) => {
     res.set('Cache-Control', 'no-store');
@@ -138,7 +139,7 @@ const loadMyAccount = async (req, res) => {
         res.status(500).send("Something went wrong.");
     }
     
-};
+}
 
 const loadForgotPassword = async (req, res) => {
     res.render("forgotpassword",{message:null})
@@ -347,9 +348,10 @@ const loadShop=async(req,res)=>{
         }
     const categories = await categorySchema.find({ isDeleted: false });
 
-    const { category, priceRange, sortBy, search } = req.query;
+    const { category, priceRange, sortBy, search ,page=1 ,limit=8} = req.query;
 
     let filter = { isDeleted: false };
+
     
     if (category && category !== 'All Categories') {
         const selectedCategory = await categorySchema.findOne({ name: category });
@@ -364,7 +366,10 @@ const loadShop=async(req,res)=>{
     if (search) {
         filter.name = { $regex: search, $options: 'i' };
     }
-    let productData = await productSchema.find(filter);
+    
+    const skip = (page - 1) * limit
+
+    let productData = await productSchema.find(filter).skip(skip).limit(parseInt(limit))
 
     if (sortBy) {
         switch (sortBy) {
@@ -389,7 +394,10 @@ const loadShop=async(req,res)=>{
     } else {
         productData.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
     }
-    res.render("shop", { productData, categories, priceRange, sortBy, search ,selectedCategory:category});
+    const totalProducts = await productSchema.countDocuments(filter);
+    const totalPages = Math.ceil(totalProducts / limit);
+
+    res.render("shop", { productData, categories, priceRange, sortBy, search ,selectedCategory:category,currentPage: parseInt(page),totalPages,query:req.query});
       }catch(error){
         console.error(error);
       }
@@ -585,7 +593,7 @@ const deleteAddress = async (req, res) => {
         console.log(error);
         res.status(500).json({ success: false, message: "Error deleting address" });
     }
-};
+}
 
 const loadCart = async (req, res) => {
     try {
@@ -617,7 +625,7 @@ const loadCart = async (req, res) => {
         console.error(err);
         res.status(500).send('Server error');
     }
-};
+}
 
 const addToCart = async (req, res) => {
     const user = await userSchema.findOne({ email: req.session.userData.email });
@@ -697,7 +705,7 @@ const addToCart = async (req, res) => {
         console.error(err);
         res.status(500).json({ success: false, message: 'Server error' });
     }
-};
+}
 
 const updateCart=async (req, res) => {
     const { productId, quantity } = req.body;
@@ -799,7 +807,7 @@ const wishlistToCart = async (req, res) => {
         console.error(err);
         res.status(500).json({ success: false, message: 'Server error' });
     }
-};
+}
 
 const loadCheckout=async (req, res) => {
     try {
@@ -970,7 +978,7 @@ const razorPayOrder = async (req, res) => {
 
         const user = await userSchema.findById(userId);
         if (!user) {
-            return res.status(401).json({ success: false, message: 'User not logged in' });
+            return res.status(400).json({ success: false, message: 'User not logged in' });
         }
 
         const address = await addressSchema.findById(addressId);
@@ -1091,7 +1099,7 @@ const razorPayOrder = async (req, res) => {
             message: "Failed to create Razorpay order.",
         });
     }
-};
+}
 
 const retryPayment=async(req,res)=>{
     const {orderId}=req.params
@@ -1150,7 +1158,7 @@ const verifyPayment = async (req, res) => {
         console.error(error);
         res.status(500).json({success: false,message: "Failed to verify Razorpay payment.",});
     }
-};
+}
 
 const loadOrderComplete = async (req,res)=>{
     try{
@@ -1211,7 +1219,7 @@ const loadOrder = async (req, res) => {
         console.log(error);
         res.status(500).send("An error occurred");
     }
-};
+}
 
 const loadOrderView = async (req, res) => {
     try {
@@ -1273,7 +1281,7 @@ const cancelOrder = async (req, res) => {
                 wallet.transactions.push({
                     amount: order.totalAmount,
                     type: 'Credit',
-                    description: `Order Cancelled: ${order.orderId} - Razorpay Payment`,
+                    description: `Order Cancelled: ${orderId} - Razorpay Payment`,
                 });
         
                 await wallet.save();
@@ -1284,7 +1292,7 @@ const cancelOrder = async (req, res) => {
                     transactions: [{
                         amount: order.totalAmount,
                         type: 'Credit',
-                        description: `Order Cancelled: ${order.orderId} - Razorpay Payment`,
+                        description: `Order Cancelled: ${orderId} - Razorpay Payment`,
                     }],
                 });
         
@@ -1299,7 +1307,7 @@ const cancelOrder = async (req, res) => {
         console.error("Error cancelling order:", error);
         return res.status(500).json({success:false, message: "An error occurred" });
     }
-};
+}
 
 const cancelOrderItem = async (req, res) => {
     try {
@@ -1390,7 +1398,7 @@ const cancelOrderItem = async (req, res) => {
         console.error("Error canceling order item:", error);
         return res.status(500).json({ success: false, message: "An error occurred while canceling the item" });
     }
-};
+}
 
 const requestReturn = async (req, res) => {
     try {
@@ -1424,7 +1432,7 @@ const requestReturn = async (req, res) => {
         console.error("Error requesting return:", error);
         return res.status(500).json({ success: false, message: "An error occurred" });
     }
-};
+}
 
 const requestItemReturn = async (req, res) => {
     try {
@@ -1465,7 +1473,7 @@ const requestItemReturn = async (req, res) => {
             message: "An error occurred while processing your return request.",
         });
     }
-};
+}
 
 const applyCoupon = async (req, res) => {
     try {
@@ -1513,9 +1521,9 @@ const applyCoupon = async (req, res) => {
       console.error('Error applying coupon:', error);
       res.status(500).json({ success: false, message: 'Internal server error' });
     }
-};
+}
 
-  const removeCoupon=async(req,res)=>{
+const removeCoupon=async(req,res)=>{
     try {
         if (!req.session.coupon) {
           return res.status(400).json({ success: false, message: 'No coupon applied' });
@@ -1567,7 +1575,7 @@ const removeFromCart= async (req, res) => {
         console.error('Error removing product from cart:', error);
         return res.status(500).json({ success: false, message: 'An error occurred while removing the product' });
     }
-};
+}
 
 const loadWishlist=async(req, res) => {
     try {
@@ -1621,17 +1629,16 @@ const addToWishlist = async (req, res) => {
                 });
             }
 
-            wishlist.products.push({ productId, size: numericalSize });
+            wishlist.products.push({ productId, size: numericalSize ,wishlisted:true});
         }
 
         await wishlist.save();
-        console.log(wishlist)
         res.json({ success: true, message: 'Product added to wishlist' });
     } catch (error) {
         console.error('Error adding to wishlist:', error);
         res.status(500).json({ success: false, message: 'Server error' });
     }
-};
+}
 
 const removeFromWishlist= async (req, res) => {
     try{
@@ -1664,7 +1671,7 @@ const removeFromWishlist= async (req, res) => {
         console.error('Error removing product from Wishlist:', error);
         return res.status(500).json({ success: false, message: 'An error occurred while removing the product' });
     }
-};
+}
 
 const loadWallet=async(req,res) => {
     try{
@@ -1715,42 +1722,109 @@ const downloadReceipt = async (req, res) => {
             return res.status(404).send('Order not found');
         }
 
-        const filePath = path.join(__dirname, '../views/invoice.ejs');
-
         let totalAmount = 0;
             order.orderItems.forEach(item => {
             totalAmount += item.productId.offerPrice * item.quantity;
         });
 
-        ejs.renderFile(filePath, { order,totalAmount}, (err, html) => {
-            if (err) {
-                console.error('Error rendering template:', err);
-                return res.status(500).send('Internal Server Error');
-            }
+        let discount=0
+        if(order.isCouponApplied&&order.couponDiscount){
+            discount=order.couponDiscount
+        }
 
-            const options = {
-                format: 'A4',
-                orientation: 'portrait',
-                border: '10mm',
-            };
+        let finalAmount=totalAmount-discount
 
-            pdf.create(html, options).toStream((err, stream) => {
-                if (err) {
-                    console.error('Error generating PDF:', err);
-                    return res.status(500).send('Internal Server Error');
-                }
+        res.setHeader('Content-Type', 'application/pdf');
+        res.setHeader('Content-Disposition', `attachment; filename=order-${orderId}.pdf`);
 
-                res.setHeader('Content-Type', 'application/pdf');
-                res.setHeader('Content-Disposition', `attachment; filename=order-${orderId}.pdf`);
+        const doc = new pdfDocument({ margin: 30 });
+        doc.pipe(res);
 
-                stream.pipe(res);
-            });
+        doc.fontSize(20).font('Helvetica-Bold').text('Invoice', { align: 'center' });
+        doc.moveDown();
+
+        doc.fontSize(14).font('Helvetica').text(`Order ID: ${orderId}`);
+        doc.text(`Customer Name: ${order.userId.username}`);
+        doc.text(`Email: ${order.userId.email}`);
+        doc.text(`Phone: ${order.userId.Phone}`);
+        doc.moveDown();
+
+        doc.fontSize(14).font('Helvetica-Bold').text('Order Items', { underline: true });
+        doc.moveDown();
+
+        const tableTop = doc.y;
+        const columnWidths = [200, 80, 100, 100];
+
+        drawTableHeader(doc, tableTop, columnWidths);
+
+        let rowY = tableTop + 20;
+
+        order.orderItems.forEach(item => {
+            drawTableRow(
+                doc,
+                rowY,
+                columnWidths,
+                item.productId.name,
+                `${item.quantity}`,
+                `₹${item.productId.offerPrice.toFixed(2)}`,
+                `₹${(item.productId.offerPrice * item.quantity).toFixed(2)}`
+            );
+            rowY += 25;
         });
+
+        doc.moveDown(2);
+
+        doc.fontSize(14).font('Helvetica-Bold').text(`Subtotal: ₹${totalAmount.toFixed(2)}`, { align: 'right' });
+        doc.text(`Discount: ₹${discount.toFixed(2)}`, { align: 'right' });
+        doc.text(`Total: ₹${finalAmount.toFixed(2)}`, { align: 'right' });
+
+        doc.moveDown(2);
+
+        const pageWidth = doc.page.width;
+
+        doc.fontSize(12).font('Helvetica-Oblique');
+
+        const footerText1 = 'Thank you for your purchase!';
+        const footerText1Width = doc.widthOfString(footerText1);
+        doc.text(footerText1, (pageWidth - footerText1Width) / 2, doc.y);
+
+        const footerText2 = 'We hope to see you again!';
+        const footerText2Width = doc.widthOfString(footerText2);
+        doc.text(footerText2, (pageWidth - footerText2Width) / 2, doc.y);
+
+        doc.end();
+
+        function drawTableHeader(doc, y, columnWidths) {
+            const headers = ['Product Name', 'Quantity', 'Unit Price', 'Total Price'];
+            let x = 50;
+        
+            doc.fontSize(12).font('Helvetica-Bold');
+        
+            headers.forEach((header, i) => {
+                doc.text(header, x, y, { width: columnWidths[i], align: 'center' });
+                x += columnWidths[i];
+            });
+
+            doc.moveTo(50, y + 15).lineTo(530, y + 15).stroke();
+        }
+
+        function drawTableRow(doc, y, columnWidths, productName, quantity, unitPrice, totalPrice) {
+            let x = 50;
+        
+            doc.fontSize(12).font('Helvetica');
+            const row = [productName, quantity, unitPrice, totalPrice];
+        
+            row.forEach((cell, i) => {
+                doc.text(cell, x, y, { width: columnWidths[i], align: 'center' });
+                x += columnWidths[i];
+            });
+        }
+
     } catch (error) {
         console.error('Error generating PDF:', error);
         res.status(500).send('Internal Server Error');
     }
-};
+}
 
 const logout = (req, res) => {
     req.session.destroy(() => {

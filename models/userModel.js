@@ -22,7 +22,6 @@ const userSchema=new mongoose.Schema({
         sparse:true
     },
 
-
     password:{
         type:String,
     },
@@ -32,22 +31,26 @@ const userSchema=new mongoose.Schema({
         required:false,
         default:Date.now
     },
+
     role: { 
         type: String, default: "user"     
     },
 
     isDeleted: {
-         type: Boolean, default: false
+        type: Boolean, default: false
      },
+
      updatedAt: { 
         type: Date, default: Date.now 
     },
+
      isValid: {
-         type: Boolean, default: false
+        type: Boolean, default: false
      },
+
      isGoogleLogin: { 
         type: Boolean, default: false 
-    },
+    }
 })
 
 module.exports=mongoose.model("users",userSchema)

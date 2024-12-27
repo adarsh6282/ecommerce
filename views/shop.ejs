@@ -137,6 +137,30 @@
         box-shadow: 0 0 5px rgba(0, 123, 255, 0.5);
     }
 
+    .pagination {
+    display: flex;
+    justify-content: center;
+    margin-top: 20px;
+    gap: 10px;
+    }
+
+    .pagination a {
+        padding: 10px 15px;
+        text-decoration: none;
+        background-color: #f0f0f0;
+        border: 1px solid #ccc;
+        color: #333;
+    }
+
+    .pagination a.active {
+        background-color: #007bff;
+        color: white;
+        border-color: #007bff;
+    }
+
+    .pagination a:hover {
+        background-color: #ddd;
+    }
 
 	</style>
 	
@@ -332,6 +356,23 @@
 				</div>
 			</div>
 		</div>
+        <div class="pagination">
+            <% if (currentPage > 1) { %>
+                <a href="?<%= new URLSearchParams({ ...query, page: currentPage - 1 }).toString() %>">Previous</a>
+            <% } %>
+        
+            <% for (let i = 1; i <= totalPages; i++) { %>
+                <a href="?<%= new URLSearchParams({ ...query, page: i }).toString() %>" 
+                   class="<%= currentPage === i ? 'active' : '' %>">
+                   <%= i %>
+                </a>
+            <% } %>
+        
+            <% if (currentPage < totalPages) { %>
+                <a href="?<%= new URLSearchParams({ ...query, page: currentPage + 1 }).toString() %>">Next</a>
+            <% } %>
+        </div>
+        
 
 		<div class="colorlib-partner">
 			<div class="container">

@@ -48,7 +48,7 @@ router.put("/updatesizestocks/:id", adminController.stockManagement);
 router.get("/dashboard",isAuthenticated,adminController.loadDashboard)
 router.get("/dashboard/data",isAuthenticated,adminController.loadDashboardData)
 router.get("/salesreport",isAuthenticated,adminController.loadSalesReport)
-router.get("/api/salesreport",isAuthenticated,adminController.salesReport)
+//router.get("/api/salesreport",isAuthenticated,adminController.salesReport)
 router.get("/downloadpdf",isAuthenticated,adminController.downloadPdf)
 router.get("/downloadexcel",isAuthenticated,adminController.downloadExcel)
 router.get("/login",loginAuthentication,adminController.loadAdminLogin)

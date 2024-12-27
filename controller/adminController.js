@@ -9,15 +9,18 @@ const ejs=require("ejs")
 const pdf = require('html-pdf');
 const ExcelJS = require('exceljs');
 const moment = require('moment');
+const pdfDocument=require("pdfkit")
+const path=require("path")
 
 
 const loadAdminLogin=(req,res)=>{
-    res.render("admin-login")
+    res.render("admin-login",{message:null})
 }
 
 const loadDashboard = async (req, res) => {
   try {
     const totalSales = await orderSchema.aggregate([
+      { $match: { paymentStatus:"Completed" } },
       { $group: { _id: null, totalSales: { $sum: "$totalAmount" } } },
     ]);
     const totalOrders = await orderSchema.countDocuments();
@@ -30,7 +33,7 @@ const loadDashboard = async (req, res) => {
       { $lookup: { from: "products", localField: "_id", foreignField: "_id", as: "productDetails" } },
       { $unwind: "$productDetails" },
       { $project: { productName: "$productDetails.name", quantity: 1 } }
-    ]);
+    ])
 
     const categoriesSold = await orderSchema.aggregate([
       { $unwind: "$orderItems" },
@@ -40,7 +43,7 @@ const loadDashboard = async (req, res) => {
       { $unwind: "$categoryDetails" },
       { $group: { _id: "$categoryDetails._id",categoryName: { $first: "$categoryDetails.name" }, quantity: { $sum: "$orderItems.quantity" } }},
       { $project: {categoryName: 1,quantity: 1}}
-    ]);
+    ])
     
       return res.render("admin-dashboard", {
       totalSales: totalSales[0]?.totalSales || 0,
@@ -176,10 +179,7 @@ const loadSalesReport = async (req, res) => {
       const end = new Date(endDate);
       end.setHours(23, 59, 59, 999);
 
-      orders = await orderSchema.find(
-      { createdAt: { $gte: start, $lte: end } },
-        'orderId createdAt totalAmount paymentStatus couponDiscount'
-      ).populate('userId', 'username')
+      orders = await orderSchema.find({ createdAt: { $gte: start, $lte: end } },'orderId createdAt totalAmount paymentStatus couponDiscount').populate('userId', 'username')
 
       const salesData = await orderSchema.aggregate([
         { $match: { createdAt: { $gte: start, $lte: end } } },
@@ -192,7 +192,7 @@ const loadSalesReport = async (req, res) => {
         { $group: { _id: null, totalDiscounts: { $sum: "$couponDiscount" } } },
       ]);
       totalDiscounts = discountData[0]?.totalDiscounts || 0;
-    }
+    }         
 
     res.render('salesreport', {
       orders,
@@ -207,10 +207,11 @@ const loadSalesReport = async (req, res) => {
   }
 };
 
-const salesReport=async(req, res) => {
-  if(!req.session.admin){
-    return res.redirect("/admin/login")
+const downloadPdf = async (req, res) => {
+  if (!req.session.admin) {
+    return res.redirect("/admin/login");
   }
+  
   try {
     const { startDate, endDate } = req.query;
     let matchCondition = {};
@@ -219,87 +220,95 @@ const salesReport=async(req, res) => {
       const start = new Date(startDate);
       const end = new Date(endDate);
       end.setHours(23, 59, 59, 999);
-
       matchCondition.createdAt = { $gte: start, $lte: end };
     }
 
-    const orders = await orderSchema.find(matchCondition, 'orderId createdAt totalAmount paymentStatus couponDiscount').populate("userId","username")
+    const orders = await orderSchema.find(matchCondition)
+      .populate('userId', 'username')
+      .populate('orderItems.productId', 'name price')
+      .exec();
+
     const totalSales = await orderSchema.aggregate([
       { $match: matchCondition },
-      { $group: { _id: null, totalSales: { $sum: "$totalAmount" } } },
+      { $group: { _id: null, totalSales: { $sum: "$totalAmount" } } }
     ]);
 
     const discountData = await orderSchema.aggregate([
-      { $match: { createdAt: { $gte: start, $lte: end }, isCouponApplied: true } },
-      { $group: { _id: null, totalDiscounts: { $sum: "$couponDiscount" } } },
+      { $match: { ...matchCondition, isCouponApplied: true } },
+      { $group: { _id: null, totalDiscounts: { $sum: "$couponDiscount" } } }
     ]);
-    totalDiscounts = discountData[0]?.totalDiscounts || 0;
 
-    res.render('salesreport', {
-      orders,
-      totalSales: totalSales[0]?.totalSales || 0,
-      totalDiscounts,
-      startDate,
-      endDate,
+    const totalDiscounts = discountData[0]?.totalDiscounts || 0;
+
+    const doc = new pdfDocument({
+      margin: 50,
+      size: 'A4',
     });
-  } catch (error) {
-    console.error("Error loading sales report:", error);
-    res.status(500).send("Failed to load sales report");
-  }
-}
 
-const downloadPdf=async(req,res)=>{
-  if(!req.session.admin){
-    return res.redirect("/admin/login")
-  }
-  try {
-    const { startDate, endDate } = req.query;
-    let matchCondition = {};
+    res.setHeader('Content-Type', 'application/pdf');
+    res.setHeader('Content-Disposition', 'attachment; filename="salesreport.pdf"');
+    doc.pipe(res);
 
-    if (startDate && endDate) {
-      const start = new Date(startDate);
-      const end = new Date(endDate);
-      end.setHours(23, 59, 59, 999);
+    doc.fontSize(24).text('Sales Report', { align: 'center' }).moveDown(0.5);
+    doc.fontSize(14).text(`Report from: ${startDate || 'All Time'} to ${endDate || 'Present'}`, { align: 'center' }).moveDown(1.5);
 
-      matchCondition.createdAt = { $gte: start, $lte: end };
+    const tableTop = 200;
+    const columns = {
+      orderID: { x: 50, width: 160 },
+      customerName: { x: 220, width: 120 },
+      totalAmount: { x: 280, width: 80 },
+      discount: { x: 380, width: 80 },
+      finalAmount: { x: 500, width: 80 }
+    };
+
+    doc.fontSize(12)
+    doc.text('Order ID', columns.orderID.x, tableTop);
+    doc.text('Customer Name', columns.customerName.x, tableTop);
+    doc.text('Total', columns.totalAmount.x, tableTop, { align: 'right', width: columns.totalAmount.width });
+    doc.text('Discount', columns.discount.x, tableTop, { align: 'center', width: columns.discount.width });
+    doc.text('Final', columns.finalAmount.x, tableTop, { align: 'right', width: columns.finalAmount.width });
+
+    doc.moveTo(50, tableTop + 20).lineTo(600, tableTop + 20).stroke();
+
+      let rowTop = tableTop + 40;
+      orders.forEach(order => {
+      const amount = order.totalAmount;
+      const discount = order.couponDiscount || 0;
+      const final = amount - discount;
+
+      doc.fontSize(10);
+      doc.text(order._id.toString(), columns.orderID.x, rowTop, { width: columns.orderID.width });
+      doc.text(order.userId.username, columns.customerName.x, rowTop, { width: columns.customerName.width });
+      doc.text(`₹${amount.toFixed(2)}`, columns.totalAmount.x, rowTop, { align: 'right', width: columns.totalAmount.width });
+      doc.text(`₹${discount.toFixed(2)}`, columns.discount.x, rowTop, { align:"center" , width: columns.discount.width });
+      doc.text(`₹${final.toFixed(2)}`, columns.finalAmount.x, rowTop, { align: 'right', width: columns.finalAmount.width });
+
+      rowTop += 25;
+    });
+
+      doc.moveTo(50, rowTop).lineTo(600, rowTop).stroke();
+
+      rowTop += 30;
+      doc.fontSize(12);
+      const summaryX = 400;
+      const summaryValueX = 530;
+      const summaryWidth = 80;
+
+      doc.text(`Total Sales:`, summaryX, rowTop);
+      doc.text(`₹${totalSales[0]?.totalSales.toFixed(2) || '0.00'}`, summaryValueX, rowTop, { width: summaryWidth });
+      
+      doc.text(`Total Discounts:`, summaryX, rowTop + 25);
+      doc.text(`₹${totalDiscounts.toFixed(2)}`, summaryValueX, rowTop + 25, { width: summaryWidth });
+      
+      doc.text(`Total Final Amount:`, summaryX, rowTop + 50);
+      doc.text(`₹${(totalSales[0]?.totalSales - totalDiscounts).toFixed(2)}`, summaryValueX, rowTop + 50, { width: summaryWidth });
+
+      doc.end();
+    } catch (error) {
+      console.error("Error downloading PDF:", error);
+      res.status(500).send("Failed to download PDF");
     }
-
-    const orders = await orderSchema.find(matchCondition).populate('userId', 'username').populate('orderItems.productId', 'name price').exec();
-    const totalSales = await orderSchema.aggregate([
-      { $match: matchCondition },
-      { $group: { _id: null, totalSales: { $sum: "$totalAmount" } } },
-    ]);
-
-    let totalDiscounts = 0;
-
-    const discountData = await orderSchema.aggregate([
-      { $match: { createdAt: { matchCondition }, isCouponApplied: true } },
-      { $group: { _id: null, totalDiscounts: { $sum: "$couponDiscount" } } },
-    ]);
-
-    totalDiscounts = discountData[0]?.totalDiscounts || 0;
-
-    const html = await ejs.renderFile('views/salesreport.ejs', {
-      orders,
-      totalSales: totalSales[0]?.totalSales || 0,
-      totalDiscounts,
-      startDate,
-      endDate,
-    });
-
-    pdf.create(html).toStream((err, stream) => {
-      if (err) return res.status(500).send("PDF generation failed");
-      res.set({
-        'Content-Type': 'application/pdf',
-        'Content-Disposition': 'attachment; filename="salesreport.pdf"',
-      });
-      stream.pipe(res);
-    });
-  } catch (error) {
-    console.error("Error downloading PDF:", error);
-    res.status(500).send("Failed to download PDF");
-  }
-}
+};
 
 const downloadExcel=async(req,res) => {
   try {
@@ -912,7 +921,6 @@ module.exports={
     loadDashboard,
     loadDashboardData,
     loadSalesReport,
-    salesReport,
     downloadPdf,
     downloadExcel,
     userBan,
