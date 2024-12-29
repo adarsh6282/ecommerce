@@ -325,12 +325,11 @@
             let username=document.getElementById("username").value
             let Phone=document.getElementById("phone").value
             let id=document.getElementById("profileId").value
-            // let passreg= /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{6,}$/
             const phonePattern = /^\d{10}$/;
 
             let msg=document.getElementById("msg")
 
-            if(username.trim()==""||password==""||phone=="")
+            if(username.trim()==""||phone=="")
             {
                 msg.innerHTML="These fields are required"
                 return 
