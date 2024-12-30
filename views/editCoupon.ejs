@@ -78,9 +78,9 @@
         return
       }
       
-      if(minpurchase<0){
+      if(minpurchase<1000){
         swal.fire({
-          text:"Mininum Purchase should be positive",
+          text:"Mininum Purchase should not be less than 1000",
           icon:"error"
         })
         return
