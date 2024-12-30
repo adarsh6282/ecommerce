@@ -36,14 +36,14 @@ const loadCategoryManagement = async (req, res) => {
         const totalCategories = await categorySchema.countDocuments({ isDeleted: false });
         const totalPages = Math.ceil(totalCategories / limit);
 
-        res.render('admin-categorymanagement', {
+        res.render('admin-categoryManagement', {
             categories: categoriesWithCounts,
             currentPage: page,
             totalPages
         });
     } catch (error) {
         console.error("Error loading categories:", error);
-        res.render('admin-categorymanagement', { message: 'Error fetching categories' });
+        res.render('admin-categoryManagement', { message: 'Error fetching categories' });
     }
 };
 

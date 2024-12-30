@@ -479,7 +479,7 @@ const loadOrderView= async (req, res) => {
         if(!order){
             return res.status(404).json({success:false,message:"Order not found"})
         }
-       return res.render("orderView",{order})
+       return res.render("orderview",{order})
 }
 
 const updateStatus = async (req, res) => {
