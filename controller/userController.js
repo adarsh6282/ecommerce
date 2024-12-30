@@ -1747,6 +1747,8 @@ const downloadReceipt = async (req, res) => {
         doc.text(`Customer Name: ${order.userId.username}`);
         doc.text(`Email: ${order.userId.email}`);
         doc.text(`Phone: ${order.userId.Phone}`);
+        doc.text(`Payment Method: ${order.paymentMethod}`);
+        doc.text(`Payment Status: ${order.paymentStatus}`);
         doc.moveDown();
 
         doc.fontSize(14).font('Helvetica-Bold').text('Order Items', { underline: true });
