@@ -797,7 +797,7 @@ const processItemReturn = async (req, res) => {
           item.refundStatus = "Rejected";
           item.itemStatus = "Delivered";
 
-          return res.status(200).json({success:true,message:"Return request rejected"})
+          return res.status(400).json({success:true,message:"Return request rejected"})
         } else {
           return res.status(400).json({
             success: false,
