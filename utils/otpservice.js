@@ -7,7 +7,7 @@ apiKey.apiKey = process.env.BREVO_API_KEY;
 
 const apiInstance = new SibApiV3Sdk.TransactionalEmailsApi();
 
-const sendMail = async (email, otp) => {
+const sentOtpEmail = async (email, otp) => {
   const sendSmtpEmail = new SibApiV3Sdk.SendSmtpEmail();
 
   sendSmtpEmail.subject = "Verify your Account";
@@ -38,4 +38,4 @@ const sendMail = async (email, otp) => {
   }
 };
 
-module.exports = { sendMail };
+module.exports = { sentOtpEmail };
