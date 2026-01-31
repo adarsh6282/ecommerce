@@ -365,8 +365,12 @@
                           Swal.fire({
                             text: data.message,
                             icon: "success",
-                          })
-                        } else {
+                            confirmButtonText: "OK"
+                          }).then(() => {
+                            location.reload();
+                          });
+                        }
+                        else {
                           Swal.fire({
                             text: data.message,
                             icon: 'error',
@@ -423,7 +427,11 @@
                           Swal.fire({
                             text: result.message,
                             icon: 'success',
-                          })
+                            confirmButtonText: "OK"
+                          }).then(() => {
+                            location.reload();
+                          });
+                          
                           icon.classList.remove("bi-suit-heart");
                           icon.classList.add("bi-suit-heart-fill");
                           icon.style.color = "red";
