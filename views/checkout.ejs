@@ -138,7 +138,7 @@
                     </div>
 				</div>
 				<% }) %>
-				<a href="/checkaddress/add/<%= user.id %>" class=" btn btn-primary edit-profile-btn" id="editbtn">Add</a>
+				<a href="/checkaddress/add/<%= user.id %>" class=" btn btn-primary edit-profile-btn" id="editbtn">Add Address</a>
 				</div>
 
             <!-- Cart Summary Section -->
@@ -184,6 +184,23 @@
                         </div>
 						
 						<div>
+              <div class="mb-3">
+                <h6>Available Coupons</h6>
+                <ul class="list-group">
+                  <% if (coupons.length > 0) { %>
+                    <% coupons.forEach(coupon => { %>
+                      <li class="list-group-item d-flex justify-content-between align-items-center">
+                        <span>
+                          <strong><%= coupon.code %></strong> - 
+                          <%= coupon.discount %>% off (Max ₹<%= coupon.maxDiscount %>)
+                        </span>
+                      </li>
+                    <% }) %>
+                  <% } else { %>
+                    <li class="list-group-item">No coupons available</li>
+                  <% } %>
+                </ul>
+              </div>
 							<label for="couponCode">Enter Coupon Code:</label>
 							<input type="text" id="couponCode" placeholder="Enter coupon code" style="border-radius: 8px;"><span><button type="button" id="removeCouponBtn" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button></span>
 							<button type="button" id="applyCouponBtn" class="btn btn-primary">Apply Coupon</button>
@@ -284,6 +301,7 @@
 						Swal.fire({
 							text:result.message,
 							icon:"success",
+              showConfirmButton:false
 						})
 						setTimeout(() => {
 						window.location.href = `/ordercomplete`;
@@ -291,6 +309,7 @@
 					}else{
 						Swal.fire({
 							text:result.message,
+              showConfirmButton:false,
               icon:"error",
 						})
 					}

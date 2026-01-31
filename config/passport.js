@@ -19,10 +19,12 @@ async(accessToken,refreshToken,profile,done)=>{
         }
         else{
             user=new userSchema({
-                name:profile.displayName,
+                username:profile.displayName,
                 email:profile.emails[0].value,
-                googleId:profile.id
+                googleId:profile.id,
+                isGoogleLogin:true
             })
+            console.log(user)
             await user.save()
             return done(null,user)
         }

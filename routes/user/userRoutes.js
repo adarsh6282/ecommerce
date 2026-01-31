@@ -45,6 +45,7 @@ router.post("/placeorder",userController.placeOrder)
 router.post("/razorpayorder",userController.razorPayOrder)
 router.put("/retrypayment/:orderId",userController.retryPayment)
 router.post("/verifypayment",userController.verifyPayment)
+router.get("/coupon",userController.getCoupons)
 router.post("/applycoupon",userController.applyCoupon)
 router.post("/removecoupon",userController.removeCoupon)
 router.get('/auth/google',passport.authenticate('google',{scope: ['profile','email']}));
