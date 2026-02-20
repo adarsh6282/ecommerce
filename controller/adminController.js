@@ -11,6 +11,7 @@ const ExcelJS = require('exceljs');
 const moment = require('moment');
 const pdfDocument=require("pdfkit")
 const path=require("path")
+const { httpStatus } = require("../constants/httpStatus")
 
 
 const loadAdminLogin=(req,res)=>{
@@ -55,7 +56,7 @@ const loadDashboard = async (req, res) => {
     });
   } catch (error) {
     console.error("Error loading dashboard:", error);
-    res.status(500).send("Failed to load dashboard");
+    res.status(httpStatus.INTERNAL_SERVER_ERROR).send("Failed to load dashboard");
   }
 };
 
@@ -159,7 +160,7 @@ const loadDashboardData = async (req, res) => {
     });
   } catch (error) {
     console.error("Error fetching data:", error);
-    res.status(500).send("Failed to fetch data");
+    res.status(httpStatus.INTERNAL_SERVER_ERROR).send("Failed to fetch data");
   }
 };
 
@@ -203,7 +204,7 @@ const loadSalesReport = async (req, res) => {
     });
   } catch (error) {
     console.error("Error loading sales report:", error);
-    res.status(500).send("Failed to load sales report");
+    res.status(httpStatus.INTERNAL_SERVER_ERROR).send("Failed to load sales report");
   }
 };
 
@@ -306,7 +307,7 @@ const downloadPdf = async (req, res) => {
       doc.end();
     } catch (error) {
       console.error("Error downloading PDF:", error);
-      res.status(500).send("Failed to download PDF");
+      res.status(httpStatus.INTERNAL_SERVER_ERROR).send("Failed to download PDF");
     }
 };
 
@@ -352,7 +353,7 @@ const downloadExcel=async(req,res) => {
     res.end();
   } catch (error) {
     console.error("Error downloading Excel:", error);
-    res.status(500).send("Failed to download Excel");
+    res.status(httpStatus.INTERNAL_SERVER_ERROR).send("Failed to download Excel");
   }
 }
   
@@ -378,7 +379,7 @@ const loadUsermanage = async (req, res) => {
         });
     } catch (error) {
         console.error("Error while loading users:", error);
-        res.status(500).send("Internal Server Error");
+        res.status(httpStatus.INTERNAL_SERVER_ERROR).send("Internal Server Error");
     }
 };
 
@@ -413,10 +414,10 @@ const userBan = async (req, res) => {
         await user.save();
 
         const status = user.isDeleted ? 'banned' : 'unbanned';
-        return res.status(200).json({ message: `User ${status} successfully`,isDeleted:user.isDeleted});
+        return res.status(httpStatus.OK).json({ message: `User ${status} successfully`,isDeleted:user.isDeleted});
     } catch (error) {
         console.error('Error banning/unbanning user:', error);
-        res.status(500).json({ message: 'Internal Server Error' });
+        res.status(httpStatus.INTERNAL_SERVER_ERROR).json({ message: 'Internal Server Error' });
     }
 };
 
@@ -438,7 +439,7 @@ const loadUserView = async (req, res) => {
         });
       } catch (error) {
         console.error('Error fetching user information:', error.message);
-        res.status(500).json({ message: 'Error fetching user information' });
+        res.status(httpStatus.INTERNAL_SERVER_ERROR).json({ message: 'Error fetching user information' });
       }
 };
 
@@ -469,7 +470,7 @@ const loadOrderManagement = async (req, res) => {
             });
         } catch (error) {
             console.error("Error loading orders:", error)
-            res.status(500).send("Internal Server Error")
+            res.status(httpStatus.INTERNAL_SERVER_ERROR).send("Internal Server Error")
         }
 };
        
@@ -494,7 +495,7 @@ const updateStatus = async (req, res) => {
           }
           
           if(order.paymentMethod=="Razorpay"&&order.status=="Pending"&&order.paymentStatus!="Completed"){
-           return res.status(400).json({success:false,message:"Status cannot be changed until the payment is completed"})
+           return res.status(httpStatus.BAD_REQUEST).json({success:false,message:"Status cannot be changed until the payment is completed"})
           }
           
           if (order.paymentMethod === "COD" && status === "Delivered") {
@@ -515,7 +516,7 @@ const updateStatus = async (req, res) => {
           }
           await order.save();
   
-          return res.status(200).json({
+          return res.status(httpStatus.OK).json({
               success: true,
               message: 'Successfully updated status',
               status: order.status,
@@ -523,7 +524,7 @@ const updateStatus = async (req, res) => {
           });
       } catch (error) {
           console.error('Error updating status:', error);
-          res.status(500).json({ success: false, message: 'Internal Server Error' });
+          res.status(httpStatus.INTERNAL_SERVER_ERROR).json({ success: false, message: 'Internal Server Error' });
       }
 };
 
@@ -552,7 +553,7 @@ const loadCoupon = async (req, res) => {
       });
     } catch (error) {
       console.error("Error while loading coupons:", error);
-      return res.status(500).render("couponManagement", { message: "An error occurred." });
+      return res.status(httpStatus.INTERNAL_SERVER_ERROR).render("couponManagement", { message: "An error occurred." });
     }
 };
   
@@ -592,7 +593,7 @@ const editCoupon=async(req,res)=>{
        coupon.maxCount=maxcount
 
        await coupon.save()
-      return res.status(200).json({success:true,message:"Coupon updated successfully"})
+      return res.status(httpStatus.OK).json({success:true,message:"Coupon updated successfully"})
     }catch(error)
     {
       console.error(error)
@@ -624,7 +625,7 @@ const addCoupon=async(req,res)=>{
         res.status(201).json({ success: true, message: "Coupon created successfully.", coupon: savedCoupon });
     } catch (error) {
         console.error("Error adding coupon:", error);
-        res.status(500).json({ success: false, message: "Internal Server Error." });
+        res.status(httpStatus.INTERNAL_SERVER_ERROR).json({ success: false, message: "Internal Server Error." });
     }
 };
 
@@ -642,7 +643,7 @@ const deleteCoupon = async (req, res) => {
         res.redirect("/admin/couponmanagement");
     } catch (error) {
         console.log(error);
-        res.status(500).json({ success: false, message: "Error deleting coupon" });
+        res.status(httpStatus.INTERNAL_SERVER_ERROR).json({ success: false, message: "Error deleting coupon" });
     }
 };
 
@@ -658,7 +659,7 @@ const proceedReturn = async (req, res) => {
     }
 
     if (order.refundStatus !== "Requested") {
-      return res.status(400).json({
+      return res.status(httpStatus.BAD_REQUEST).json({
         success: false,
         message: "Refund has already been processed or is not requested.",
       });
@@ -706,7 +707,7 @@ const proceedReturn = async (req, res) => {
 
       await order.save();
 
-      return res.status(200).json({
+      return res.status(httpStatus.OK).json({
         success: true,
         message: "Return approved and refund processed successfully.",
         order,
@@ -719,20 +720,20 @@ const proceedReturn = async (req, res) => {
 
       await order.save();
 
-      return res.status(200).json({
+      return res.status(httpStatus.OK).json({
         success: true,
         message: "Return request has been rejected.",
         order,
       });
     } else {
-      return res.status(400).json({
+      return res.status(httpStatus.BAD_REQUEST).json({
         success: false,
         message: "Invalid action specified. Use 'approve' or 'reject'.",
       });
     }
   } catch (error) {
     console.error("Error processing return:", error);
-    return res.status(500).json({
+    return res.status(httpStatus.INTERNAL_SERVER_ERROR).json({
       success: false,
       message: "An error occurred",
     });
@@ -787,7 +788,7 @@ const processItemReturn = async (req, res) => {
           item.itemStatus = "Returned";
           totalRefundAmount += product.offerPrice;
         } else {
-          return res.status(400).json({
+          return res.status(httpStatus.BAD_REQUEST).json({
             success: false,
             message: `Item with ID ${itemId} cannot be approved as it is already ${item.itemStatus}.`,
           });
@@ -797,13 +798,13 @@ const processItemReturn = async (req, res) => {
           item.refundStatus = "Rejected";
           item.itemStatus = "Delivered";
         } else {
-          return res.status(400).json({
+          return res.status(httpStatus.BAD_REQUEST).json({
             success: false,
             message: `Item with ID ${itemId} cannot be rejected as it is already ${item.itemStatus}.`,
           });
         }
       } else {
-        return res.status(400).json({
+        return res.status(httpStatus.BAD_REQUEST).json({
           success: false,
           message: "Invalid action specified. Use 'approve' or 'reject'.",
         });
@@ -859,7 +860,7 @@ const processItemReturn = async (req, res) => {
       }
     }
 
-    return res.status(200).json({
+    return res.status(httpStatus.OK).json({
       success: true,
       message: `Return request processed successfully. ${
         totalRefundAmount > 0 ? `Refund of ${totalRefundAmount} added to your wallet.` : ''
@@ -868,7 +869,7 @@ const processItemReturn = async (req, res) => {
     });
   } catch (error) {
     console.error("Error processing return:", error);
-    return res.status(500).json({
+    return res.status(httpStatus.INTERNAL_SERVER_ERROR).json({
       success: false,
       message: "An error occurred while processing the return. Please try again later.",
     });
@@ -902,10 +903,10 @@ const stockManagement = async (req, res) => {
     product.totalStock = product.variants.reduce((total, variant) => total + variant.stock, 0);
     await product.save();
 
-    res.status(200).json({success:true, message: "Product stock updated successfully", product });
+    res.status(httpStatus.OK).json({success:true, message: "Product stock updated successfully", product });
   } catch (error) {
     console.error(error);
-    res.status(500).json({success:false, message: "Server error" });
+    res.status(httpStatus.INTERNAL_SERVER_ERROR).json({success:false, message: "Server error" });
   }
 };
 

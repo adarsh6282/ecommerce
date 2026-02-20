@@ -19,6 +19,7 @@ const path = require("path");
 const ejs = require("ejs");
 const pdf = require("html-pdf");
 const pdfDocument = require("pdfkit");
+const { httpStatus } = require("../constants/httpStatus");
 
 const loadRegister = (req, res) => {
   res.set("Cache-Control", "no-store");
@@ -73,11 +74,11 @@ const editProfile = async (req, res) => {
 
     await user.save();
     return res
-      .status(200)
+      .status(httpStatus.OK)
       .json({ success: true, message: "Profile Updated successfully" });
   } catch (error) {
     console.log(error);
-    res.status(500).json({ success: false, message: "Error updating profile" });
+    res.status(httpStatus.INTERNAL_SERVER_ERROR).json({ success: false, message: "Error updating profile" });
   }
 };
 
@@ -99,14 +100,14 @@ const updatePassword = async (req, res) => {
 
     if (!userId) {
       return res
-        .status(400)
+        .status(httpStatus.BAD_REQUEST)
         .json({ success: false, message: "User not found" });
     }
 
     const isMatch = await bcrypt.compare(currentPassword, userId.password);
 
     if (!isMatch) {
-      return res.status(400).json({
+      return res.status(httpStatus.BAD_REQUEST).json({
         success: false,
         message: "Currentpassword do not match the password in the database",
       });
@@ -114,7 +115,7 @@ const updatePassword = async (req, res) => {
 
     if (newPassword !== confirmPassword) {
       return res
-        .status(400)
+        .status(httpStatus.BAD_REQUEST)
         .json({ success: false, message: "Password do not match" });
     }
 
@@ -125,11 +126,11 @@ const updatePassword = async (req, res) => {
     await userId.save();
 
     return res
-      .status(200)
+      .status(httpStatus.OK)
       .json({ success: true, message: "Password changed successfully" });
   } catch (error) {
     console.log(error);
-    res.status(500).json({
+    res.status(httpStatus.INTERNAL_SERVER_ERROR).json({
       success: false,
       message: "An error occured while changing the password",
     });
@@ -152,7 +153,7 @@ const loadMyAccount = async (req, res) => {
     res.render("myaccountprofile", { user });
   } catch (error) {
     console.error("Error loading My Account:", error);
-    res.status(500).send("Something went wrong.");
+    res.status(httpStatus.INTERNAL_SERVER_ERROR).send("Something went wrong.");
   }
 };
 
@@ -566,11 +567,11 @@ const checkouteditAddress = async (req, res) => {
     await address.save();
 
     res
-      .status(200)
+      .status(httpStatus.OK)
       .json({ success: true, message: "Address updated successfully" });
   } catch (error) {
     console.log(error);
-    res.status(500).json({ success: false, message: "Error updating address" });
+    res.status(httpStatus.INTERNAL_SERVER_ERROR).json({ success: false, message: "Error updating address" });
   }
 };
 
@@ -636,11 +637,11 @@ const editAddress = async (req, res) => {
     await address.save();
 
     res
-      .status(200)
+      .status(httpStatus.OK)
       .json({ success: true, message: "Address updated successfully" });
   } catch (error) {
     console.log(error);
-    res.status(500).json({ success: false, message: "Error updating address" });
+    res.status(httpStatus.INTERNAL_SERVER_ERROR).json({ success: false, message: "Error updating address" });
   }
 };
 
@@ -658,7 +659,7 @@ const deleteAddress = async (req, res) => {
     res.redirect("/address");
   } catch (error) {
     console.log(error);
-    res.status(500).json({ success: false, message: "Error deleting address" });
+    res.status(httpStatus.INTERNAL_SERVER_ERROR).json({ success: false, message: "Error deleting address" });
   }
 };
 
@@ -696,7 +697,7 @@ const loadCart = async (req, res) => {
     res.render("cart", { items: cart.items, total, cartError });
   } catch (err) {
     console.error(err);
-    res.status(500).send("Server error");
+    res.status(httpStatus.INTERNAL_SERVER_ERROR).send("Server error");
   }
 };
 
@@ -707,18 +708,18 @@ const addToCart = async (req, res) => {
   try {
     if (!user) {
       return res
-        .status(400)
+        .status(httpStatus.BAD_REQUEST)
         .json({ success: false, message: "User not logged in" });
     }
 
     if (!size) {
       return res
-        .status(400)
+        .status(httpStatus.BAD_REQUEST)
         .json({ success: false, message: "Size is required" });
     }
 
     if (quantity > 10) {
-      return res.status(400).json({
+      return res.status(httpStatus.BAD_REQUEST).json({
         success: false,
         message: "You can only add a maximum of 10 items",
       });
@@ -733,7 +734,7 @@ const addToCart = async (req, res) => {
 
     if (product.totalStock === 0) {
       return res
-        .status(400)
+        .status(httpStatus.BAD_REQUEST)
         .json({ success: false, message: "Product is out of stock" });
     }
 
@@ -741,12 +742,12 @@ const addToCart = async (req, res) => {
 
     if (variant.stock === 0) {
       return res
-        .status(400)
+        .status(httpStatus.BAD_REQUEST)
         .json({ success: false, message: "Product is out of stock" });
     }
 
     if (quantity > variant.stock) {
-      return res.status(400).json({
+      return res.status(httpStatus.BAD_REQUEST).json({
         success: false,
         message: `Only ${variant.stock} items are available in stock`,
       });
@@ -768,7 +769,7 @@ const addToCart = async (req, res) => {
       const totalQuantity = existingProduct.quantity + quantity;
 
       if (totalQuantity > 10) {
-        return res.status(400).json({
+        return res.status(httpStatus.BAD_REQUEST).json({
           success: false,
           message:
             "You can only have a maximum of 10 items of the same size in the cart",
@@ -777,7 +778,7 @@ const addToCart = async (req, res) => {
 
       cart.items[existingProductIndex].quantity += quantity;
       if (cart.items[existingProductIndex].quantity > variant.stock) {
-        return res.status(400).json({
+        return res.status(httpStatus.BAD_REQUEST).json({
           success: false,
           message: `Only ${variant.stock} items are available in stock`,
         });
@@ -789,11 +790,11 @@ const addToCart = async (req, res) => {
     await cart.save();
 
     res
-      .status(200)
+      .status(httpStatus.OK)
       .json({ success: true, message: "Item added to cart successfully" });
   } catch (err) {
     console.error(err);
-    res.status(500).json({ success: false, message: "Server error" });
+    res.status(httpStatus.INTERNAL_SERVER_ERROR).json({ success: false, message: "Server error" });
   }
 };
 
@@ -821,7 +822,7 @@ const updateCart = async (req, res) => {
     res.json({ updatedPrice });
   } catch (error) {
     console.error("Error updating cart:", error);
-    res.status(500).send("Server error");
+    res.status(httpStatus.INTERNAL_SERVER_ERROR).send("Server error");
   }
 };
 
@@ -833,7 +834,7 @@ const wishlistToCart = async (req, res) => {
 
     if (!user) {
       return res
-        .status(400)
+        .status(httpStatus.BAD_REQUEST)
         .json({ success: false, message: "User not logged in" });
     }
 
@@ -877,12 +878,12 @@ const wishlistToCart = async (req, res) => {
 
     if (variant.stock === 0) {
       return res
-        .status(400)
+        .status(httpStatus.BAD_REQUEST)
         .json({ success: false, message: "Product is out of stock" });
     }
 
     if (quantity > variant.stock) {
-      return res.status(400).json({
+      return res.status(httpStatus.BAD_REQUEST).json({
         success: false,
         message: `Only ${variant.stock} items are available in stock`,
       });
@@ -900,7 +901,7 @@ const wishlistToCart = async (req, res) => {
     );
 
     if (existingProductIndex >= 0) {
-      return res.status(400).json({
+      return res.status(httpStatus.BAD_REQUEST).json({
         success: false,
         message: "Product with same size already exist in cart",
       });
@@ -919,11 +920,11 @@ const wishlistToCart = async (req, res) => {
     await wishlist.save();
 
     res
-      .status(200)
+      .status(httpStatus.OK)
       .json({ success: true, message: "Item added to cart successfully" });
   } catch (err) {
     console.error(err);
-    res.status(500).json({ success: false, message: "Server error" });
+    res.status(httpStatus.INTERNAL_SERVER_ERROR).json({ success: false, message: "Server error" });
   }
 };
 
@@ -1009,14 +1010,14 @@ const placeOrder = async (req, res) => {
     }
 
     if (paymentMethod === "COD" && totalAmount < 1000) {
-      return res.status(400).json({
+      return res.status(httpStatus.BAD_REQUEST).json({
         success: false,
         message: "Cash on Delivery is not available for orders below ₹1000",
       });
     }
 
     if (paymentMethod !== "COD") {
-      return res.status(400).json({
+      return res.status(httpStatus.BAD_REQUEST).json({
         success: false,
         message: "Only COD payment method is allowed",
       });
@@ -1035,7 +1036,7 @@ const placeOrder = async (req, res) => {
       });
       if (!coupon) {
         return res
-          .status(400)
+          .status(httpStatus.BAD_REQUEST)
           .json({ success: false, message: "Invalid or expired coupon code" });
       }
 
@@ -1044,12 +1045,12 @@ const placeOrder = async (req, res) => {
         new Date(coupon.expirationDate) < new Date()
       ) {
         return res
-          .status(400)
+          .status(httpStatus.BAD_REQUEST)
           .json({ success: false, message: "Coupon has expired" });
       }
 
       if (totalAmount < coupon.minPurchase) {
-        return res.status(400).json({
+        return res.status(httpStatus.BAD_REQUEST).json({
           success: false,
           message: `Minimum purchase of ${coupon.minPurchase} required for this coupon`,
         });
@@ -1058,7 +1059,7 @@ const placeOrder = async (req, res) => {
       if (coupon.usedCount >= coupon.maxCount) {
         coupon.isActive = false;
         return res
-          .status(400)
+          .status(httpStatus.BAD_REQUEST)
           .json({ success: false, message: "Coupon usage limit reached" });
       }
 
@@ -1097,7 +1098,7 @@ const placeOrder = async (req, res) => {
       }
 
       if (variant.stock < items[i].quantity) {
-        return res.status(400).json({
+        return res.status(httpStatus.BAD_REQUEST).json({
           success: false,
           message: `Not enough stock for product ID ${items[i].productId} (size: ${items[i].size})`,
         });
@@ -1126,14 +1127,14 @@ const placeOrder = async (req, res) => {
     await newOrder.save();
 
     await cartSchema.deleteOne({ userId: userId });
-    res.status(200).json({
+    res.status(httpStatus.OK).json({
       success: true,
       message: "Order placed successfully",
       order: newOrder,
     });
   } catch (error) {
     console.log(error);
-    res.status(500).json({
+    res.status(httpStatus.INTERNAL_SERVER_ERROR).json({
       success: false,
       message: "Something went wrong, please try again later.",
     });
@@ -1148,7 +1149,7 @@ const razorPayOrder = async (req, res) => {
     const user = await userSchema.findById(userId);
     if (!user) {
       return res
-        .status(400)
+        .status(httpStatus.BAD_REQUEST)
         .json({ success: false, message: "User not logged in" });
     }
 
@@ -1174,7 +1175,7 @@ const razorPayOrder = async (req, res) => {
 
       if (!coupon) {
         return res
-          .status(400)
+          .status(httpStatus.BAD_REQUEST)
           .json({ success: false, message: "Invalid or expired coupon code" });
       }
 
@@ -1183,12 +1184,12 @@ const razorPayOrder = async (req, res) => {
         new Date(coupon.expirationDate) < new Date()
       ) {
         return res
-          .status(400)
+          .status(httpStatus.BAD_REQUEST)
           .json({ success: false, message: "Coupon has expired" });
       }
 
       if (total < coupon.minPurchase) {
-        return res.status(400).json({
+        return res.status(httpStatus.BAD_REQUEST).json({
           success: false,
           message: `Minimum purchase of ${coupon.minPurchase} required for this coupon`,
         });
@@ -1197,7 +1198,7 @@ const razorPayOrder = async (req, res) => {
       if (coupon.usedCount >= coupon.maxCount) {
         coupon.isActive = false;
         return res
-          .status(400)
+          .status(httpStatus.BAD_REQUEST)
           .json({ success: false, message: "Coupon usage limit reached" });
       }
 
@@ -1238,7 +1239,7 @@ const razorPayOrder = async (req, res) => {
       }
 
       if (variant.stock < items[i].quantity) {
-        return res.status(400).json({
+        return res.status(httpStatus.BAD_REQUEST).json({
           success: false,
           message: `Not enough stock for product ID ${items[i].productId} (size: ${items[i].size})`,
         });
@@ -1278,7 +1279,7 @@ const razorPayOrder = async (req, res) => {
     await newOrder.save();
     await cartSchema.deleteOne({ userId: userId });
 
-    res.status(200).json({
+    res.status(httpStatus.OK).json({
       success: true,
       razorpayOrderId: order.id,
       amount: order.amount,
@@ -1287,7 +1288,7 @@ const razorPayOrder = async (req, res) => {
     });
   } catch (error) {
     console.error(error);
-    res.status(500).json({
+    res.status(httpStatus.INTERNAL_SERVER_ERROR).json({
       success: false,
       message: "Failed to create Razorpay order.",
     });
@@ -1300,7 +1301,7 @@ const retryPayment = async (req, res) => {
   try {
     const order = await orderSchema.findById(orderId);
     if (!order) {
-      res.status(400).json({ success: false, message: "No orders found" });
+      res.status(httpStatus.BAD_REQUEST).json({ success: false, message: "No orders found" });
       return
     }
 
@@ -1310,7 +1311,7 @@ const retryPayment = async (req, res) => {
         message: "No orders found with the razorpay order ID",
       });
     }
-    res.status(200).json({
+    res.status(httpStatus.OK).json({
       success: true,
       razorpayKey: process.env.RAZORPAY_ID,
       amount: order.totalAmount * 100,
@@ -1320,7 +1321,7 @@ const retryPayment = async (req, res) => {
     });
   } catch (error) {
     console.error(error);
-    res.status(500).json({
+    res.status(httpStatus.INTERNAL_SERVER_ERROR).json({
       success: false,
       message: "Failed to fetch retry payment details",
     });
@@ -1340,7 +1341,7 @@ const verifyPayment = async (req, res) => {
 
     if (generatedSignature !== razorpay_signature) {
       return res
-        .status(400)
+        .status(httpStatus.BAD_REQUEST)
         .json({ success: false, message: "Payment verification failed." });
     }
 
@@ -1363,14 +1364,14 @@ const verifyPayment = async (req, res) => {
 
     await cartSchema.deleteOne({ userId: order.userId });
 
-    res.status(200).json({
+    res.status(httpStatus.OK).json({
       success: true,
       message: "Payment verified and order updated successfully.",
     });
   } catch (error) {
     console.error(error);
     res
-      .status(500)
+      .status(httpStatus.INTERNAL_SERVER_ERROR)
       .json({ success: false, message: "Failed to verify Razorpay payment." });
   }
 };
@@ -1441,7 +1442,7 @@ const loadOrder = async (req, res) => {
     });
   } catch (error) {
     console.log(error);
-    res.status(500).send("An error occurred");
+    res.status(httpStatus.INTERNAL_SERVER_ERROR).send("An error occurred");
   }
 };
 
@@ -1463,7 +1464,7 @@ const loadOrderView = async (req, res) => {
     res.render("userorderview", { order: order });
   } catch (error) {
     console.log(error);
-    res.status(500).json({ success: false, message: "Error retrieving order" });
+    res.status(httpStatus.INTERNAL_SERVER_ERROR).json({ success: false, message: "Error retrieving order" });
   }
 };
 
@@ -1479,7 +1480,7 @@ const cancelOrder = async (req, res) => {
     }
 
     if (order.status === "Delivered") {
-      return res.status(400).json({
+      return res.status(httpStatus.BAD_REQUEST).json({
         success: false,
         message: "Order cannot be canceled as it is already completed",
       });
@@ -1542,12 +1543,12 @@ const cancelOrder = async (req, res) => {
     await order.save();
 
     return res
-      .status(200)
+      .status(httpStatus.OK)
       .json({ success: true, message: "Order cancelled successfully", order });
   } catch (error) {
     console.error("Error cancelling order:", error);
     return res
-      .status(500)
+      .status(httpStatus.INTERNAL_SERVER_ERROR)
       .json({ success: false, message: "An error occurred" });
   }
 };
@@ -1578,7 +1579,7 @@ const cancelOrderItem = async (req, res) => {
     console.log(item);
 
     if (order.status === "Delivered") {
-      return res.status(400).json({
+      return res.status(httpStatus.BAD_REQUEST).json({
         success: false,
         message: `Item "${item.productId.name}" cannot be canceled as the order is already delivered`,
       });
@@ -1598,7 +1599,7 @@ const cancelOrderItem = async (req, res) => {
         );
         await product.save();
       } else {
-        return res.status(400).json({
+        return res.status(httpStatus.BAD_REQUEST).json({
           success: false,
           message: `Variant with size ${item.size} not found for product ${product.name}.`,
         });
@@ -1649,14 +1650,14 @@ const cancelOrderItem = async (req, res) => {
 
     await order.save();
 
-    return res.status(200).json({
+    return res.status(httpStatus.OK).json({
       success: true,
       message: `Item "${item.productId.name}" canceled successfully`,
       order,
     });
   } catch (error) {
     console.error("Error canceling order item:", error);
-    return res.status(500).json({
+    return res.status(httpStatus.INTERNAL_SERVER_ERROR).json({
       success: false,
       message: "An error occurred while canceling the item",
     });
@@ -1676,7 +1677,7 @@ const requestReturn = async (req, res) => {
     }
 
     if (order.status !== "Delivered") {
-      return res.status(400).json({
+      return res.status(httpStatus.BAD_REQUEST).json({
         success: false,
         message: "Only delivered orders can be returned",
       });
@@ -1689,7 +1690,7 @@ const requestReturn = async (req, res) => {
 
     await order.save();
 
-    return res.status(200).json({
+    return res.status(httpStatus.OK).json({
       success: true,
       message:
         "Return request submitted successfully. Awaiting admin approval.",
@@ -1697,7 +1698,7 @@ const requestReturn = async (req, res) => {
   } catch (error) {
     console.error("Error requesting return:", error);
     return res
-      .status(500)
+      .status(httpStatus.INTERNAL_SERVER_ERROR)
       .json({ success: false, message: "An error occurred" });
   }
 };
@@ -1723,14 +1724,14 @@ const requestItemReturn = async (req, res) => {
     }
 
     if (item.itemStatus === "Returned") {
-      return res.status(400).json({
+      return res.status(httpStatus.BAD_REQUEST).json({
         success: false,
         message: "This item has already been returned",
       });
     }
 
     if (item.itemStatus === "Requested") {
-      return res.status(400).json({
+      return res.status(httpStatus.BAD_REQUEST).json({
         success: false,
         message: "Return request already made for this item",
       });
@@ -1741,13 +1742,13 @@ const requestItemReturn = async (req, res) => {
 
     await order.save();
 
-    return res.status(200).json({
+    return res.status(httpStatus.OK).json({
       success: true,
       message: "Return request submitted successfully.",
     });
   } catch (error) {
     console.error("Error requesting item return:", error);
-    return res.status(500).json({
+    return res.status(httpStatus.INTERNAL_SERVER_ERROR).json({
       success: false,
       message: "An error occurred while processing your return request.",
     });
@@ -1763,20 +1764,20 @@ const applyCoupon = async (req, res) => {
 
     if (!coupon) {
       return res
-        .status(400)
+        .status(httpStatus.BAD_REQUEST)
         .json({ success: false, message: "Invalid coupon code" });
     }
 
     const currentDate = new Date();
     if (!coupon.isActive || currentDate > coupon.expirationDate) {
       return res
-        .status(400)
+        .status(httpStatus.BAD_REQUEST)
         .json({ success: false, message: "Coupon is expired or inactive" });
     }
 
     if (coupon.usedCount >= coupon.maxCount) {
       coupon.isActive = false;
-      return res.status(400).json({
+      return res.status(httpStatus.BAD_REQUEST).json({
         success: false,
         message: "This coupon has reached its usage limit",
       });
@@ -1797,7 +1798,7 @@ const applyCoupon = async (req, res) => {
       finalAmount: total,
     };
 
-    return res.status(200).json({
+    return res.status(httpStatus.OK).json({
       success: true,
       discount: discountAmount,
       finalAmount: finalAmount,
@@ -1805,7 +1806,7 @@ const applyCoupon = async (req, res) => {
     });
   } catch (error) {
     console.error("Error applying coupon:", error);
-    res.status(500).json({ success: false, message: "Internal server error" });
+    res.status(httpStatus.INTERNAL_SERVER_ERROR).json({ success: false, message: "Internal server error" });
   }
 };
 
@@ -1813,7 +1814,7 @@ const removeCoupon = async (req, res) => {
   try {
     if (!req.session.coupon) {
       return res
-        .status(400)
+        .status(httpStatus.BAD_REQUEST)
         .json({ success: false, message: "No coupon applied" });
     }
     const { finalAmount } = req.session.coupon;
@@ -1821,14 +1822,14 @@ const removeCoupon = async (req, res) => {
 
     delete req.session.coupon;
 
-    return res.status(200).json({
+    return res.status(httpStatus.OK).json({
       success: true,
       message: "Coupon removed successfully",
       originalTotal,
     });
   } catch (error) {
     console.error("Error removing coupon:", error);
-    res.status(500).json({ success: false, message: "Internal server error" });
+    res.status(httpStatus.INTERNAL_SERVER_ERROR).json({ success: false, message: "Internal server error" });
   }
 };
 
@@ -1875,7 +1876,7 @@ const removeFromCart = async (req, res) => {
     }
   } catch (error) {
     console.error("Error removing product from cart:", error);
-    return res.status(500).json({
+    return res.status(httpStatus.INTERNAL_SERVER_ERROR).json({
       success: false,
       message: "An error occurred while removing the product",
     });
@@ -1904,7 +1905,7 @@ const loadWishlist = async (req, res) => {
     res.render("wishlist", { wishlistItems: wishlist.products });
   } catch (error) {
     console.error(error);
-    res.status(500).json({ success: false, message: "Server error" });
+    res.status(httpStatus.INTERNAL_SERVER_ERROR).json({ success: false, message: "Server error" });
   }
 };
 
@@ -1913,7 +1914,7 @@ const addToWishlist = async (req, res) => {
     const { productId, size } = req.body;
     if (!productId) {
       return res
-        .status(400)
+        .status(httpStatus.BAD_REQUEST)
         .json({ success: false, message: "Product ID is required" });
     }
 
@@ -1924,7 +1925,7 @@ const addToWishlist = async (req, res) => {
     });
     if (!user) {
       return res
-        .status(400)
+        .status(httpStatus.BAD_REQUEST)
         .json({ success: false, message: "User not found or not logged in" });
     }
 
@@ -1944,7 +1945,7 @@ const addToWishlist = async (req, res) => {
       );
 
       if (productExists) {
-        return res.status(400).json({
+        return res.status(httpStatus.BAD_REQUEST).json({
           success: false,
           message: "Product with the same size already in wishlist",
         });
@@ -1961,7 +1962,7 @@ const addToWishlist = async (req, res) => {
     res.json({ success: true, message: "Product added to wishlist" });
   } catch (error) {
     console.error("Error adding to wishlist:", error);
-    res.status(500).json({ success: false, message: "Server error" });
+    res.status(httpStatus.INTERNAL_SERVER_ERROR).json({ success: false, message: "Server error" });
   }
 };
 
@@ -2009,7 +2010,7 @@ const removeFromWishlist = async (req, res) => {
     }
   } catch (error) {
     console.error("Error removing product from Wishlist:", error);
-    return res.status(500).json({
+    return res.status(httpStatus.INTERNAL_SERVER_ERROR).json({
       success: false,
       message: "An error occurred while removing the product",
     });
@@ -2195,14 +2196,14 @@ const downloadReceipt = async (req, res) => {
     }
   } catch (error) {
     console.error("Error generating PDF:", error);
-    res.status(500).send("Internal Server Error");
+    res.status(httpStatus.INTERNAL_SERVER_ERROR).send("Internal Server Error");
   }
 };
 
 const getCoupons = async (req, res) => {
   try {
     const coupons = await couponSchema.find();
-    res.status(200).json(coupons);
+    res.status(httpStatus.OK).json(coupons);
   } catch (error) {
     console.log(error);
   }

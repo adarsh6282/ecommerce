@@ -3,6 +3,7 @@ const categorySchema= require('../models/categoryModel');
 const productSchema = require('../models/productModel');
 const path= require('path');
 const { name } = require('ejs');
+const { httpStatus } = require('../constants/httpStatus');
 
 
 const loadAddCategory=async(req,res)=>{
@@ -72,7 +73,7 @@ const addCategory=async(req, res)=>{
     res.redirect('/admin/categorymanagement')
     } catch (error) {
         console.error(error);
-    res.status(500).send("Error adding category");
+    res.status(httpStatus.INTERNAL_SERVER_ERROR).send("Error adding category");
     }
 }
 
@@ -81,7 +82,7 @@ const applyOffer = async (req, res) => {
     const { offerPercentage } = req.body;
   
     if (!offerPercentage || isNaN(offerPercentage)) {
-      return res.status(400).json({ success: false, message: 'Invalid offer percentage.' });
+      return res.status(httpStatus.BAD_REQUEST).json({ success: false, message: 'Invalid offer percentage.' });
     }
   
     try {
@@ -107,7 +108,7 @@ const applyOffer = async (req, res) => {
      return res.json({ success: true, message: 'Offer applied successfully!' });
     } catch (error) {
       console.error("Error applying offer:", error);
-     return res.status(500).json({ success: false, message: 'An error occurred while applying the offer.' });
+     return res.status(httpStatus.INTERNAL_SERVER_ERROR).json({ success: false, message: 'An error occurred while applying the offer.' });
     }
 };
 
@@ -132,7 +133,7 @@ const removeOffer = async (req, res) => {
       res.json({ success: true, message: 'Offer removed successfully!' });
     } catch (error) {
       console.error("Error removing offer:", error);
-      res.status(500).json({ success: false, message: 'An error occurred while removing the offer.' });
+      res.status(httpStatus.INTERNAL_SERVER_ERROR).json({ success: false, message: 'An error occurred while removing the offer.' });
     }
   };
 
@@ -159,11 +160,11 @@ const updateCategory=async(req,res)=>{
         category.updatedAt=Date.now()
 
         await category.save()
-        res.status(200).json({ success: true, message: 'Successfully updated category' });
+        res.status(httpStatus.OK).json({ success: true, message: 'Successfully updated category' });
 
     } catch (error) {
         console.error('Error updating category:', error);
-        res.status(500).json({ success: false, message: 'Error updating category'});
+        res.status(httpStatus.INTERNAL_SERVER_ERROR).json({ success: false, message: 'Error updating category'});
     }
 }
 
@@ -187,11 +188,11 @@ const deleteCategory=async(req,res)=>{
         if(!category){
             return res.status(404).json({ success: false, message: 'Category not found' });
         }
-        return res.status(200).json({ success: true, message: 'Successfully deleted category' });
+        return res.status(httpStatus.OK).json({ success: true, message: 'Successfully deleted category' });
 }
 catch{
     console.error('Error deleting category:', error);
-     return res.status(500).json({ success: false, message: 'Error deleting category'});
+     return res.status(httpStatus.INTERNAL_SERVER_ERROR).json({ success: false, message: 'Error deleting category'});
 }}
 
 const recoverCategory=async(req,res)=>{
@@ -201,10 +202,10 @@ const recoverCategory=async(req,res)=>{
         if(!category){
             return res.status(404).json({ success: false, message: 'Category not found' });
         }
-        return res.status(200).json({ success: true, message: 'Successfully recovered category' });
+        return res.status(httpStatus.OK).json({ success: true, message: 'Successfully recovered category' });
 }catch(error){
     console.error('Error recovering category:', error);
-    return res.status(500).json({ success: false, message: 'Error recovering category'});
+    return res.status(httpStatus.INTERNAL_SERVER_ERROR).json({ success: false, message: 'Error recovering category'});
 }}
 
    

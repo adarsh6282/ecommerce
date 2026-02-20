@@ -3,6 +3,7 @@ const productSchema = require('../models/productModel')
 const categorySchema = require('../models/categoryModel')
 const { response } = require('express')
 const path = require('path')
+const { httpStatus } = require('../constants/httpStatus')
 
 
 const loadProductmanage = async (req, res) => {
@@ -27,7 +28,7 @@ const loadProductmanage = async (req, res) => {
         });
     } catch (error) {
         console.error("Error loading products:", error);
-        res.status(500).send("Internal Server Error");
+        res.status(httpStatus.INTERNAL_SERVER_ERROR).send("Internal Server Error");
     }
 };
 
@@ -66,7 +67,7 @@ const addProduct=async(req,res)=>{
         }));
 
         if (!req.files || req.files.length === 0) {
-            return res.status(400).json({ val: false, msg: "No files were uploaded" });
+            return res.status(httpStatus.BAD_REQUEST).json({ val: false, msg: "No files were uploaded" });
         }
       
       const totalStock = stockQuantities.reduce((total, stock) => total + parseInt(stock || 0, 10), 0);
@@ -92,7 +93,7 @@ const addProduct=async(req,res)=>{
         
     } catch (error) {
         console.error(error)
-        res.status(500).send("Error adding product")
+        res.status(httpStatus.INTERNAL_SERVER_ERROR).send("Error adding product")
     }
 }
 
@@ -116,11 +117,11 @@ const deleteProduct=async(req,res)=>{
         if(!product){
             return res.status(404).json({ success: false, message: 'Product not found' });
         }
-        return res.status(200).json({ success: true, message: 'Successfully deleted product' });
+        return res.status(httpStatus.OK).json({ success: true, message: 'Successfully deleted product' });
 }
 catch{
     console.error('Error deleting prodcut:', error);
-     return res.status(500).json({ success: false, message: 'Error deleting porduct'});
+     return res.status(httpStatus.INTERNAL_SERVER_ERROR).json({ success: false, message: 'Error deleting porduct'});
 }}
 
 const recoverProduct=async(req,res)=>{
@@ -131,10 +132,10 @@ const recoverProduct=async(req,res)=>{
         if(!product){
             return res.status(404).json({ success: false, message: 'Product not found' });
         }
-        return res.status(200).json({ success: true, message: 'Successfully recovered product' });
+        return res.status(httpStatus.OK).json({ success: true, message: 'Successfully recovered product' });
 }catch(error){
     console.error('Error recovering product:', error);
-    return res.status(500).json({ success: false, message: 'Error recovering product'});
+    return res.status(httpStatus.INTERNAL_SERVER_ERROR).json({ success: false, message: 'Error recovering product'});
 }}
 
 const loadUpdateProduct=async(req,res)=>{
@@ -148,7 +149,7 @@ const loadUpdateProduct=async(req,res)=>{
         return res.render("updateProduct",{product:product,categories:category})
     } catch (error) {
         console.error(error)
-        res.status(500).send("Error loading product")
+        res.status(httpStatus.INTERNAL_SERVER_ERROR).send("Error loading product")
     }
 }
 
@@ -177,7 +178,7 @@ const updateProduct = async (req, res) => {
 
         const categoryObj = await categorySchema.findOne({ name: category });
         if (!categoryObj) {
-            return res.status(400).json({ success: false, message: 'Invalid category name' });
+            return res.status(httpStatus.BAD_REQUEST).json({ success: false, message: 'Invalid category name' });
         }
 
         product.name = name;
@@ -192,10 +193,10 @@ const updateProduct = async (req, res) => {
 
         await product.save();
 
-        res.status(200).json({ success: true, message: 'Product updated successfully', product });
+        res.status(httpStatus.OK).json({ success: true, message: 'Product updated successfully', product });
     } catch (error) {
         console.error('Error updating product:', error);
-        res.status(500).json({ success: false, message: 'Error updating product' });
+        res.status(httpStatus.INTERNAL_SERVER_ERROR).json({ success: false, message: 'Error updating product' });
     }
 };
 
