@@ -706,6 +706,15 @@ const addToCart = async (req, res) => {
   const userId = user._id;
   const { productId, quantity, size } = req.body;
   try {
+
+    if (!req.session.userData || !req.session.userData.email) {
+      return res.status(401).json({
+        success: false,
+        message: "Please login to add items to cart",
+        redirect: "/login"
+      });
+    }
+
     if (!user) {
       return res
         .status(httpStatus.BAD_REQUEST)
