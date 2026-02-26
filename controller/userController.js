@@ -39,7 +39,8 @@ const loadHome = async (req, res) => {
   res.set("Cache-Control", "no-store");
   const product = await productSchema
     .find({ isDeleted: false })
-    .sort({ createdAt: -1 }).limit(8);
+    .sort({ createdAt: -1 })
+    .limit(8);
   res.render("home", { product });
 };
 
@@ -78,7 +79,9 @@ const editProfile = async (req, res) => {
       .json({ success: true, message: "Profile Updated successfully" });
   } catch (error) {
     console.log(error);
-    res.status(httpStatus.INTERNAL_SERVER_ERROR).json({ success: false, message: "Error updating profile" });
+    res
+      .status(httpStatus.INTERNAL_SERVER_ERROR)
+      .json({ success: false, message: "Error updating profile" });
   }
 };
 
@@ -571,7 +574,9 @@ const checkouteditAddress = async (req, res) => {
       .json({ success: true, message: "Address updated successfully" });
   } catch (error) {
     console.log(error);
-    res.status(httpStatus.INTERNAL_SERVER_ERROR).json({ success: false, message: "Error updating address" });
+    res
+      .status(httpStatus.INTERNAL_SERVER_ERROR)
+      .json({ success: false, message: "Error updating address" });
   }
 };
 
@@ -641,7 +646,9 @@ const editAddress = async (req, res) => {
       .json({ success: true, message: "Address updated successfully" });
   } catch (error) {
     console.log(error);
-    res.status(httpStatus.INTERNAL_SERVER_ERROR).json({ success: false, message: "Error updating address" });
+    res
+      .status(httpStatus.INTERNAL_SERVER_ERROR)
+      .json({ success: false, message: "Error updating address" });
   }
 };
 
@@ -659,7 +666,9 @@ const deleteAddress = async (req, res) => {
     res.redirect("/address");
   } catch (error) {
     console.log(error);
-    res.status(httpStatus.INTERNAL_SERVER_ERROR).json({ success: false, message: "Error deleting address" });
+    res
+      .status(httpStatus.INTERNAL_SERVER_ERROR)
+      .json({ success: false, message: "Error deleting address" });
   }
 };
 
@@ -702,24 +711,27 @@ const loadCart = async (req, res) => {
 };
 
 const addToCart = async (req, res) => {
-  const user = await userSchema.findOne({ email: req.session.userData.email });
-  const userId = user._id;
-  const { productId, quantity, size } = req.body;
   try {
-
     if (!req.session.userData || !req.session.userData.email) {
-      return res.status(401).json({
+      return res.status(httpStatus.UNAUTHORIZED).json({
         success: false,
         message: "Please login to add items to cart",
-        redirect: "/login"
+        redirect: "/login",
       });
     }
+
+    const user = await userSchema.findOne({
+      email: req.session.userData.email,
+    });
 
     if (!user) {
       return res
         .status(httpStatus.BAD_REQUEST)
         .json({ success: false, message: "User not logged in" });
     }
+
+    const userId = user._id;
+    const { productId, quantity, size } = req.body;
 
     if (!size) {
       return res
@@ -803,7 +815,9 @@ const addToCart = async (req, res) => {
       .json({ success: true, message: "Item added to cart successfully" });
   } catch (err) {
     console.error(err);
-    res.status(httpStatus.INTERNAL_SERVER_ERROR).json({ success: false, message: "Server error" });
+    res
+      .status(httpStatus.INTERNAL_SERVER_ERROR)
+      .json({ success: false, message: "Server error" });
   }
 };
 
@@ -933,7 +947,9 @@ const wishlistToCart = async (req, res) => {
       .json({ success: true, message: "Item added to cart successfully" });
   } catch (err) {
     console.error(err);
-    res.status(httpStatus.INTERNAL_SERVER_ERROR).json({ success: false, message: "Server error" });
+    res
+      .status(httpStatus.INTERNAL_SERVER_ERROR)
+      .json({ success: false, message: "Server error" });
   }
 };
 
@@ -1310,8 +1326,10 @@ const retryPayment = async (req, res) => {
   try {
     const order = await orderSchema.findById(orderId);
     if (!order) {
-      res.status(httpStatus.BAD_REQUEST).json({ success: false, message: "No orders found" });
-      return
+      res
+        .status(httpStatus.BAD_REQUEST)
+        .json({ success: false, message: "No orders found" });
+      return;
     }
 
     if (!order.razorpayOrderId) {
@@ -1473,7 +1491,9 @@ const loadOrderView = async (req, res) => {
     res.render("userorderview", { order: order });
   } catch (error) {
     console.log(error);
-    res.status(httpStatus.INTERNAL_SERVER_ERROR).json({ success: false, message: "Error retrieving order" });
+    res
+      .status(httpStatus.INTERNAL_SERVER_ERROR)
+      .json({ success: false, message: "Error retrieving order" });
   }
 };
 
@@ -1815,7 +1835,9 @@ const applyCoupon = async (req, res) => {
     });
   } catch (error) {
     console.error("Error applying coupon:", error);
-    res.status(httpStatus.INTERNAL_SERVER_ERROR).json({ success: false, message: "Internal server error" });
+    res
+      .status(httpStatus.INTERNAL_SERVER_ERROR)
+      .json({ success: false, message: "Internal server error" });
   }
 };
 
@@ -1838,7 +1860,9 @@ const removeCoupon = async (req, res) => {
     });
   } catch (error) {
     console.error("Error removing coupon:", error);
-    res.status(httpStatus.INTERNAL_SERVER_ERROR).json({ success: false, message: "Internal server error" });
+    res
+      .status(httpStatus.INTERNAL_SERVER_ERROR)
+      .json({ success: false, message: "Internal server error" });
   }
 };
 
@@ -1914,7 +1938,9 @@ const loadWishlist = async (req, res) => {
     res.render("wishlist", { wishlistItems: wishlist.products });
   } catch (error) {
     console.error(error);
-    res.status(httpStatus.INTERNAL_SERVER_ERROR).json({ success: false, message: "Server error" });
+    res
+      .status(httpStatus.INTERNAL_SERVER_ERROR)
+      .json({ success: false, message: "Server error" });
   }
 };
 
@@ -1971,7 +1997,9 @@ const addToWishlist = async (req, res) => {
     res.json({ success: true, message: "Product added to wishlist" });
   } catch (error) {
     console.error("Error adding to wishlist:", error);
-    res.status(httpStatus.INTERNAL_SERVER_ERROR).json({ success: false, message: "Server error" });
+    res
+      .status(httpStatus.INTERNAL_SERVER_ERROR)
+      .json({ success: false, message: "Server error" });
   }
 };
 
