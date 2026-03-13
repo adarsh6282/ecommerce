@@ -1946,6 +1946,15 @@ const loadWishlist = async (req, res) => {
 
 const addToWishlist = async (req, res) => {
   try {
+
+    if (!req.session.userData || !req.session.userData.email) {
+      return res.status(httpStatus.UNAUTHORIZED).json({
+        success: false,
+        message: "Please login to add items to wishlist",
+        redirect: "/login",
+      });
+    }
+
     const { productId, size } = req.body;
     if (!productId) {
       return res
