@@ -152,9 +152,14 @@
               </div>
       
               <label for="category" class="pt-3">Category</label>
-              <select id="category" name="category" class="form-control mb-3"  value="<%= product.category %>">
-                <% categories.forEach(function(product) { %>
-                  <option value="<%= product.name %>"> <%=product.name%></option>
+              <select id="category" name="category" class="form-control mb-3">
+                <% categories.forEach(function(category) { %>
+                  <option 
+                    value="<%= category.name %>"
+                    <%= product.category.toString() === category._id.toString() ? 'selected' : '' %>
+                  >
+                    <%= category.name %>
+                  </option>
                 <% }) %>
               </select>
 
