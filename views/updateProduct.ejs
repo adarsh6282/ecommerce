@@ -238,7 +238,11 @@
               formData.append("tags", document.getElementById("tags").value.trim());
 
               croppedImages.forEach((image, index) => {
-                formData.append(`productImage${index + 1}`, image);
+                formData.append(
+                  `productImage${index + 1}`,
+                  image,
+                  `cropped-image-${index + 1}.png`
+                );
               });
 
               try {
