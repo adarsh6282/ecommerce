@@ -2268,6 +2268,7 @@ const logout = (req, res) => {
 module.exports = {
   registerUser,
   loadRegister,
+  getHealth,
   loadForgotPassword,
   forgotPassword,
   loadForgotVerify,
