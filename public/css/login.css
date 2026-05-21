@@ -89,6 +89,7 @@ input[type="password"] {
 .login-button {
     width: 100%;
     padding: 12px;
+    margin-top: 5px;
     background-color: #8B7355;
     color: white;
     border: none;

@@ -32,6 +32,9 @@
                     <p id="para" style="color: red;"><%= message %></p>
 
                     <button id="btn" type="submit" class="login-button">Login</button>
+                    <button type="button" class="login-button p" onclick="fillDemo()">
+                        Use Demo Credentials
+                    </button>
                 </form>
 
                 <div class="signup-link">
@@ -49,6 +52,11 @@
 
 
     <script>
+
+        function fillDemo() {
+            document.getElementById("email").value = "jango@gmail.com";
+            document.getElementById("password").value = "Adarsh123@";
+        }
 
         document.getElementById("form").addEventListener("submit", (e) => {
            

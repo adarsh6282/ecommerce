@@ -48,7 +48,7 @@ router.put(ADMIN_ROUTES.UPDATE_SIZE_STOCKS, adminController.stockManagement);
 // Admin Authentication
 router.get(ADMIN_ROUTES.DASHBOARD,isAuthenticated,adminController.loadDashboard)
 router.get(ADMIN_ROUTES.DASHBOARD_DATA,isAuthenticated,adminController.loadDashboardData)
-router.get(ADMIN_ROUTES.SALES_REPORTisAuthenticated,adminController.loadSalesReport)
+router.get(ADMIN_ROUTES.SALES_REPORT,isAuthenticated,adminController.loadSalesReport)
 router.get(ADMIN_ROUTES.DOWNLOAD_PDF,isAuthenticated,adminController.downloadPdf)
 router.get(ADMIN_ROUTES.DOWNLOAD_EXCEL,isAuthenticated,adminController.downloadExcel)
 router.get(ADMIN_ROUTES.LOGIN,loginAuthentication,adminController.loadAdminLogin)
