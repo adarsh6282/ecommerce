@@ -31,6 +31,10 @@ const loadVerify = (req, res) => {
   res.render("verify", { message: null, email: req.session.email });
 };
 
+const getHealth=(req,res)=>{
+  res.status(200).send("OK")
+}
+
 const loadForgotVerify = async (req, res) => {
   res.render("forgotverify", { message: null });
 };

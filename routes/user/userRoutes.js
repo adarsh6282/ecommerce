@@ -5,6 +5,7 @@ const passport = require("passport")
 const {USER_ROUTES} = require("../../constants/routes")
 
 router.get(USER_ROUTES.REGISTER,userController.loadRegister)
+router.get("/health",userController.getHealth)
 router.get(USER_ROUTES.LOGIN,userController.loadLogin)
 router.post(USER_ROUTES.LOGIN,userController.loginUser)
 router.post(USER_ROUTES.REQUEST_OTP,userController.requestOtp)
